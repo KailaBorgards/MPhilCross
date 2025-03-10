@@ -96,6 +96,7 @@ corrplot(cov_matrix, method = "color", type = "upper", tl.col = "black", tl.cex 
 ## Perhaps create seperate factors before putting them into one models
 ## #Air pollution=~ Ask if Tina has Zip codes
 
+## Model does not work yet
 CFA_model <-'
 Alcohol =~ alcohol + v290 + v291 + v292 + v293 + v294 + v295 + v296 + v297 + v298
 BMI =~ weight +height
