@@ -89,11 +89,10 @@ colnames(data_dwi)
 summary(data_dwi)
 describe(data_dwi)
 
-## covariance ## Ask why 
+## Class of columns
 sapply(data_dwi, class)  # Returns the class of each column
 # Only non-numeric columns
 sapply(data_dwi, class)[sapply(data_dwi,class)=="character"]
-
 
 '
 columns that are characters:
@@ -117,13 +116,13 @@ columns that are characters:
   C2.y      # Cattell 2 
   C3.y      # Cattell 3        
   C4.y      # Cattell 4
-  WMHI_NORM_TIV   #         
-  FA_mean          
-  MSD_mean         
-  MSK_mean 
-  NDI_mean        
-  ODI_mean        
-  Fiso_mean 
+  WMHI_NORM_TIV   #WM         
+  FA_mean         #WM 
+  MSD_mean        #WM 
+  MSK_mean        #WM 
+  NDI_mean        #WM
+  ODI_mean        #WM
+  Fiso_mean       #WM
 '
 
 #### Transform non-numeric data 
@@ -133,6 +132,7 @@ data_dwi$sex <- ifelse(data_dwi$sex == "F", 1, 0) # Transform (F = 1; M = 0)
 
 ## Relationship to Household members  
 data_dwi$v14 # Print -> TBD because answers are multiple
+#content of variable
 'How are the other people who live with you related to you? (YOU CAN SELECT MORE THAN ONE ANSWER) 	0. Not related
 1. Husband, wife or partner 
 2. Son and/or daughter (include step children) 
