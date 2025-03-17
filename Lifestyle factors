@@ -427,9 +427,14 @@ print(data_dwi$BMI)
 'WIP from here on below'
 ######## Computation of Factors for use of CFA###########
 ######################################################
-## Alcohol
+#### ALCOHOL
+alcohol <- data_dwi %>%
+  select(alcoholmodified, v290modified, )
+
 #alcoholmodified = scale of severity of drinking habit, larger numbers are more healthy habits, i.e. non drinkers
+data_dwi$alcoholmodified
 #v290 
+data_dwi$v290
 'About how often do you drink alcohol? 	1. Daily OR almost daily 
 2. Three OR four times a week 
 3. Once OR twice a week 
@@ -441,8 +446,24 @@ print(data_dwi$BMI)
 9. Not asked
 '
 ## Recode so that 7-9 are NA
+v290_mapping <- c("1" = 1,
+                  "2" = 2,
+                  "3" = 3,
+                  "4" = 4,
+                  "5" = 5,
+                  "6" = 6,
+                  "7" = NA,
+                  "8" = NA,
+                  "9" = NA)
 
-v291 
+data_dwi$v290modified <- v290_mapping[data_dwi$v290]
+data_dwi$v290modified <- as.numeric(data_dwi$v290modified)
+# alternative line of code: v290_mapping <- setNames(c(1:6, rep(NA, 3)), as.character(1:9))
+
+
+#v291
+data_dwi$v291
+
 v292 
 v293 
 v294 
