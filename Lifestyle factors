@@ -1,3 +1,5 @@
+
+
 ### Install packages
 install.packages("readxl", type ="binary", dependency = TRUE)# To read Excel files
 install.packages("openxlsx", type ="binary", dependency = TRUE)# To create Excel files
@@ -19,7 +21,7 @@ library(ggplot2)
 library(corrplot)
 library (lavaan)
 
-###### LOAD DATA #######
+###### LOAD DATA (do not repeat every time)#######
 ########################
 
 # Set Working directory
@@ -40,7 +42,7 @@ WmCog_data <- read_excel("Petar send/WM_Brain_LifeStyle_Table_withOutliers.xlsx"
 cardio <- read_excel("Changed Data/cardio_measures_exported_KB.xlsx") #CCID is listed as Observations
 colnames(cardio)[colnames(cardio) == "Observations"] <- "CCID" #Change of name to merge
 
-########### MERGE DATA ###############
+########### MERGE DATA (do not repeat every time)###############
 ######################################
 
 ## Lifestyle
@@ -60,6 +62,13 @@ data_full <- homeint %>%
 
 # Save merged dataset
 write.xlsx(data_full, "data_compiled.xlsx")
+
+########### READ DATA ###############
+######################################
+
+## Whole dataset
+data_full <- read_excel("data_compiled.xlsx") #includes all variables
+view(data_full)
 
 ## Select variables that I need based on manual selection of variables related to Livingston et al. (2024)
 # Create subset 
@@ -82,6 +91,245 @@ describe(data_dwi)
 
 ## covariance ## Ask why 
 sapply(data_dwi, class)  # Returns the class of each column
+# Only non-numeric columns
+sapply(data_dwi, class)[sapply(data_dwi,class)=="character"]
+
+
+'
+columns that are characters:
+  CCID # okay will not be used             
+  sex  # needs to be transformed        
+  elig_700  #okay will not be used           
+  v14       # Relationship to Houselhold members    
+  v73       # Which qualification do you have    
+  v96       # Attend any meetings/groups/classes?
+  v328      # Any of the following problems with eyes?
+  v333      # Line read - Left eye        
+  v334      # Line read - Right eye       
+  v335      # Line read - Both eye      
+  smoker    # Smoking summary       
+  alcohol   # Alcohol summary
+  HADS_dep_category #HADS depression category             
+  qual      # Highest qualification      
+  height    # Height        
+  weight    # Weight          
+  C1.y      # Cattell 1
+  C2.y      # Cattell 2 
+  C3.y      # Cattell 3        
+  C4.y      # Cattell 4
+  WMHI_NORM_TIV   #         
+  FA_mean          
+  MSD_mean         
+  MSK_mean 
+  NDI_mean        
+  ODI_mean        
+  Fiso_mean 
+'
+
+#### Transform non-numeric data 
+## Sex
+data_dwi$sex # Print
+data_dwi$sex <- ifelse(data_dwi$sex == "F", 1, 0) # Transform (F = 1; M = 0)
+
+## Relationship to Household members  
+data_dwi$v14 # Print -> TBD because answers are multiple
+'How are the other people who live with you related to you? (YOU CAN SELECT MORE THAN ONE ANSWER) 	0. Not related
+1. Husband, wife or partner 
+2. Son and/or daughter (include step children) 
+3. Brother and/or sister 
+4. Mother and/or father 
+5. Grandchild 
+6. Other related 
+7. Do not know
+8. No answer 
+'
+# EXCLUDE - For now (because uncertain how much incremental validity this question brings to social isolation)
+
+## Which qualification do you have
+data_dwi$v73 # Print -> Multiple answers, replace with "qual"?
+# EXCLUDE - For now (replace with "qual" which is only highest qualification)
+
+## Attend any meetings/groups/classes?
+data_dwi$v96 # Print -> TBD, Multiple answers
+'
+Do you attend meetings of any community, church/mosque or social groups such as WI, evening classes?
+  (YOU MAY ANSWER MORE THAN ONE)
+EACH QUESTION WILL BE FOLLOWED BY HOW OFTEN RATING	00. No clubs
+01. Political parties
+02. Trade unions (including student union)
+03. Environmental groups
+04. Tenants, residents group or neighbourhood watch
+05. Evening classes
+06. U3A
+07. Other adult learning
+08. Arts, music or singing group
+09. Charity, volunteer or community group
+11. Group for the elderly
+12. Youth group (guides, scouts, youth club)
+13. Women’s Institute
+14. Social club (rotary, working men’s)
+15. Sports club, gym, exercise group
+16. Church/religious group
+17. Other group or organisation 
+77. Don’t know
+88. No answer
+99. Not asked
+How often?	0. For less than yearly
+1. Occasionally if unpredictably or less than monthly
+2. Regularly (daily, weekly, monthly or predictably)
+7. Don’t know
+8. No answer
+9. Not asked
+'
+# What I did: create a sum score of how often they attended any meetings -> This will not be ideal becasue it means that people who went to two types of meetings occasionally (perhaps only yearly) will have the same score as someone who went to one meeting regularly (multiple times a week) but alas it's an approximation
+# Extract numbers after the colon and sum them (ignoring standalone numbers)
+data_dwi$v96modified <- sapply(strsplit(data_dwi$v96, ", "), function(x) {
+  # Keep only elements that contain ':'
+  valid_entries <- x[grepl(":", x)]
+  # Extract ALL numbers after ":" using gsub + regmatches + gregexpr
+  extracted_numbers <- as.numeric(unlist(regmatches(valid_entries, gregexpr("(?<=:)[0-9]+", valid_entries, perl = TRUE))))
+  # Sum up the extracted frequencies
+  sum(extracted_numbers, na.rm = TRUE)
+})
+
+
+## Any of the following problems with eyes?
+'Has a doctor told you that you have any of the following problems with your eyes? (YOU CAN SELECT MORE THAN ONE ANSWER) 	1. Diabetes related eye disease 
+2. Glaucoma 
+3. Injury OR trauma resulting in loss of vision 
+4. Cataract 
+5. Macular degeneration 
+6. Other serious eye condition 
+0. None of the above 
+7. Do not know 
+8. No answer
+9. Not asked	If 0 (None) goto IntroHC2/HC11
+'
+data_dwi$v328 # Print -> Only three participants with multiple answers and one .
+# What I did: 0 = No eye problems; Any other digit was coded as 1, meaning yes, problem with eyes
+# Convert the column to numeric, keeping "0" as 0 and everything else as 1
+data_dwi$v328_modified <- ifelse(data_dwi$v328 == "0", 0, 1)
+
+
+## Line read - Left eye 
+data_dwi$v333 # Print -> Coded in letters, need to be transformed
+'Left eye	A: Can’t read any line
+B: 4.0
+C: 2.0
+D: 1.4
+E: 1.2
+F: 1.0
+G: 0.8
+H: 0.6
+I: 0.5
+J: 0.4
+'
+# I will map J as 0 and I as 1 and so on; So a higher score should be negatively correlated with outcomes "higher vision loss is negatively associated with outcomes"
+# Ensure all letters are uppercase and remove spaces
+data_dwi$v333modified <- trimws(toupper(data_dwi$v333))
+# Define the reversed mapping (J=0, I=1, ..., A=9)
+reversed_mapping <- setNames(9:0, rev(LETTERS[1:10]))  
+# Convert column from letters to numbers, replacing unmatched values with NA
+data_dwi$v333modified <- as.numeric(reversed_mapping[data_dwi$v333modified])
+
+
+## Line read - Right eye
+data_dwi$v334 # Print -> Coded in letters, need to be transformed
+# I will map J as 0 and I as 1 and so on; So a higher score should be negatively correlated with outcomes "higher vision loss is negatively associated with outcomes"
+# Ensure all letters are uppercase and remove spaces
+data_dwi$v334modified <- trimws(toupper(data_dwi$v334))
+# Define the reversed mapping (J=0, I=1, ..., A=9)
+reversed_mapping <- setNames(9:0, rev(LETTERS[1:10]))  
+# Convert column from letters to numbers, replacing unmatched values with NA
+data_dwi$v334modified <- as.numeric(reversed_mapping[data_dwi$v334modified])
+
+
+# Line read - Both eyes
+data_dwi$v335 # Print -> Coded in letters, need to be transformed
+# I will map J as 0 and I as 1 and so on; So a higher score should be negatively correlated with outcomes "higher vision loss is negatively associated with outcomes"
+# Ensure all letters are uppercase and remove spaces
+data_dwi$v335modified <- trimws(toupper(data_dwi$v335))
+# Define the reversed mapping (J=0, I=1, ..., A=9)
+reversed_mapping <- setNames(9:0, rev(LETTERS[1:10]))  
+# Convert column from letters to numbers, replacing unmatched values with NA
+data_dwi$v335modified <- as.numeric(reversed_mapping[data_dwi$v335modified])
+
+ 
+# Smoking summary             
+data_dwi$smoker # Print -> Coded in words, needs to be transformed 
+
+# alcohol summary             
+data_dwi$alcohol # Print -> Coded in words, needs to be transformed
+
+#HADS depression category
+data_dwi$HADS_dep_category  # Print -> Coded in words, needs to be transformed
+
+#highest qualification
+data_dwi$qual # Print -> Coded in words, needs to be transformed
+
+
+##All the variables that are numeric but have NaN as string for NAs
+#####
+#Height    
+data_dwi$height    # Print -> Technically in numbers, so further inspection
+data_dwi$height[data_dwi$height == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$height<- as.numeric(data_dwi$height)
+
+#weight    
+data_dwi$weight    # Print -> Technically in numbers, so further inspection
+data_dwi$weight[data_dwi$weight == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$weight <- as.numeric(data_dwi$weight)
+
+# Cattell 1          
+data_dwi$C1.y     # Print -> Technically in numbers, so further inspection
+data_dwi$C1.y[data_dwi$C1.y == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$C1.y <- as.numeric(data_dwi$C1.y)
+
+# Cattell 2
+data_dwi$C2.y       # Print -> Technically in numbers, so further inspection
+data_dwi$C2.y[data_dwi$C2.y == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$C2.y <- as.numeric(data_dwi$C2.y)
+
+#Cattell 3
+data_dwi$C3.y       # Print -> Technically in numbers, so further inspection
+data_dwi$C3.y[data_dwi$C3.y == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$C3.y <- as.numeric(data_dwi$C3.y)
+
+# Cattell 4
+data_dwi$C4.y       # Print -> Technically in numbers, so further inspection
+data_dwi$C4.y[data_dwi$C4.y == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$C4.y <- as.numeric(data_dwi$C4.y)
+
+# White Matter measures
+data_dwi$WMHI_NORM_TIV     # Print -> Technically in numbers, so further inspection 
+data_dwi$WMHI_NORM_TIV[data_dwi$WMHI_NORM_TIV == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$WMHI_NORM_TIV <- as.numeric(data_dwi$WMHI_NORM_TIV)
+
+data_dwi$FA_mean           # Print -> Technically in numbers, so further inspection
+data_dwi$FA_mean[data_dwi$FA_mean == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$FA_mean <- as.numeric(data_dwi$FA_mean)
+
+data_dwi$MSD_mean          # Print -> Technically in numbers, so further inspection
+data_dwi$MSD_mean[data_dwi$MSD_mean == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$MSD_mean <- as.numeric(data_dwi$MSD_mean)
+
+data_dwi$MSK_mean  # Print -> Technically in numbers, so further inspection
+data_dwi$MSK_mean[data_dwi$MSK_mean == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$MSK_mean <- as.numeric(data_dwi$MSK_mean)
+
+data_dwi$NDI_mean  # Print -> Technically in numbers, so further inspection
+data_dwi$NDI_mean[data_dwi$NDI_mean == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$NDI_mean <- as.numeric(data_dwi$NDI_mean)
+
+data_dwi$ODI_mean  # Print -> Technically in numbers, so further inspection
+data_dwi$ODI_mean[data_dwi$ODI_mean == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$ODI_mean <- as.numeric(data_dwi$ODI_mean)
+
+data_dwi$Fiso_mean # Print -> Technically in numbers, so further inspection
+data_dwi$Fiso_mean[data_dwi$Fiso_mean == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$Fiso_mean <- as.numeric(data_dwi$Fiso_mean)
+
+
 numeric_data <- data_dwi[, sapply(data_dwi, is.numeric)]
 cov_matrix <- cor(numeric_data, use = "pairwise.complete.obs")
 corrplot(cov_matrix, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7)
@@ -94,9 +342,7 @@ corrplot(cov_matrix, method = "color", type = "upper", tl.col = "black", tl.cex 
 ##Need to compute BMI
 ## Correct the model and clean included variables 
 ## Perhaps create seperate factors before putting them into one models
-## #Air pollution=~ Ask if Tina has Zip codes
 
-## Model does not work yet
 CFA_model <-'
 Alcohol =~ alcohol + v290 + v291 + v292 + v293 + v294 + v295 + v296 + v297 + v298
 BMI =~ weight +height
@@ -113,6 +359,9 @@ TBI=~ v457 + v458 + v459 + v460 + v542 + v543 + v544 + v545
 Vision Problems=~ v326 + v327 + v328+ v329 + v330 + v331 + v332 + v333 + v334 + v335 + v621 + v668 + v669
 
 '
+
+#Air pollution=~
   
 ## CFA
   fit <- cfa(CFA_model, data = data_dwi)
+ 
