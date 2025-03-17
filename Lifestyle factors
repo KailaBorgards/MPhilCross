@@ -209,10 +209,20 @@ data_dwi$v96modified <- sapply(strsplit(data_dwi$v96, ", "), function(x) {
 9. Not asked	If 0 (None) goto IntroHC2/HC11
 '
 data_dwi$v328 # Print -> Only three participants with multiple answers and one .
-# What I did: 0 = No eye problems; Any other digit was coded as 1, meaning yes, problem with eyes
-# Convert the column to numeric, keeping "0" as 0 and everything else as 1
-data_dwi$v328_modified <- ifelse(data_dwi$v328 == "0", 0, 1)
+# What I did: 0 = No eye problem; 1-6 = 1 meaning yes, there is a problem; 7-9 = NA
+v328_mapping <- c("0" = 0,
+                  "1" = 1,
+                  "2" = 1,
+                  "3" = 1,
+                  "4" = 1,
+                  "5" = 1,
+                  "6" = 1,
+                  "7" = NA,
+                  "8" = NA,
+                  "9" = NA)
 
+data_dwi$v328_modified <- v328_mapping[data_dwi$v328]
+data_dwi$v328_modified <- as.numeric(data_dwi$v328_modified)
 
 ## Line read - Left eye 
 data_dwi$v333 # Print -> Coded in letters, need to be transformed
@@ -474,6 +484,7 @@ v298
 #######################################
 
 'To Do'
+#  add NAs To V333
 ## Correct the model and clean included variables 
 ## Perhaps create seperate factors before putting them into one models
 
