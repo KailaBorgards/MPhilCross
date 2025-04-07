@@ -440,13 +440,8 @@ I will start by listing which variables will be mapped to each factor befor re-c
 '
 
 #### ALCOHOL
-'Variabels: alcoholmodified, v290m, v291m, v293m, v294, v295, v296, v297, v298
-Done: alcoholmodified, v290m, v291m, v292, v293m
-To Do:  v294, v295, v296, v297, v298
+'Variabels: alcoholmodified, v290m, v291m, v293m, v294m, v295m, v296m, v297m
 '
-
-alcohol <- num_data %>%
-  select(alcoholmodified, v290m, )
 
 #alcoholmodified = scale of severity of drinking habit, larger numbers are more healthy habits, i.e. non drinkers
 num_data$alcoholmodified
@@ -518,19 +513,144 @@ v293_mapping <- c("66" = 0.5, "0" = 0, "1" = 1, "1.5" = 1.5, "2" = 2, "3" = 3, "
 num_data$v293m <- v293_mapping[as.character(num_data$v293)]
 num_data$v293m <- as.numeric(num_data$v293m)
 
+#v294
+unique(num_data$v294)
+'In an average week, how many glasses of white wine or champagne would you drink?
+66. Less than 1
+77. Do not know
+88. No answer 
+99. Not asked
+'
+# Re-code, 66 = 0.5 because less than one, rest of given answers NA
+v294_mapping <- c("66" = 0.5, "0" = 0, "1" = 1, "1.5" = 1.5, "2" = 2, "3" = 3, "4" = 4, 
+                  "5" = 5, "6" = 6, "7" = 7, "8" = 8, "9" = 9, "10" = 10, "12" = 12, 
+                  "14" = 14, "15" = 15, "18" = 18, "19" = 19, "20" = 20, "21" = 21, "28" = 28, 
+                  "30" = 30, "77" = NA, "88" = NA, "99" = NA)
+
+num_data$v294m <- v294_mapping[as.character(num_data$v294)]
+num_data$v294m <- as.numeric(num_data$v294m)
 
 
-v293 
-v294 
-v295 
-v296 
-v297 
-v298
+#v295 
+unique(num_data$v295)
+'In an average week how many pints of beer or cider would you drink? 
+66. Less than 1
+77. Do not know
+88. No answer 
+99. Not asked
+'
+# Re-code, 66 = 0.5 because less than one, rest of given answers NA
+v295_mapping <- c("66" = 0.5, "0" = 0, "0.5" = 0.5, "1" = 1, "1.5" = 1.5, "2" = 2, "2.5" = 2.5, "3" = 3, "3.5" = 3.5, "4" = 4, 
+                  "5" = 5, "6" = 6, "7" = 7, "8" = 8, "9" = 9, "10" = 10, "12" = 12, "13" = 13,
+                  "14" = 14, "15" = 15, "16" = 16,  "20" = 20, "21" = 21, 
+                 "100" = 100, "77" = NA, "88" = NA, "99" = NA)
+
+num_data$v295m <- v295_mapping[as.character(num_data$v295)]
+num_data$v295m <- as.numeric(num_data$v295m)
 
 
-# BMI
+# v296 
+sort(unique(num_data$v296))
+'In an average week how many standard measures of spirits or liqueurs would you drink? 
+66. Less than 1
+77. Do not know
+88. No answer 
+99. Not asked
+'
+# Re-code, 66 = 0.5 because less than one, rest of given answers NA
+v296_mapping <- c("66" = 0.5, "0" = 0, "1" = 1,  "2" = 2,  "3" = 3, "4" = 4, 
+                  "5" = 5, "6" = 6, "7" = 7, "8" = 8, "9" = 9, "10" = 10, "12" = 12, 
+                  "14" = 14,  "21" = 21, "25" = 25, "662" = NA,
+                   "77" = NA, "88" = NA, "99" = NA)
+
+num_data$v296m <- v296_mapping[as.character(num_data$v296)]
+num_data$v296m <- as.numeric(num_data$v296m)
+
+
+# v297
+sort(unique(num_data$v297m))
+'In an average week how many glasses of fortified wine would you drink? 
+66. Less than 1
+77. Do not know
+88. No answer 
+99. Not asked
+'
+# Re-code, 66 = 0.5 because less than one, rest of given answers NA
+v297_mapping <- c("66" = 0.5, "0" = 0, "1" = 1,  "2" = 2,  "3" = 3, "4" = 4, 
+                  "5" = 5, "6" = 6, "7" = 7, "8" = 8,
+                  "14" = 14, 
+                  "77" = NA, "88" = NA, "99" = NA)
+
+num_data$v297m <- v297_mapping[as.character(num_data$v297)]
+num_data$v297m <- as.numeric(num_data$v297m)
+
+# v298
+'Compared to 10 years ago, do you drink? 	
+1. More nowadays 
+2. About the same 
+3. Less nowadays 
+7. Do not know 
+8. No answer 
+9. Not asked
+'
+## Exclude for now - no added knowlege of how much they are consuming
+
+#### BMI - No further variable re-coding necessary
 
 # Depression
+'Variables: additional_HADS_depressionm, HADSmodified, v422m, v639m
+'
+#HADSmodified - DONE, see above
+sort(unique(num_data$HADSmodified))
+
+#HADS_depression
+sort(unique(num_data$HADS_depression))
+# Re-code, 9999 = NA
+vHD_mapping <- c( "0" = 0, "1" = 1,  "2" = 2,  "3" = 3, "4" = 4, 
+                  "5" = 5, "6" = 6, "7" = 7, "8" = 8, "9" = 9, "10" = 10, "11" = 11,
+                  "12" = 12, "13" = 13, "15" = 15,"17" = 17, 
+                   "9999" = NA)
+
+num_data$HADS_depressionm <- vHD_mapping[as.character(num_data$HADS_depression)]
+num_data$HADS_depressionm <- as.numeric(num_data$HADS_depressionm)
+
+#v422
+sort(unique(num_data$v422))
+'Depression requiring treatment	
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked'
+
+# Re-code, 9 = NA
+v422_mapping <- c( "1" = 1,  "2" = 2,
+                  "9" = NA)
+
+num_data$v422m <- v422_mapping[as.character(num_data$v422)]
+num_data$v422m <- as.numeric(num_data$v422m)
+
+#v639
+sort(unique(num_data$v639m))
+'Depression requiring treatment
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked
+'
+#Re-code so 7-9 = NA
+v639_mapping <- c( "1" = 1,  "2" = 2,
+                   "7"=NA,"8"=NA,"9" = NA)
+
+num_data$v639m <- v639_mapping[as.character(num_data$v639)]
+num_data$v639m <- as.numeric(num_data$v639m)
+
+#v640
+sort(unique(num_data$v640))
+'Age'
+# Exclude for now - No direct indication of severity of depression
+
 
 # Diabetes
 
@@ -562,12 +682,22 @@ v298
 
 
 # Alcohol
-'Variabels: alcohol, v290, v292, v293, v294, v295, v296, v297, v298'
+'Variabels: alcoholmodified, v290m, v291m, v293m, v294m, v295m, v296m, v297m
+'
 
 alcohol <- num_data %>%
-  select(alcoholmodified, v290modified, )
+  select(alcoholmodified, v290m,v291m, v293m, v294m, v295m, v296m, v297m)
+
+# BMI
+'Variables: BMI'
+BMI <- num_data %>%
+  select(BMI)
 
 # Depression
+'Variables: additional_HADS_depressionm, HADSmodified, v422m, v639m
+'
+Depression <- num_data %>%
+  select(HADS_depressionm, HADSmodified, v422m, v639m)
 
 # Diabetes
 
