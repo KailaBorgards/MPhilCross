@@ -73,9 +73,9 @@ view(data_full)
 ## Select variables that I need based on manual selection of variables related to Livingston et al. (2024)
 # Create subset 
 data <- subset(data_full, select = c(CCID, sex, elig_700, mmse_i, v1,v5,v13,v14,v16,v18,v73,v74,v75,v86,v87,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v106,v108,v241,v242,v244,v245,v246,v247,v249,v251,v252,v253,v255,v256,v257,v259,v260,v261,v290,v291,v292,v293,v294,v295,v296,v297,v298,v326,v327,v328,v329,v330,v331,v332,v333,v334,v335,v336,v337,v338,v339,v340,v341,v342,v343,v344,v345,v346,v347,v349,v350,v352,v352,v353,v354,v355,v356,v377,v378,v422,v457,v458,v459,v460,v542,v543,v544,v545,v620,v621,v624,v626,v627,v629,v630,v632,v633,v634,v639,v640,v668,v669,place,age_iv,smoker,alcohol,HADS_depression,HADS_dep_category,qual,
-                                                     GETABOUT_bikedist,GETABOUT_walkdist,DURGETABOUT_BIKE, DURGETABOUT_WALK,GETABOUTBIKEadj,GETABOUTWALKadj, DURGETABOUT,DURTV, TVadj, WALKMILES, CYCLEMILES, CARMILES, PUBLICMILES, CARadj, PUBLICadj, CYCLEadj, WALKadj,HOMEtime, WORKtime, DURJOB, COMMUTEtime, LEIStime, UNACCOUNTED_TIME, TOTMETHRS, TOTMETHRS_w_UNACCtime, TOTALtime, ACTMETS, SED_INTENSITY, LIGHT_INTENSITY, MODERATE_INTENSITY,VIGOROUS_INTENSITY, SLEEPtime, SEDtime, LIGHTtime, MODERATEtime, VIGOROUStime, HOME_METS, WORK_METS, LEIS_METS, COMMUTE_METS, leisure_missing_all_data, leisure_missing_freq, leisure_missing_duration, activities_done,PAEE, HOME_PAEE, WORK_PAEE,LEIS_PAEE,COMMUTE_PAEE, height, weight,
-                                                     C1.y,C2.y,C3.y,C4.y,
-                                                     WMHI_NORM_TIV, FA_mean, MSD_mean,MSK_mean, NDI_mean,ODI_mean, Fiso_mean))
+                                     GETABOUT_bikedist,GETABOUT_walkdist,DURGETABOUT_BIKE, DURGETABOUT_WALK,GETABOUTBIKEadj,GETABOUTWALKadj, DURGETABOUT,DURTV, TVadj, WALKMILES, CYCLEMILES, CARMILES, PUBLICMILES, CARadj, PUBLICadj, CYCLEadj, WALKadj,HOMEtime, WORKtime, DURJOB, COMMUTEtime, LEIStime, UNACCOUNTED_TIME, TOTMETHRS, TOTMETHRS_w_UNACCtime, TOTALtime, ACTMETS, SED_INTENSITY, LIGHT_INTENSITY, MODERATE_INTENSITY,VIGOROUS_INTENSITY, SLEEPtime, SEDtime, LIGHTtime, MODERATEtime, VIGOROUStime, HOME_METS, WORK_METS, LEIS_METS, COMMUTE_METS, leisure_missing_all_data, leisure_missing_freq, leisure_missing_duration, activities_done,PAEE, HOME_PAEE, WORK_PAEE,LEIS_PAEE,COMMUTE_PAEE, height, weight,
+                                     C1.y,C2.y,C3.y,C4.y,
+                                     WMHI_NORM_TIV, FA_mean, MSD_mean,MSK_mean, NDI_mean,ODI_mean, Fiso_mean))
 ## Subset of subjects that have DWI data
 data_dwi <- data[complete.cases(data[, c("FA_mean", "MSD_mean", "MSK_mean", "NDI_mean", "ODI_mean", "Fiso_mean")]), ]
 
@@ -84,7 +84,7 @@ data_dwi <- data[complete.cases(data[, c("FA_mean", "MSD_mean", "MSK_mean", "NDI
 #################################
 
 nrow(data_dwi)
-ncol(data_dwi)              
+ncol(data_dwi) #176             
 colnames(data_dwi)
 summary(data_dwi)
 describe(data_dwi)
@@ -93,6 +93,7 @@ describe(data_dwi)
 sapply(data_dwi, class)  # Returns the class of each column
 # Only non-numeric columns
 sapply(data_dwi, class)[sapply(data_dwi,class)=="character"]
+
 
 
 '
@@ -133,6 +134,10 @@ columns that are characters:
 ## Sex
 data_dwi$sex # Print
 data_dwi$sex <- ifelse(data_dwi$sex == "F", 1, 0) # Transform (F = 1; M = 0)
+
+#Eligible for 700
+data_dwi$elig_700 # Print
+data_dwi$elig_700 <- ifelse(data_dwi$elig_700 == "True", 1, 0)
 
 ## Relationship to Household members  
 data_dwi$v14 # Print -> TBD because answers are multiple
@@ -267,7 +272,7 @@ reversed_mapping <- setNames(9:0, rev(LETTERS[1:10]))
 # Convert column from letters to numbers, replacing unmatched values with NA
 data_dwi$v335modified <- as.numeric(reversed_mapping[data_dwi$v335modified])
 
- 
+
 # Smoking summary             
 unique(data_dwi$smoker) # Print unique values-> Coded in words, needs to be transformed 
 # rank the answers by severity 'Because it is cross sectional analysis, current smoker will be ranked as worse than non current'
@@ -283,7 +288,7 @@ smoke_mapping <- c("N/A" = NA,
                    "Occasional current, less than 100" = 5,
                    "Non current, less than 100" = 6,
                    "Never smoked" = 7
-                  )
+)
 data_dwi$smokermodified <- smoke_mapping[data_dwi$smoker]
 data_dwi$smokermodified <- as.numeric(data_dwi$smokermodified)
 
@@ -294,14 +299,14 @@ unique(data_dwi$alcohol) # Print -> Coded in words, needs to be transformed
 # Worse smoking habit with lowest score so that better smoking habits are positively correlated with outcomes
 ## Should I distinguish between current and past drinker?
 alcohol_mapping <- c("N/A" = NA,
-                   "NA" = NA,
-                   "Drinks daily" = 1,
-                   "Drink three/four times weekly" = 2,
-                   "Drinks once/twice weekly" = 3,
-                   "Occasional drinker" = 4,
-                   "Drinks one/three times monthly" = 5,
-                   "Past drinker" = 6,
-                   "Non drinker" = 7)
+                     "NA" = NA,
+                     "Drinks daily" = 1,
+                     "Drink three/four times weekly" = 2,
+                     "Drinks once/twice weekly" = 3,
+                     "Occasional drinker" = 4,
+                     "Drinks one/three times monthly" = 5,
+                     "Past drinker" = 6,
+                     "Non drinker" = 7)
 
 data_dwi$alcoholmodified <- alcohol_mapping[data_dwi$alcohol]
 data_dwi$alcoholmodified <- as.numeric(data_dwi$alcoholmodified)
@@ -310,11 +315,11 @@ data_dwi$alcoholmodified <- as.numeric(data_dwi$alcoholmodified)
 #HADS depression category
 unique(data_dwi$HADS_dep_category)  # Print -> Coded in words, needs to be transformed
 HADS_mapping <- c("Null" = NA,
-                     "NA" = NA,
-                     "Severe" = 1,
-                     "Moderate" = 2,
-                     "Mild" = 3,
-                     "Normal" = 4)
+                  "NA" = NA,
+                  "Severe" = 1,
+                  "Moderate" = 2,
+                  "Mild" = 3,
+                  "Normal" = 4)
 
 data_dwi$HADSmodified <- HADS_mapping[data_dwi$HADS_dep_category]
 data_dwi$HADSmodified <- as.numeric(data_dwi$HADSmodified)
@@ -322,10 +327,10 @@ data_dwi$HADSmodified <- as.numeric(data_dwi$HADSmodified)
 #highest qualification
 unique(data_dwi$qual) # Print -> Coded in words, needs to be transformed
 qual_mapping <- c("NA" = NA,
-                   "None" = 1,
-                   "GCSE/o-level" = 2,
-                   "A-level" = 3,
-                   "Degree" = 4)
+                  "None" = 1,
+                  "GCSE/o-level" = 2,
+                  "A-level" = 3,
+                  "Degree" = 4)
 
 data_dwi$qualmodified <- qual_mapping[data_dwi$qual]
 data_dwi$qualmodified <- as.numeric(data_dwi$qualmodified)
@@ -393,18 +398,26 @@ data_dwi$Fiso_mean[data_dwi$Fiso_mean == "NaN"] <- NA # So that NaN os no longer
 data_dwi$Fiso_mean <- as.numeric(data_dwi$Fiso_mean)
 
 
-#### Subset of only numeric variables 
-ncol(data_dwi) #187
+
+######### Subset of only numeric variables #########
+####################################################
+
+ncol(data_dwi) #185
 sapply(data_dwi, class) # Returns the class of each column
 # Only non-numeric columns
 sapply(data_dwi, class)[sapply(data_dwi,class)=="character"]
 
 ## Exclude numeric columns
 num_data <- data_dwi[, sapply(data_dwi, is.numeric)]
-ncol(num_data) #173 (because we excluded CCID, V14 and V73)
+ncol(num_data) #173 (because we excluded CCID,V14 and V73)
+
+##Columns that were modified for future reference
+grep("modified", names(num_data), value = TRUE)
 
 
-## Covariance matrix
+################# Covariance matrix ################
+####################################################
+
 cov_matrix <- cor(num_data, use = "pairwise.complete.obs")
 corrplot(cov_matrix, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7)
 
@@ -412,30 +425,36 @@ colnames(num_data)
 
 
 ######## Computation of new variables for use of CFA###########
-######################################################
+###############################################################
 
 ## BMI
-data_dwi$BMI <- data_dwi$weight / ((data_dwi$height/100)^2) #weight in kg, height in cm
-print(data_dwi$BMI)
+num_data$BMI <- num_data$weight / ((num_data$height/100)^2) #weight in kg, height in cm
+print(num_data$BMI)
 
 
+######## Correction of Variables for Factors for use of CFA###########
+#####################################################################
+'Description: Every varaible is coded differently. Some NAs are 9 or 8 or 7 or somehing else. 
+So, now I will go through all variables manually and code them so that they are uniformly coded.
+I will start by listing which variables will be mapped to each factor befor re-coding them, if necessary 
+'
 
-######################################################
-######################################################
-######################################################
-
-'WIP from here on below'
-######## Computation of Factors for use of CFA###########
-######################################################
 #### ALCOHOL
-alcohol <- data_dwi %>%
-  select(alcoholmodified, v290modified, )
+'Variabels: alcoholmodified, v290m, v291m, v293m, v294, v295, v296, v297, v298
+Done: alcoholmodified, v290m, v291m, v292, v293m
+To Do:  v294, v295, v296, v297, v298
+'
+
+alcohol <- num_data %>%
+  select(alcoholmodified, v290m, )
 
 #alcoholmodified = scale of severity of drinking habit, larger numbers are more healthy habits, i.e. non drinkers
-data_dwi$alcoholmodified
+num_data$alcoholmodified
+
 #v290 
-data_dwi$v290
-'About how often do you drink alcohol? 	1. Daily OR almost daily 
+num_data$v290
+'About how often do you drink alcohol? 
+1. Daily OR almost daily 
 2. Three OR four times a week 
 3. Once OR twice a week 
 4. One to three times a month 
@@ -446,25 +465,61 @@ data_dwi$v290
 9. Not asked
 '
 ## Recode so that 7-9 are NA
-v290_mapping <- c("1" = 1,
-                  "2" = 2,
-                  "3" = 3,
-                  "4" = 4,
-                  "5" = 5,
-                  "6" = 6,
-                  "7" = NA,
-                  "8" = NA,
-                  "9" = NA)
+v290_mapping <- c("1" = 1, "2" = 2, "3" = 3, "4" = 4, "5" = 5,
+                  "6" = 6, "7" = NA, "8" = NA, "9" = NA)
 
-data_dwi$v290modified <- v290_mapping[data_dwi$v290]
-data_dwi$v290modified <- as.numeric(data_dwi$v290modified)
-# alternative line of code: v290_mapping <- setNames(c(1:6, rep(NA, 3)), as.character(1:9))
-
+num_data$v290m <- v290_mapping[num_data$v290]
+num_data$v290m <- as.numeric(num_data$v290m)
 
 #v291
-data_dwi$v291
+num_data$v291
+'
+Did you previously drink alcohol? 
+1. Yes 
+2. No 
+7. Don’t know
+8. No answer
+9. Not asked
+'
+## Recode so that 7-9 are NA
+v291_mapping <- c("1" = 1, "2" = 2, "7" = NA, "8" = NA, "9" = NA)
+num_data$v291m <- v291_mapping[as.character(num_data$v291)]
+num_data$v291m <- as.numeric(num_data$v291m)
 
-v292 
+# v292 
+unique(num_data$v292)
+'Why did you stop drinking alcohol? 
+1. Illness OR ill health 
+2. Doctor’s advice 
+3. Health precaution 
+4. Financial reasons 
+5. Other reason 
+7. Do not know 
+8. No answer 
+9999. NA
+'
+## Exclude, does not directly indicate the intensity of drinking 
+
+#v293
+unique(num_data$v293)
+'In an average week, how many glasses of red wine would you drink? 
+Enter number OR 
+66. Less than 1
+77. Do not know
+88. No answer 
+99. Not asked
+'
+# Re-code, 66 = 0.5 because less than one, rest of given answers NA
+v293_mapping <- c("66" = 0.5, "0" = 0, "1" = 1, "1.5" = 1.5, "2" = 2, "3" = 3, "4" = 4, 
+                  "5" = 5, "6" = 6, "7" = 7, "8" = 8, "9" = 9, "10" = 10, "12" = 12, 
+                  "14" = 14, "15" = 15, "18" = 18, "20" = 20, "24" = 24, "28" = 28, 
+                  "30" = 30, "36" = 36, "42" = 42, "77" = NA, "88" = NA, "99" = NA)
+
+num_data$v293m <- v293_mapping[as.character(num_data$v293)]
+num_data$v293m <- as.numeric(num_data$v293m)
+
+
+
 v293 
 v294 
 v295 
@@ -499,10 +554,42 @@ v298
 
 # Air pollution
 'currently not included'
-  
 
-######### LIFESTYLE FACTORS ###########
-#######################################
+
+########### COMPUTATION OF LIFESTYLE FACTORS ###########
+########################################################
+'Description: Given the re-coded variables, the factors will be computed for subsequent CFA'
+
+
+# Alcohol
+'Variabels: alcohol, v290, v292, v293, v294, v295, v296, v297, v298'
+
+alcohol <- num_data %>%
+  select(alcoholmodified, v290modified, )
+
+# Depression
+
+# Diabetes
+
+# Education
+
+# Hearing Problems
+
+# High Blood Pressure
+
+# High cholesterol
+
+# Physical activity
+
+# Smoking
+
+# Social activities
+
+# TBI 
+
+# Vision Problems
+
+# Air pollution
 
 'To Do'
 ## Correct the model and clean included variables 
@@ -526,7 +613,7 @@ Vision Problems=~ v326 + v327 + v328+ v329 + v330 + v331 + v332 + v333 + v334 + 
 '
 
 #Air pollution=~
-  
+
 ## CFA
-  fit <- cfa(CFA_model, data = data_dwi)
- 
+fit <- cfa(CFA_model, data = data_dwi)
+
