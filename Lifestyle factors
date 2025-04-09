@@ -877,14 +877,209 @@ num_data$v355m <- as.numeric(num_data$v355m)
 
 
 # Physical activity
+'Variables: activities_done, ACTMETS, CARadj, CARMILES, COMMUTE_METS, COMMUTE_PAEE, 
+COMMUTEtime, CYCLEadj, CYCLEMILES, DURGETABOUT_BIKE, DURGETABOUT_WALK, DURJOB, DURTV, 
+GETABOUT, GETABOUT_bikedist, GETABOUT_walkdist, GETABOUTBIKadj, GETABOUTWALKadj, HOME_METS, 
+HOME_PAEE, HOMEtime, LEIS_METS, LEIS_PAEE, LEIStime, leisure_missing_all_data, 
+leisure_missing_duration, leisure_missing_freq, LIGHT_INTENSITY, LIGHTtime, MODERATE_INTENSITY,
+MODERATEtime, PAEE, PUBLICadj, PUBLICMILES, SED_INTENSITY, SEDtime, SLEEPtime, TOTALtime, 
+TOTMETHRS, TOTMETHRS_w_UNACCtime, TVadj, UNACCOUNTED_TIME, VIGOROUS_INTENSITY, VIGOROUStime, 
+WALKadj, WALKMILES, WORK_METS, WORK_PAEE, WORKtime'
+
+#activities_done
+#ACTMETS
+#CARadj
+#CARMILES
+#COMMUTE_METS
+#COMMUTE_PAEE
+#COMMUTEtime
+#CYCLEadj
+#CYCLEMILES
+#DURGETABOUT_BIKE
+#DURGETABOUT_WALK
+#DURJOB
+#DURTV
+#GETABOUT
+#GETABOUT_bikedist
+#GETABOUT_walkdist
+#GETABOUTBIKadj
+#GETABOUTWALKadj
+#HOME_METS
+#HOME_PAEE
+#HOMEtime
+#LEIS_METS
+#LEIS_PAEE
+#LEIStime
+#leisure_missing_all_data
+#leisure_missing_duration
+#leisure_missing_freq
+#LIGHT_INTENSITY
+#LIGHTtime
+#MODERATE_INTENSITY
+#MODERATEtime
+#PAEE
+#PUBLICadj
+#PUBLICMILES
+#SED_INTENSITY
+#SEDtime
+#SLEEPtime
+#TOTALtime
+#TOTMETHRS
+#TOTMETHRS_w_UNACCtime
+#TVadj
+#UNACCOUNTED_TIME
+#VIGOROUS_INTENSITY
+#VIGOROUStime
+#WALKadj
+#WALKMILES
+#WORK_METS
+#WORK_PAEE
+#WORKtime
 
 # Smoking
+'variables: smokermodified, v241, v242, v245, v246, v249, v251, v252, v253, v255, 
+v256, v257, v259, v260, v261, v244, v247
+Done:
+'
+#smokermodified
+table(num_data$smokermodified) # here: higher number, HEALTHIER Habit, need to recode!!!
+#v241
+'Do you smoke tobacco now? 
+1. Yes, on most or all days 
+2. Only occasionally 
+3. No 
+7. Don’t know
+8. No answer 
+9. Not asked
+'
+#v242
+'How old were you when you first started smoking on most days?
+Enter number OR 
+777. Don’t know
+888. No answer
+999. Not asked'
+
+#244
+'Did you previously smoke cigarettes on most or all days? 
+1. Yes 
+2. No 
+7. Don’t know
+8. No answer 
+9. Not asked
+'
+#v245
+'About how many cigarettes did you smoke on average each day?
+Enter number OR 
+66. Less than one a day OR
+77. Don’t know
+88. No answer
+99. Not asked 
+'
+#v246
+'How old were you when you last smoked cigarettes on most days? 	Enter number OR 
+777. Don’t know
+888. No answer
+999. Not asked'
+
+#247
+'About how many cigarettes do you smoke on average each day? (include hand-rolled cigarettes if smoked) 	Enter number OR 
+66. Less than one a day OR
+77. Don’t know
+88. No answer
+99. Not asked
+'
+#v249
+'Compared to 10 years ago do you smoke? 	
+1. More nowadays 
+2. About the same 
+3. Less nowadays 
+7. Don’t know
+8. No answer 
+9. Not asked'
+
+## HEre below is NON-CURRENT smoker
+#v251
+'In the past, how often have you smoked tobacco? 	
+1. Smoked on most or all days 
+2. Smoked occasionally 
+3. Just tried once or twice 
+4. I have never smoked 
+7. Don’t know
+8. No answer 
+9. Not asked'
+
+#v252
+'In your lifetime, have you smoked a total of at least 100 times? 	
+1. Yes 
+2. No 
+7. Don’t know
+8. No answer
+9. Not asked
+'
+#v253
+'How old were you when you first started smoking on most days? 	
+Enter age OR 
+777. Do not know
+888. No answer
+999. Not asked 
+'
+#v255
+'Did you previously smoke cigarettes on most or all days? 	
+1. Yes 
+2. No 
+7. Don’t know
+8. No answer
+9. Not asked
+'
+#v256
+'About how many cigarettes did you smoke on average each day? (include hand-rolled cigarettes if smoked) 	
+Enter number OR 
+66. Less than one a day OR
+77. Don’t know
+88. No answer
+99. Not asked
+'
+#v257
+'How old were you when you last smoked cigarettes on most days? 	
+Enter number OR 
+777.Do not know
+888. No answer
+999. Not asked 
+'
+#v259
+'Does anyone in your household smoke? 	
+1. No 
+2. Yes, one household member smokes 
+3. Yes, more than one household member smokes 
+7. Do not know 
+8. No answer 
+9. Not asked
+'
+#v260
+'At home, about how many hours per week are you exposed to other people’s tobacco smoke? 	
+Enter number OR 
+777. Do not know
+888. No answer
+999. Not asked
+'
+#v261
+'Outside of your home, about how many hours per week are you exposed to other people’s tobacco smoke? 	
+Enter number OR 
+777. Do not know
+888. No answer
+999. Not asked
+'
 
 # Social activities
+#v96 is modified
+'Variables: v106, v108, v14, v5, v86, v87, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98'
 
 # TBI 
+'variables: v457, v458, v459, v460, v542, v543, v544, v545'
 
 # Vision Problems
+'variables:, v326, v327, v328, v329, v330, v331, v332, v333, v334, v335, v621, v668, v669'
+# v 328, 333, 334, 335 are modified
 
 # Air pollution
 'currently not included'
@@ -953,6 +1148,9 @@ Cholesterol <- num_data %>%
 # Air pollution
 
 'To Do'
+## Make sure all variables are coded in the same direction i.e., higher values mean either better or worse habits!
+## Update Excel about which variables you ended up using
+## Create master Excel lisitng all new variables and how they were maipulated / if the were included or tbd or not
 ## Correct the model and clean included variables 
 ## Perhaps create seperate factors before putting them into one models
 
