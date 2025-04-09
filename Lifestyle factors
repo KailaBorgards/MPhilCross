@@ -780,8 +780,7 @@ num_data$v347m <- as.numeric(num_data$v347m)
 table(num_data$v620) # okay as is
 
 # High Blood Pressure
-'variable: v349, v352, v354, v629, v632, v634
-Done:
+'variable: v349m, v352m, v354m, v629m, v632m, v634m
 '
 #v349
 'High blood pressure (hypertension) 
@@ -931,12 +930,15 @@ Hearing <- num_data %>%
   select(v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620)
 
 # High Blood Pressure
+'variable: v349m, v352m, v354m, v629m, v632m, v634m
+' # potentially duplicates!!
+BP <- num_data %>%
+  select(v349m, v352m, v354m, v629m, v632m, v634m)
 
 # High cholesterol
 'Variables: v355m'
 Cholesterol <- num_data %>%
   select(v355m)
-
 
 # Physical activity
 
