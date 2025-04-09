@@ -1153,6 +1153,7 @@ Cholesterol <- num_data %>%
 ## Create master Excel lisitng all new variables and how they were maipulated / if the were included or tbd or not
 ## Correct the model and clean included variables 
 ## Perhaps create seperate factors before putting them into one models
+## Perhaps break code down into multiple scripts
 
 CFA_model <-'
 Alcohol =~ alcohol + v290 + v291 + v292 + v293 + v294 + v295 + v296 + v297 + v298
