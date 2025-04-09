@@ -325,16 +325,16 @@ data_dwi$HADSmodified <- HADS_mapping[data_dwi$HADS_dep_category]
 data_dwi$HADSmodified <- as.numeric(data_dwi$HADSmodified)
 
 #highest qualification
-unique(data_dwi$qual) # Print -> Coded in words, needs to be transformed
+(data_dwi$qual) # Print -> Coded in words, needs to be transformed
 qual_mapping <- c("NA" = NA,
                   "None" = 1,
-                  "GCSE/o-level" = 2,
+                  "GCSE/O-level" = 2,
                   "A-level" = 3,
                   "Degree" = 4)
 
 data_dwi$qualmodified <- qual_mapping[data_dwi$qual]
 data_dwi$qualmodified <- as.numeric(data_dwi$qualmodified)
-
+table(data_dwi$qualmodified)
 
 ##All the variables that are numeric but have NaN as string for NAs
 #####
@@ -653,10 +653,131 @@ sort(unique(num_data$v640))
 
 
 # Diabetes
+'variables: v377, v378 (excluded, cause just age)'
+num_data$v377
+'Diabetes (not during pregnancy)	
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked
+'
+v377_mapping <- c( "1" = 1,  "2" = 2,
+                   "7"=NA,"8"=NA,"9" = NA)
+
+num_data$v377m <- v377_mapping[as.character(num_data$v377)]
+num_data$v377m <- as.numeric(num_data$v377m)
+
 
 # Education
+'variables: qualmodified, v74'
+
+unique(num_data$qualmodified) # reverse coding, so higher scores mean less education
+qualm_mapping <- c( "1" = 4,  "2" = 3,
+                   "3"=2,"4"=1)
+
+num_data$qualm <- qualm_mapping[as.character(num_data$qualmodified)]
+num_data$qualm <- as.numeric(num_data$qualm)
+
+table(num_data$v74) #To be discussed, exclude for now (we could either subtract from current age
+# to have a measuer of how many years ago its been, given there is evidence, that if it is too long ago
+# it does not have en effect, or we use it as is but reverse coding)
+
 
 # Hearing Problems
+'variables: v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620
+'
+
+#v336
+unique(num_data$v336)
+'Do you have any difficulty with your hearing? 	
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked'
+#v337
+'Do these problems interfere with your day to day living	
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked'
+#v338
+'Do you find it difficult to follow a conversation if there is background noise (such as TV, radio, children playing)? 	
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked'
+#v339
+'Do you use a hearing aid most of the time? 
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked'
+
+# get rid of duplicate columns ot perform mutate()
+names(num_data)[duplicated(names(num_data))]
+names(num_data) <- make.names(names(num_data), unique = TRUE)
+
+## Correction, so that 7/8/9 are NA
+
+v336789_mapping <- c( "1" = 1,  "2" = 2,
+                   "7"=NA,"8"=NA,"9" = NA)
+
+num_data <- num_data %>%
+  mutate(across(
+    all_of(c("v336", "v337", "v338", "v339")),
+    ~ as.numeric(v336789_mapping[as.character(.)]),
+    .names = "{.col}m"  # creates v336m, v337m, etc.
+  ))
+
+## print to double check
+cols <- c("v336m", "v337m", "v338m", "v339m")
+
+for (col in cols) {
+  cat("\nUnique values in", col, ":\n")
+  print(unique(num_data[[col]]))
+}
+#v340
+'Can it be removed?' #Exclude, difficult to interpret
+
+#v342
+'Wearing a Hearing Aid' # exclude for now, difficult to interpret, could not be wearing one but still have issues, if included this should be conditional on whether they have issues
+
+#v344
+table(num_data$v344m) # invert
+'Number of tones heard 1-3'
+v344_mapping <- c( "1" = 3,  "2" = 2,
+                    "3"=1,"7"=NA, "8"=NA,"9"=NA)
+
+num_data$v344m <- v344_mapping[as.character(num_data$v344)]
+num_data$v344m <- as.numeric(num_data$v344m)
+
+#v345
+table(num_data$v345m) # invert, same mapping as v344
+num_data$v345m <- v344_mapping[as.character(num_data$v345)]
+num_data$v345m <- as.numeric(num_data$v345m)
+
+#v346
+table(num_data$v346m) # invert, same mapping as v344
+num_data$v346m <- v344_mapping[as.character(num_data$v346)]
+num_data$v346m <- as.numeric(num_data$v346m)
+
+#v347
+table(num_data$v347m) # invert, same mapping as v344
+num_data$v347m <- v344_mapping[as.character(num_data$v347)]
+num_data$v347m <- as.numeric(num_data$v347m)
+
+#v6220
+'Hearing problems that interfered with questioning	
+1. No
+2. To some extent
+3. To marked extent
+4. Deaf'
+table(num_data$v620) # okay as is
 
 # High Blood Pressure
 
@@ -700,10 +821,20 @@ Depression <- num_data %>%
   select(HADS_depressionm, HADSmodified, v422m, v639m)
 
 # Diabetes
+'Variables: v377'
+Diabetes <- num_data %>%
+  select(v377m)
 
 # Education
+'Variables: qualm'
+Education <- num_data %>%
+  select(qualm)
 
 # Hearing Problems
+'variables: v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620
+'
+Hearing <- num_data %>%
+  select(v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620)
 
 # High Blood Pressure
 
