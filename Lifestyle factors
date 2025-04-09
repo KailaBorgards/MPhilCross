@@ -543,7 +543,7 @@ unique(num_data$v295)
 v295_mapping <- c("66" = 0.5, "0" = 0, "0.5" = 0.5, "1" = 1, "1.5" = 1.5, "2" = 2, "2.5" = 2.5, "3" = 3, "3.5" = 3.5, "4" = 4, 
                   "5" = 5, "6" = 6, "7" = 7, "8" = 8, "9" = 9, "10" = 10, "12" = 12, "13" = 13,
                   "14" = 14, "15" = 15, "16" = 16,  "20" = 20, "21" = 21, 
-                 "100" = 100, "77" = NA, "88" = NA, "99" = NA)
+                  "100" = 100, "77" = NA, "88" = NA, "99" = NA)
 
 num_data$v295m <- v295_mapping[as.character(num_data$v295)]
 num_data$v295m <- as.numeric(num_data$v295m)
@@ -561,7 +561,7 @@ sort(unique(num_data$v296))
 v296_mapping <- c("66" = 0.5, "0" = 0, "1" = 1,  "2" = 2,  "3" = 3, "4" = 4, 
                   "5" = 5, "6" = 6, "7" = 7, "8" = 8, "9" = 9, "10" = 10, "12" = 12, 
                   "14" = 14,  "21" = 21, "25" = 25, "662" = NA,
-                   "77" = NA, "88" = NA, "99" = NA)
+                  "77" = NA, "88" = NA, "99" = NA)
 
 num_data$v296m <- v296_mapping[as.character(num_data$v296)]
 num_data$v296m <- as.numeric(num_data$v296m)
@@ -609,7 +609,7 @@ sort(unique(num_data$HADS_depression))
 vHD_mapping <- c( "0" = 0, "1" = 1,  "2" = 2,  "3" = 3, "4" = 4, 
                   "5" = 5, "6" = 6, "7" = 7, "8" = 8, "9" = 9, "10" = 10, "11" = 11,
                   "12" = 12, "13" = 13, "15" = 15,"17" = 17, 
-                   "9999" = NA)
+                  "9999" = NA)
 
 num_data$HADS_depressionm <- vHD_mapping[as.character(num_data$HADS_depression)]
 num_data$HADS_depressionm <- as.numeric(num_data$HADS_depressionm)
@@ -625,7 +625,7 @@ sort(unique(num_data$v422))
 
 # Re-code, 9 = NA
 v422_mapping <- c( "1" = 1,  "2" = 2,
-                  "9" = NA)
+                   "9" = NA)
 
 num_data$v422m <- v422_mapping[as.character(num_data$v422)]
 num_data$v422m <- as.numeric(num_data$v422m)
@@ -674,7 +674,7 @@ num_data$v377m <- as.numeric(num_data$v377m)
 
 unique(num_data$qualmodified) # reverse coding, so higher scores mean less education
 qualm_mapping <- c( "1" = 4,  "2" = 3,
-                   "3"=2,"4"=1)
+                    "3"=2,"4"=1)
 
 num_data$qualm <- qualm_mapping[as.character(num_data$qualmodified)]
 num_data$qualm <- as.numeric(num_data$qualm)
@@ -725,7 +725,7 @@ names(num_data) <- make.names(names(num_data), unique = TRUE)
 ## Correction, so that 7/8/9 are NA
 
 v336789_mapping <- c( "1" = 1,  "2" = 2,
-                   "7"=NA,"8"=NA,"9" = NA)
+                      "7"=NA,"8"=NA,"9" = NA)
 
 num_data <- num_data %>%
   mutate(across(
@@ -751,7 +751,7 @@ for (col in cols) {
 table(num_data$v344m) # invert
 'Number of tones heard 1-3'
 v344_mapping <- c( "1" = 3,  "2" = 2,
-                    "3"=1,"7"=NA, "8"=NA,"9"=NA)
+                   "3"=1,"7"=NA, "8"=NA,"9"=NA)
 
 num_data$v344m <- v344_mapping[as.character(num_data$v344)]
 num_data$v344m <- as.numeric(num_data$v344m)
@@ -780,8 +780,102 @@ num_data$v347m <- as.numeric(num_data$v347m)
 table(num_data$v620) # okay as is
 
 # High Blood Pressure
+'variable: v349, v352, v354, v629, v632, v634
+Done:
+'
+#v349
+'High blood pressure (hypertension) 
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked'
+
+#354
+'Is your HBP still uncontrolled?	
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked'
+# 629
+'High blood pressure (hypertension) (hypertension during pregnancy does not count here)	
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked'
+
+#634
+'Is your HBP still uncontrolled?	
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked'
+
+## Correction, so that 7/8/9 are NA
+
+BP_mapping <- c( "1" = 1,  "2" = 2,
+                      "7"=NA,"8"=NA,"9" = NA)
+
+num_data <- num_data %>%
+  mutate(across(
+    all_of(c("v349", "v354", "v629", "v634")),
+    ~ as.numeric(BP_mapping[as.character(.)]),
+    .names = "{.col}m"  # creates v354m, v349m, etc.
+  ))
+
+## print to double check
+cols <- c("v349m", "v354m", "v629m", "v634m")
+
+for (col in cols) {
+  cat("\nUnique values in", col, ":\n")
+  print(unique(num_data[[col]]))
+}
+
+
+#632
+'Did/do you receive medication for your High blood pressure (hypertension))	
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked'
+#352
+'Did/do you receive medication for your High blood pressure (hypertension))
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked'
+## Recode so that No is 2 and Yes is 1 (because higher value is worse for cognition)
+BP2_mapping <- c( "1" = 2,  "2" = 1,
+                   "7"=NA, "8"=NA,"9"=NA)
+#v352m
+num_data$v352m <- BP2_mapping[as.character(num_data$v352)]
+num_data$v352m <- as.numeric(num_data$v352m)
+#v632
+num_data$v632m <- BP2_mapping[as.character(num_data$v632)]
+num_data$v632m <- as.numeric(num_data$v632m)
 
 # High cholesterol
+'variables: v355m
+'
+#v355
+'High blood cholesterol (hyperlipidaemia)	
+1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked
+'
+v355_mapping <- c( "1" = 1,  "2" = 2,
+                   "7"=NA, "8"=NA,"9"=NA)
+
+num_data$v355m <- v355_mapping[as.character(num_data$v355)]
+num_data$v355m <- as.numeric(num_data$v355m)
+
 
 # Physical activity
 
@@ -839,6 +933,10 @@ Hearing <- num_data %>%
 # High Blood Pressure
 
 # High cholesterol
+'Variables: v355m'
+Cholesterol <- num_data %>%
+  select(v355m)
+
 
 # Physical activity
 
