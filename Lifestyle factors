@@ -896,16 +896,15 @@ num_data$LEIS_PAEE
 num_data$PAEE
 #WORK_PAEE
 num_data$WORK_PAEE
-
-
+#Test
+num_data$LEIS_PAEE + num_data$HOME_PAEE + num_data$WORK_PAEE == num_data$PAEE # sometimes true, trying to understand whether PAEE is a composite score of all three PAEEs
+'can stay the way it is with higher scores, indicating healthier lifestyle'
 # Smoking
-'variables: smokermodified, v241, v242, v245, v246, v249, v251, v252, v253, v255, 
-v256, v257, v259, v260, v261, v244, v247
-Done:
+'variables: smokermodified, v241m, v242m, v244m, v245m, v247m, v251m, v252m, v253m, v255m, v256m, v259m, v260m, v261m
 '
 #smokermodified
-table(num_data$smokermodified) # here: higher number, HEALTHIER Habit, need to recode!!!
-#v241
+table(num_data$smokermodified) # here: higher number, HEALTHIER Habit, need to recode the rest accordingly!!!
+#v241 # recode so 7/8/9 are NAs
 'Do you smoke tobacco now? 
 1. Yes, on most or all days 
 2. Only occasionally 
@@ -914,14 +913,25 @@ table(num_data$smokermodified) # here: higher number, HEALTHIER Habit, need to r
 8. No answer 
 9. Not asked
 '
-#v242
+v241_mapping <- c( "1" = 1,  "2" = 2,
+                   "3"=3,"7"=NA, "8"=NA,"9"=NA)
+
+num_data$v241m <- v241_mapping[as.character(num_data$v241)]
+num_data$v241m <- as.numeric(num_data$v241m)
+
+#v242 #NA coding + rest okay, because older = "healthier" so higher number is healthier, which is ok
 'How old were you when you first started smoking on most days?
 Enter number OR 
 777. Don’t know
 888. No answer
 999. Not asked'
+num_data$v242m <- num_data$v242
+num_data$v242m[num_data$v242 == 777] <- NA
+num_data$v242m[num_data$v242 == 888] <- NA
+num_data$v242m[num_data$v242 == 999] <- NA
+table(num_data$v242m)
 
-#244
+#244 # recode for NAs
 'Did you previously smoke cigarettes on most or all days? 
 1. Yes 
 2. No 
@@ -929,7 +939,13 @@ Enter number OR
 8. No answer 
 9. Not asked
 '
-#v245
+num_data$v244m <- num_data$v244
+num_data$v244m[num_data$v244 == 7] <- NA
+num_data$v244m[num_data$v244 == 8] <- NA
+num_data$v244m[num_data$v244 == 9] <- NA
+table(num_data$v244m)
+
+#v245 # recode NAs + invert because here higher number means unhealthier habit
 'About how many cigarettes did you smoke on average each day?
 Enter number OR 
 66. Less than one a day OR
@@ -937,19 +953,35 @@ Enter number OR
 88. No answer
 99. Not asked 
 '
+num_data$v245m <- num_data$v245 * -1
+num_data$v245m[num_data$v245 == 66] <- 0.5
+num_data$v245m[num_data$v245 == 77] <- NA
+num_data$v245m[num_data$v245 == 88] <- NA
+num_data$v245m[num_data$v245 == 99] <- NA # does not always work, double check
+
+table(num_data$v245m)
+
 #v246
 'How old were you when you last smoked cigarettes on most days? 	Enter number OR 
 777. Don’t know
 888. No answer
 999. Not asked'
+## Exclude for now, would really only make sense, if calculated as how long ago in comparison to now
 
-#247
+#247 # recode NAs + invert because here higher number means unhealthier habit
 'About how many cigarettes do you smoke on average each day? (include hand-rolled cigarettes if smoked) 	Enter number OR 
 66. Less than one a day OR
 77. Don’t know
 88. No answer
 99. Not asked
 '
+num_data$v247m <- num_data$v247 * -1
+num_data$v247m[num_data$v247 == 66] <- 0.5
+num_data$v247m[num_data$v247 == 77] <- NA
+num_data$v247m[num_data$v247 == 88] <- NA
+num_data$v247m[num_data$v247 == 99] <- NA # does not always work, double check
+table(num_data$v247m)
+
 #v249
 'Compared to 10 years ago do you smoke? 	
 1. More nowadays 
@@ -958,9 +990,10 @@ Enter number OR
 7. Don’t know
 8. No answer 
 9. Not asked'
+## Exclude for now, only gives us insight in relation to how long they smoked before
 
 ## HEre below is NON-CURRENT smoker
-#v251
+#v251 # recode NAs
 'In the past, how often have you smoked tobacco? 	
 1. Smoked on most or all days 
 2. Smoked occasionally 
@@ -969,8 +1002,13 @@ Enter number OR
 7. Don’t know
 8. No answer 
 9. Not asked'
+num_data$v251m <- num_data$v251 
+num_data$v251m[num_data$v251 == 7] <- NA
+num_data$v251m[num_data$v251 == 8] <- NA
+num_data$v251m[num_data$v251 == 9] <- NA # does not always work, double check
+table(num_data$v251m)
 
-#v252
+#v252 # recoded NAs
 'In your lifetime, have you smoked a total of at least 100 times? 	
 1. Yes 
 2. No 
@@ -978,6 +1016,12 @@ Enter number OR
 8. No answer
 9. Not asked
 '
+num_data$v252m <- num_data$v252 
+num_data$v252m[num_data$v252 == 7] <- NA
+num_data$v252m[num_data$v252 == 8] <- NA
+num_data$v252m[num_data$v252 == 9] <- NA # does not always work, double check
+table(num_data$v252m)
+
 #v253
 'How old were you when you first started smoking on most days? 	
 Enter age OR 
@@ -985,7 +1029,14 @@ Enter age OR
 888. No answer
 999. Not asked 
 '
-#v255
+num_data$v253m <- num_data$v253
+num_data$v253m[num_data$v253 == 777] <- NA
+num_data$v253m[num_data$v253 == 888] <- NA
+num_data$v253m[num_data$v253 == 999] <- NA
+num_data$v253m[num_data$v253 == 9999] <- NA
+table(num_data$v253m)
+
+#v255 # NAs
 'Did you previously smoke cigarettes on most or all days? 	
 1. Yes 
 2. No 
@@ -993,7 +1044,13 @@ Enter age OR
 8. No answer
 9. Not asked
 '
-#v256
+num_data$v255m <- num_data$v255 
+num_data$v255m[num_data$v255 == 7] <- NA
+num_data$v255m[num_data$v255 == 8] <- NA
+num_data$v255m[num_data$v255 == 9] <- NA 
+table(num_data$v255m)
+
+#v256 # NAs and invert
 'About how many cigarettes did you smoke on average each day? (include hand-rolled cigarettes if smoked) 	
 Enter number OR 
 66. Less than one a day OR
@@ -1001,6 +1058,13 @@ Enter number OR
 88. No answer
 99. Not asked
 '
+num_data$v256m <- num_data$v256 * -1
+num_data$v256m[num_data$v256 == 77] <- NA
+num_data$v256m[num_data$v256 == 88] <- NA
+num_data$v256m[num_data$v256 == 99] <- NA 
+num_data$v256m[num_data$v256 == 66] <- 0.5 
+table(num_data$v256m)
+
 #v257
 'How old were you when you last smoked cigarettes on most days? 	
 Enter number OR 
@@ -1008,7 +1072,9 @@ Enter number OR
 888. No answer
 999. Not asked 
 '
-#v259
+## Exclude for now, would really only make sense, if calculated as how long ago in comparison to now
+
+#v259 # NAs + inverted
 'Does anyone in your household smoke? 	
 1. No 
 2. Yes, one household member smokes 
@@ -1017,20 +1083,37 @@ Enter number OR
 8. No answer 
 9. Not asked
 '
-#v260
+num_data$v259m <- num_data$v259 * -1
+num_data$v259m[num_data$v259 == 7] <- NA
+num_data$v259m[num_data$v259 == 8] <- NA
+num_data$v259m[num_data$v259 == 9] <- NA 
+table(num_data$v259m)
+
+#v260 # NAs + inverted
 'At home, about how many hours per week are you exposed to other people’s tobacco smoke? 	
 Enter number OR 
 777. Do not know
 888. No answer
 999. Not asked
 '
-#v261
+num_data$v260m <- num_data$v260 * -1
+num_data$v260m[num_data$v260 == 777] <- NA
+num_data$v260m[num_data$v260 == 888] <- NA
+num_data$v260m[num_data$v260 == 999] <- NA 
+table(num_data$v260m)
+
+#v261 #Nas + inverted
 'Outside of your home, about how many hours per week are you exposed to other people’s tobacco smoke? 	
 Enter number OR 
 777. Do not know
 888. No answer
 999. Not asked
 '
+num_data$v261m <- num_data$v261 * -1
+num_data$v261m[num_data$v261 == 777] <- NA
+num_data$v261m[num_data$v261 == 888] <- NA
+num_data$v261m[num_data$v261 == 999] <- NA 
+table(num_data$v261m)
 
 # Social activities
 #v96 is modified
@@ -1313,8 +1396,14 @@ Cholesterol <- num_data %>%
   select(v355m)
 
 # Physical activity
+'variables: HOME_PAEE, LEIS_PAEE, PAEE, WORK_PAEE'
+PhysicalActivity <- num_data %>%
+  select(HOME_PAEE, LEIS_PAEE, PAEE, WORK_PAEE)
 
 # Smoking
+'variables:smokermodified, v241m, v242m, v244m, v245m, v247m, v251m, v252m, v253m, v255m, v256m, v259m, v260m, v261m'
+Smoking <- num_data %>%
+  select(smokermodified, v241m, v242m, v244m, v245m, v247m, v251m, v252m, v253m, v255m, v256m, v259m, v260m, v261m)
 
 # Social activities
 
@@ -1323,6 +1412,7 @@ Cholesterol <- num_data %>%
 # Vision Problems
 
 # Air pollution
+'currently excluded'
 
 'To Do'
 ## Make sure all variables are coded in the same direction i.e., higher values mean either better or worse habits!
