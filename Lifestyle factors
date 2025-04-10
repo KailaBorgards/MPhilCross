@@ -885,56 +885,18 @@ leisure_missing_duration, leisure_missing_freq, LIGHT_INTENSITY, LIGHTtime, MODE
 MODERATEtime, PAEE, PUBLICadj, PUBLICMILES, SED_INTENSITY, SEDtime, SLEEPtime, TOTALtime, 
 TOTMETHRS, TOTMETHRS_w_UNACCtime, TVadj, UNACCOUNTED_TIME, VIGOROUS_INTENSITY, VIGOROUStime, 
 WALKadj, WALKMILES, WORK_METS, WORK_PAEE, WORKtime'
-
-#activities_done
-#ACTMETS
-#CARadj
-#CARMILES
-#COMMUTE_METS
-#COMMUTE_PAEE
-#COMMUTEtime
-#CYCLEadj
-#CYCLEMILES
-#DURGETABOUT_BIKE
-#DURGETABOUT_WALK
-#DURJOB
-#DURTV
-#GETABOUT
-#GETABOUT_bikedist
-#GETABOUT_walkdist
-#GETABOUTBIKadj
-#GETABOUTWALKadj
-#HOME_METS
-#HOME_PAEE
-#HOMEtime
-#LEIS_METS
+'Potential new variables:
+PAEE - physical activity energy expenditure (aggregate measure of energy burned'
+#source: https://www.epic-norfolk.org.uk/2019/07/27/keeping-active-or-becoming-more-active-in-middle-and-older-age-linked-to-longer-life/
+#HOME_PAEE # higher value = more burned/ healthier
+num_data$HOME_PAEE
 #LEIS_PAEE
-#LEIStime
-#leisure_missing_all_data
-#leisure_missing_duration
-#leisure_missing_freq
-#LIGHT_INTENSITY
-#LIGHTtime
-#MODERATE_INTENSITY
-#MODERATEtime
+num_data$LEIS_PAEE
 #PAEE
-#PUBLICadj
-#PUBLICMILES
-#SED_INTENSITY
-#SEDtime
-#SLEEPtime
-#TOTALtime
-#TOTMETHRS
-#TOTMETHRS_w_UNACCtime
-#TVadj
-#UNACCOUNTED_TIME
-#VIGOROUS_INTENSITY
-#VIGOROUStime
-#WALKadj
-#WALKMILES
-#WORK_METS
+num_data$PAEE
 #WORK_PAEE
-#WORKtime
+num_data$WORK_PAEE
+
 
 # Smoking
 'variables: smokermodified, v241, v242, v245, v246, v249, v251, v252, v253, v255, 
@@ -1072,53 +1034,229 @@ Enter number OR
 
 # Social activities
 #v96 is modified
-'Variables: v106, v108, v14, v5, v86, v87, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98'
-#v106
-#v108
-#v14
-#v5
-#v86
-#v87
-#v89
-#v90
-#v91
-#v92
-#v93
-#v94
-#v95
-#v96
-#v97
-#v98
+'Variables: v14, v5, v86, v87, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98'
 
+#v14
+'How are the other people who live with you related to you? (YOU CAN SELECT MORE THAN ONE ANSWER) 	0. Not related
+1. Husband, wife or partner 
+2. Son and/or daughter (include step children) 
+3. Brother and/or sister 
+4. Mother and/or father 
+5. Grandchild 
+6. Other related 
+7. Do not know
+8. No answer 
+'
+#v5
+'What is your marital status?	1. Single (never married)
+2. Married / civil partnership
+3. Co-habiting
+4. Divorced/ separated
+5. Widowed
+'
+#v86
+'Do you have any children of your own?	1. No
+2. Yes (include adopted children)
+'
+#v87
+'How many	Enter number of living children'
+#v89
+'Do any of your close relatives live in the area or within easy reach of the area	1. No relatives
+2. No relatives in area
+3. Yes
+'
+#v90
+'How often do you see any of your relatives to speak to?	1. Never
+2. Daily
+3. 2-3 times a week
+4. At least weekly
+5. At least monthly
+6. Less often
+7. Don’t know
+8. No answer
+9. Not asked
+'
+#v91
+'How often do you speak to your relatives over the phone?	1. Never
+2. Daily
+3. 2-3 times a week
+4. At least weekly
+5. At least monthly
+6. Less often
+7. Don’t know
+8. No answer
+9. Not asked
+'
+#v92
+'How often do you text/email your relatives?	1. Never
+2. Daily
+3. 2-3 times a week
+4. At least weekly
+5. At least monthly
+6. Less often
+7. Don’t know
+8. No answer
+9. Not asked
+'
+#v93
+'How often do you visit friends or family or they visit you? 	01. Almost daily 
+02. 2-4 times a week 
+03. About once a week
+04. About once a month
+05. Once every few months 
+06. Never or almost never 
+07. No friends/family outside household 
+77. Do not know
+88. No answer 
+'
+#v94
+'How often do you speak to your friends over the phone?	1. Never
+2. Daily
+3. 2-3 times a week
+4. At least weekly
+5. At least monthly
+6. Less often
+7. Don’t know
+8. No answer
+9. Not asked
+'
+#v95
+'How often do you text/email your friends?	1. Never
+2. Daily
+3. 2-3 times a week
+4. At least weekly
+5. At least monthly
+6. Less often
+7. Don’t know
+8. No answer
+9. Not asked
+'
+#v96modified
+'look above again'
+#v97
+'Do you have friends in this community?	1. No
+2. Yes
+7. Don’t know
+8. No answer
+9. Not asked
+'
+#v98
+'How often do you see any of your neighbours to have a chat or do something with?	0. No neighbours
+1. Never
+2. Daily
+3. 2-3 times a week
+4. At least weekly
+5. At least monthly
+6. Less often
+7. Don’t know
+8. No answer
+9. Not asked
+'
 
 # TBI 
 'variables: v457, v458, v459, v460, v542, v543, v544, v545'
 #v457
-#v458
+'Have you ever had a serious head injury and been unconscious after it? (Have you ever been knocked out?)	1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked
+'
 #v459
+'Number of times	Numerical answer'
 #v460
+'Did you lose consciousness for more than 2 hours?	1. No
+2. Yes
+'
 #v542
+'Have you fallen in the last year? (By falling I mean unintentionally coming to the floor, or ground or lower level such as landing on a chair or stair.)	1. No
+2. Yes
+7. Don’t know
+8. No answer
+9. Not asked
+'
 #v543
+'Have you ever fallen?	1. No
+2. Yes
+7. Don’t know
+8. No answer
+9. Not asked
+'
 #v544
+'If you have ever fallen, when was the last time you fell?
+  MM
+77 Don’t know
+88 No answer
+99 Not asked '
+
 #v545
+'How many times	Numeric entry
+77 Don’t know
+88 No answer
+99 Not asked'
 
 # Vision Problems
 'variables:, v326, v327, v328, v329, v330, v331, v332, v333, v334, v335, v621, v668, v669'
 # v 328, 333, 334, 335 are modified
 #v326
+'Do you wear glasses or contact lenses to correct your vision? 	1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked
+'
 #v327
-#v328
+'What age did you first start to wear glasses or contact lenses? 	Enter number OR 
+77. Do not know 
+88. No answer
+99. Not asked
+'
+#v328m
 #v329
+'Do you have any other problems with your eyes or eyesight? 	1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked
+'
 #v330
+'Do any of these eye problems interfere with day to day living	1. No 
+2. Yes 
+7. Don’t know
+8. No answer
+9. Not asked
+'
 #v331
+'Are you happy for me to do this?	1. Yes
+2. No, blind in both eyes
+3. No, some vision loss doesn’t want to
+4. No, can’t read (volunteered)
+5. No, other reason
+'
 #v332
-#v333
-#v334
-#v335
-#v621
-#v668
-#v669
+'RESPONDENT USING GLASSES/CONTACT LENSES	1. Yes
+2. No'
+# potentially exclude
 
+#v333m
+#v334m
+#v335m
+#v621
+'Poor/no eyesight that interfered with reading, writing or drawing	1. No
+2. To some extent
+3. To marked extent
+4. Blind
+'
+#v668
+'Have you ever had an operation on your eyes?	1. No
+2. Yes
+'
+#v669
+'What kind? (IF MORE THAN ONE INCLUDES OTHER OPERATION THEN CODE THAT) 	1. Cataract surgery
+2. Laser treatment
+3. Corneal grafts
+4. Other operations (including eye prosthesis)
+'
 
 # Air pollution
 'currently not included'
