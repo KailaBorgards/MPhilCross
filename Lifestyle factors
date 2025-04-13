@@ -68,7 +68,7 @@ write.xlsx(data_full, "data_compiled.xlsx")
 
 ## Whole dataset
 data_full <- read_excel("data_compiled.xlsx") #includes all variables
-view(data_full)
+
 
 ## Select variables that I need based on manual selection of variables related to Livingston et al. (2024)
 # Create subset 
@@ -816,7 +816,7 @@ table(num_data$v620) # okay as is
 ## Correction, so that 7/8/9 are NA
 
 BP_mapping <- c( "1" = 1,  "2" = 2,
-                      "7"=NA,"8"=NA,"9" = NA)
+                 "7"=NA,"8"=NA,"9" = NA)
 
 num_data <- num_data %>%
   mutate(across(
@@ -850,7 +850,7 @@ for (col in cols) {
 9. Not asked'
 ## Recode so that No is 2 and Yes is 1 (because higher value is worse for cognition)
 BP2_mapping <- c( "1" = 2,  "2" = 1,
-                   "7"=NA, "8"=NA,"9"=NA)
+                  "7"=NA, "8"=NA,"9"=NA)
 #v352m
 num_data$v352m <- BP2_mapping[as.character(num_data$v352)]
 num_data$v352m <- as.numeric(num_data$v352m)
@@ -1116,11 +1116,12 @@ num_data$v261m[num_data$v261 == 999] <- NA
 table(num_data$v261m)
 
 # Social activities
-#v96 is modified
-'Variables: v14, v5, v86, v87, v89, v90, v91, v92, v93, v94, v95, v96, v97, v98'
+'Variables: v5m, v86, v87m, v89, v90m, v91m,v92m,v93m,v94m, v95m, v96modified, v97m, v98m
+'
 
-#v14
-'How are the other people who live with you related to you? (YOU CAN SELECT MORE THAN ONE ANSWER) 	0. Not related
+#v14 # Excluded above
+'How are the other people who live with you related to you? (YOU CAN SELECT MORE THAN ONE ANSWER) 	
+0. Not related
 1. Husband, wife or partner 
 2. Son and/or daughter (include step children) 
 3. Brother and/or sister 
@@ -1130,25 +1131,47 @@ table(num_data$v261m)
 7. Do not know
 8. No answer 
 '
+
+table(data_dwi$v14)
 #v5
-'What is your marital status?	1. Single (never married)
+'What is your marital status?	
+1. Single (never married)
 2. Married / civil partnership
 3. Co-habiting
 4. Divorced/ separated
 5. Widowed
 '
-#v86
-'Do you have any children of your own?	1. No
+table(num_data$v5)
+# Recode, so higher = healthier (Tbd whether divorced is better than widowed)
+num_data$v5m[num_data$v5 == 1] <- 1
+num_data$v5m[num_data$v5 == 2] <- 5
+num_data$v5m[num_data$v5 == 3] <- 4 
+num_data$v5m[num_data$v5 == 4] <- 3
+num_data$v5m[num_data$v5 == 5] <- 2 
+table(num_data$v5m)
+
+
+#v86 # okay
+'Do you have any children of your own?	
+1. No
 2. Yes (include adopted children)
 '
+
 #v87
 'How many	Enter number of living children'
-#v89
+table(num_data$v87) # 9999 = NA, rest is okay
+num_data$v87m <- num_data$v87 
+num_data$v87m[num_data$v87 == 9999] <- NA 
+table(num_data$v87m)
+
+#v89 # okay
 'Do any of your close relatives live in the area or within easy reach of the area	1. No relatives
 2. No relatives in area
 3. Yes
 '
-#v90
+table(num_data$v89)
+
+#v90 # recode NAs and reorder
 'How often do you see any of your relatives to speak to?	1. Never
 2. Daily
 3. 2-3 times a week
@@ -1159,7 +1182,21 @@ table(num_data$v261m)
 8. No answer
 9. Not asked
 '
-#v91
+table(num_data$v90)
+num_data$v90m <- num_data$v90 
+num_data$v90m[num_data$v90 == 1] <- 1 
+num_data$v90m[num_data$v90 == 2] <- 6
+num_data$v90m[num_data$v90 == 3] <- 5 
+num_data$v90m[num_data$v90 == 4] <- 4 
+num_data$v90m[num_data$v90 == 5] <- 3 
+num_data$v90m[num_data$v90 == 6] <- 2 
+num_data$v90m[num_data$v90 == 7] <- NA 
+num_data$v90m[num_data$v90 == 8] <- NA 
+num_data$v90m[num_data$v90 == 9] <- NA 
+table(num_data$v90m)
+
+
+#v91 # recode
 'How often do you speak to your relatives over the phone?	1. Never
 2. Daily
 3. 2-3 times a week
@@ -1170,6 +1207,19 @@ table(num_data$v261m)
 8. No answer
 9. Not asked
 '
+table(num_data$v91)
+num_data$v91m <- num_data$v91 
+num_data$v91m[num_data$v91 == 1] <- 1 
+num_data$v91m[num_data$v91 == 2] <- 6
+num_data$v91m[num_data$v91 == 3] <- 5 
+num_data$v91m[num_data$v91 == 4] <- 4 
+num_data$v91m[num_data$v91 == 5] <- 3 
+num_data$v91m[num_data$v91 == 6] <- 2 
+num_data$v91m[num_data$v91 == 7] <- NA 
+num_data$v91m[num_data$v91 == 8] <- NA 
+num_data$v91m[num_data$v91 == 9] <- NA 
+table(num_data$v91m)
+
 #v92
 'How often do you text/email your relatives?	1. Never
 2. Daily
@@ -1181,6 +1231,19 @@ table(num_data$v261m)
 8. No answer
 9. Not asked
 '
+table(num_data$v92)
+num_data$v92m <- num_data$v92
+num_data$v92m[num_data$v92 == 1] <- 1 
+num_data$v92m[num_data$v92 == 2] <- 6
+num_data$v92m[num_data$v92 == 3] <- 5 
+num_data$v92m[num_data$v92 == 4] <- 4 
+num_data$v92m[num_data$v92 == 5] <- 3 
+num_data$v92m[num_data$v92 == 6] <- 2 
+num_data$v92m[num_data$v92 == 7] <- NA 
+num_data$v92m[num_data$v92 == 8] <- NA 
+num_data$v92m[num_data$v92 == 9] <- NA 
+table(num_data$v92m)
+
 #v93
 'How often do you visit friends or family or they visit you? 	01. Almost daily 
 02. 2-4 times a week 
@@ -1192,6 +1255,19 @@ table(num_data$v261m)
 77. Do not know
 88. No answer 
 '
+table(num_data$v93)
+num_data$v93m <- num_data$v93
+num_data$v93m[num_data$v93 == 1] <- 6
+num_data$v93m[num_data$v93 == 2] <- 5
+num_data$v93m[num_data$v93 == 3] <- 4 
+num_data$v93m[num_data$v93 == 4] <- 3 
+num_data$v93m[num_data$v93 == 5] <- 2 
+num_data$v93m[num_data$v93 == 6] <- 1 
+num_data$v93m[num_data$v93 == 7] <- 7 #discuss whether highest, but it should mean that they live with them, so they see them the most, on the other hand it means small social circle 
+num_data$v93m[num_data$v93 ==77] <- NA 
+num_data$v93m[num_data$v93 ==88] <- NA 
+table(num_data$v93m)
+
 #v94
 'How often do you speak to your friends over the phone?	1. Never
 2. Daily
@@ -1203,6 +1279,19 @@ table(num_data$v261m)
 8. No answer
 9. Not asked
 '
+table(num_data$v94)
+num_data$v94m <- num_data$v94
+num_data$v94m[num_data$v94 == 1] <- 1 
+num_data$v94m[num_data$v94 == 2] <- 6
+num_data$v94m[num_data$v94 == 3] <- 5 
+num_data$v94m[num_data$v94 == 4] <- 4 
+num_data$v94m[num_data$v94 == 5] <- 3 
+num_data$v94m[num_data$v94 == 6] <- 2 
+num_data$v94m[num_data$v94 == 7] <- NA 
+num_data$v94m[num_data$v94 == 8] <- NA 
+num_data$v94m[num_data$v94 == 9] <- NA 
+table(num_data$v94m)
+
 #v95
 'How often do you text/email your friends?	1. Never
 2. Daily
@@ -1214,8 +1303,21 @@ table(num_data$v261m)
 8. No answer
 9. Not asked
 '
+table(num_data$v95)
+num_data$v95m <- num_data$v95
+num_data$v95m[num_data$v95 == 1] <- 1 
+num_data$v95m[num_data$v95 == 2] <- 6
+num_data$v95m[num_data$v95 == 3] <- 5 
+num_data$v95m[num_data$v95 == 4] <- 4 
+num_data$v95m[num_data$v95 == 5] <- 3 
+num_data$v95m[num_data$v95 == 6] <- 2 
+num_data$v95m[num_data$v95 == 7] <- NA 
+num_data$v95m[num_data$v95 == 8] <- NA 
+num_data$v95m[num_data$v95 == 9] <- NA 
+table(num_data$v95m)
 #v96modified
-'look above again'
+'Number of meetings attended per week'
+#okay
 #v97
 'Do you have friends in this community?	1. No
 2. Yes
@@ -1223,8 +1325,15 @@ table(num_data$v261m)
 8. No answer
 9. Not asked
 '
+table(num_data$v97)
+num_data$v97m <- num_data$v97
+num_data$v97m[num_data$v97 == 7] <- NA 
+num_data$v97m[num_data$v97 == 8] <- NA 
+num_data$v97m[num_data$v97 == 9] <- NA 
+table(num_data$v97m)
 #v98
-'How often do you see any of your neighbours to have a chat or do something with?	0. No neighbours
+'How often do you see any of your neighbours to have a chat or do something with?	
+0. No neighbours
 1. Never
 2. Daily
 3. 2-3 times a week
@@ -1233,11 +1342,24 @@ table(num_data$v261m)
 6. Less often
 7. Don’t know
 8. No answer
-9. Not asked
-'
+9. Not asked'
+
+table(num_data$v98)
+num_data$v98m <- num_data$v98
+num_data$v98m[num_data$v98 == 1] <- 1 
+num_data$v98m[num_data$v98 == 2] <- 6
+num_data$v98m[num_data$v98 == 3] <- 5 
+num_data$v98m[num_data$v98 == 4] <- 4 
+num_data$v98m[num_data$v98 == 5] <- 3 
+num_data$v98m[num_data$v98 == 6] <- 2
+num_data$v98m[num_data$v98 == 0] <- 0 
+num_data$v98m[num_data$v98 == 7] <- NA 
+num_data$v98m[num_data$v98 == 8] <- NA 
+num_data$v98m[num_data$v98 == 9] <- NA 
+table(num_data$v98m)
 
 # TBI 
-'variables: v457, v458, v459, v460, v542, v543, v544, v545'
+'variables: v457m, v459m, v542m, v543m, v545m'
 #v457
 'Have you ever had a serious head injury and been unconscious after it? (Have you ever been knocked out?)	1. No 
 2. Yes 
@@ -1245,19 +1367,43 @@ table(num_data$v261m)
 8. No answer
 9. Not asked
 '
-#v459
+num_data$v457m <- num_data$v457
+num_data$v457m[num_data$v457 == 1] <- 2 
+num_data$v457m[num_data$v457 == 2] <- 1
+num_data$v457m[num_data$v457 == 7] <- NA 
+num_data$v457m[num_data$v457 == 8] <- NA 
+num_data$v457m[num_data$v457 == 9] <- NA 
+table(num_data$v457m)
+
+#v459 # invert and NA
 'Number of times	Numerical answer'
-#v460
+table(num_data$v459)
+num_data$v459m <- num_data$v459 *-1
+num_data$v459m[num_data$v459 == 9999] <- NA 
+table(num_data$v459m)
+
+#v460 # only 1 and NA for answers, so exclude, because no variation
 'Did you lose consciousness for more than 2 hours?	1. No
 2. Yes
 '
+table(num_data$v460)
+
 #v542
-'Have you fallen in the last year? (By falling I mean unintentionally coming to the floor, or ground or lower level such as landing on a chair or stair.)	1. No
+'Have you fallen in the last year? (By falling I mean unintentionally coming to the floor, or ground or lower level such as landing on a chair or stair.)	
+1. No
 2. Yes
 7. Don’t know
 8. No answer
 9. Not asked
 '
+num_data$v542m <- num_data$v542
+num_data$v542m[num_data$v542 == 1] <- 2 
+num_data$v542m[num_data$v542 == 2] <- 1
+num_data$v542m[num_data$v542 == 7] <- NA 
+num_data$v542m[num_data$v542 == 8] <- NA 
+num_data$v542m[num_data$v542 == 9] <- NA 
+table(num_data$v542m)
+
 #v543
 'Have you ever fallen?	1. No
 2. Yes
@@ -1265,7 +1411,15 @@ table(num_data$v261m)
 8. No answer
 9. Not asked
 '
-#v544
+num_data$v543m <- num_data$v543
+num_data$v543m[num_data$v543 == 1] <- 2 
+num_data$v543m[num_data$v543 == 2] <- 1
+num_data$v543m[num_data$v543 == 7] <- NA 
+num_data$v543m[num_data$v543 == 8] <- NA 
+num_data$v543m[num_data$v543 == 9] <- NA 
+table(num_data$v543m)
+
+#v544 #Exclude, unclear how to interpret, if better or worse that they fell long ago
 'If you have ever fallen, when was the last time you fell?
   MM
 77 Don’t know
@@ -1277,6 +1431,11 @@ table(num_data$v261m)
 77 Don’t know
 88 No answer
 99 Not asked'
+num_data$v545m <- num_data$v545 * -1
+num_data$v545m[num_data$v545 == 77] <- NA 
+num_data$v545m[num_data$v545 == 88] <- NA 
+num_data$v545m[num_data$v545 == 9999] <- NA 
+table(num_data$v545m)
 
 # Vision Problems
 'variables:, v326, v327, v328, v329, v330, v331, v332, v333, v334, v335, v621, v668, v669'
@@ -1288,6 +1447,7 @@ table(num_data$v261m)
 8. No answer
 9. Not asked
 '
+table(num_data$v326)
 #v327
 'What age did you first start to wear glasses or contact lenses? 	Enter number OR 
 77. Do not know 
@@ -1354,7 +1514,7 @@ table(num_data$v261m)
 'Variabels: alcoholmodified, v290m, v291m, v293m, v294m, v295m, v296m, v297m
 '
 
-alcohol <- num_data %>%
+Alcohol <- num_data %>%
   select(alcoholmodified, v290m,v291m, v293m, v294m, v295m, v296m, v297m)
 
 # BMI
@@ -1406,8 +1566,12 @@ Smoking <- num_data %>%
   select(smokermodified, v241m, v242m, v244m, v245m, v247m, v251m, v252m, v253m, v255m, v256m, v259m, v260m, v261m)
 
 # Social activities
+SocialIsolation <- num_data %>%
+  select(v5m, v86, v87m, v89, v90m, v91m,v92m,v93m,v94m, v95m, v96modified, v97m, v98m)
 
 # TBI 
+TBI <- num_data %>%
+  select( v457m, v459m, v542m, v543m, v545m)
 
 # Vision Problems
 
@@ -1443,4 +1607,3 @@ Vision Problems=~ v326 + v327 + v328+ v329 + v330 + v331 + v332 + v333 + v334 + 
 
 ## CFA
 fit <- cfa(CFA_model, data = data_dwi)
-
