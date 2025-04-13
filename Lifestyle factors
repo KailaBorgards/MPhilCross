@@ -242,33 +242,33 @@ H: 0.6
 I: 0.5
 J: 0.4
 '
-# I will map J as 0 and I as 1 and so on; So a higher score should be negatively correlated with outcomes "higher vision loss is negatively associated with outcomes"
+# I will map A as 0 and B as 2 and so on; So a higher score should be positively correlated with outcomes "higher vision retention is positively associated with outcomes"
 # Ensure all letters are uppercase and remove spaces
 data_dwi$v333modified <- trimws(toupper(data_dwi$v333))
-# Define the reversed mapping (J=0, I=1, ..., A=9)
+# Define the reversed mapping (J=0, I=1, ..., A=9) # did not work
 reversed_mapping <- setNames(9:0, rev(LETTERS[1:10]))  
 # Convert column from letters to numbers, replacing unmatched values with NA
 data_dwi$v333modified <- as.numeric(reversed_mapping[data_dwi$v333modified])
-
+table(data_dwi$v334)
 
 ## Line read - Right eye
 data_dwi$v334 # Print -> Coded in letters, need to be transformed
-# I will map J as 0 and I as 1 and so on; So a higher score should be negatively correlated with outcomes "higher vision loss is negatively associated with outcomes"
+# I will map A as 0 and B as 2 and so on; So a higher score should be positively correlated with outcomes "higher vision retention is positively associated with outcomes"
 # Ensure all letters are uppercase and remove spaces
 data_dwi$v334modified <- trimws(toupper(data_dwi$v334))
 # Define the reversed mapping (J=0, I=1, ..., A=9)
-reversed_mapping <- setNames(9:0, rev(LETTERS[1:10]))  
+reversed_mapping <- setNames(9:0, rev(LETTERS[1:10]))  #did not work
 # Convert column from letters to numbers, replacing unmatched values with NA
 data_dwi$v334modified <- as.numeric(reversed_mapping[data_dwi$v334modified])
 
 
 # Line read - Both eyes
 data_dwi$v335 # Print -> Coded in letters, need to be transformed
-# I will map J as 0 and I as 1 and so on; So a higher score should be negatively correlated with outcomes "higher vision loss is negatively associated with outcomes"
+# I will map A as 0 and B as 2 and so on; So a higher score should be positively correlated with outcomes "higher vision retention is positively associated with outcomes"
 # Ensure all letters are uppercase and remove spaces
 data_dwi$v335modified <- trimws(toupper(data_dwi$v335))
 # Define the reversed mapping (J=0, I=1, ..., A=9)
-reversed_mapping <- setNames(9:0, rev(LETTERS[1:10]))  
+reversed_mapping <- setNames(9:0, rev(LETTERS[1:10]))  #did not work
 # Convert column from letters to numbers, replacing unmatched values with NA
 data_dwi$v335modified <- as.numeric(reversed_mapping[data_dwi$v335modified])
 
@@ -1438,9 +1438,10 @@ num_data$v545m[num_data$v545 == 9999] <- NA
 table(num_data$v545m)
 
 # Vision Problems
-'variables:, v326, v327, v328, v329, v330, v331, v332, v333, v334, v335, v621, v668, v669'
+'variables: v328m, v329m, v330m, v333modified, v334modified, v335modified, v621m
+'
 # v 328, 333, 334, 335 are modified
-#v326
+#v326 # exclude, only interpretable if person has vision imparment in the first place
 'Do you wear glasses or contact lenses to correct your vision? 	1. No 
 2. Yes 
 7. Don’t know
@@ -1448,20 +1449,36 @@ table(num_data$v545m)
 9. Not asked
 '
 table(num_data$v326)
-#v327
+
+#v327 #Exclude hard to interpet, unless we know when vision impaiment set on
 'What age did you first start to wear glasses or contact lenses? 	Enter number OR 
 77. Do not know 
 88. No answer
 99. Not asked
 '
 #v328m
+# What I did: 0 = No eye problem; 1-6 = 1 meaning yes, there is a problem; 7-9 = NA
+table(num_data$v328_modified)
+num_data$v328m <- num_data$v328_modified 
+num_data$v328m[num_data$v328_modified == 0] <- 2 
+num_data$v328m[num_data$v328_modified == 1] <- 1 
+table(num_data$v328m)
+
 #v329
 'Do you have any other problems with your eyes or eyesight? 	1. No 
 2. Yes 
 7. Don’t know
 8. No answer
-9. Not asked
-'
+9. Not asked'
+
+num_data$v329m <- num_data$v329
+num_data$v329m[num_data$v329 == 1] <- 2 
+num_data$v329m[num_data$v329 == 2] <- 1
+num_data$v329m[num_data$v329 == 7] <- NA 
+num_data$v329m[num_data$v329 == 8] <- NA 
+num_data$v329m[num_data$v329 == 9] <- NA 
+table(num_data$v329m)
+
 #v330
 'Do any of these eye problems interfere with day to day living	1. No 
 2. Yes 
@@ -1469,7 +1486,15 @@ table(num_data$v326)
 8. No answer
 9. Not asked
 '
-#v331
+num_data$v330m <- num_data$v330
+num_data$v330m[num_data$v330 == 1] <- 2 
+num_data$v330m[num_data$v330 == 2] <- 1
+num_data$v330m[num_data$v330 == 7] <- NA 
+num_data$v330m[num_data$v330 == 8] <- NA 
+num_data$v330m[num_data$v330 == 9] <- NA 
+table(num_data$v330m)
+
+#v331 # Exclude, consent
 'Are you happy for me to do this?	1. Yes
 2. No, blind in both eyes
 3. No, some vision loss doesn’t want to
@@ -1479,22 +1504,27 @@ table(num_data$v326)
 #v332
 'RESPONDENT USING GLASSES/CONTACT LENSES	1. Yes
 2. No'
-# potentially exclude
+#  exclude, only helpful ig we know if there is vision impariment
 
-#v333m
-#v334m
-#v335m
-#v621
+#v333modified # okay
+#v334modified # okay
+#v335modified # okay
+
+#v621 # invert
 'Poor/no eyesight that interfered with reading, writing or drawing	1. No
 2. To some extent
 3. To marked extent
 4. Blind
 '
-#v668
+table(num_data$v621)
+num_data$v621m <- num_data$v621 *-1
+table(num_data$v621m)
+
+#v668 # Exclude, Hard to interpret
 'Have you ever had an operation on your eyes?	1. No
 2. Yes
 '
-#v669
+#v669 # Exclude Hard to interpret
 'What kind? (IF MORE THAN ONE INCLUDES OTHER OPERATION THEN CODE THAT) 	1. Cataract surgery
 2. Laser treatment
 3. Corneal grafts
@@ -1574,6 +1604,10 @@ TBI <- num_data %>%
   select( v457m, v459m, v542m, v543m, v545m)
 
 # Vision Problems
+'variables: v328m, v329m, v330m, v333modified, v334modified, v335modified, v621m
+'
+Vision <- num_data %>%
+  select( v328m, v329m, v330m, v333modified, v334modified, v335modified, v621m)
 
 # Air pollution
 'currently excluded'
