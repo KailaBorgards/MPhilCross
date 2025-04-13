@@ -437,6 +437,7 @@ print(num_data$BMI)
 'Description: Every varaible is coded differently. Some NAs are 9 or 8 or 7 or somehing else. 
 So, now I will go through all variables manually and code them so that they are uniformly coded.
 I will start by listing which variables will be mapped to each factor befor re-coding them, if necessary 
+The premise will be to have higher scores for healthier habits
 '
 
 #### ALCOHOL
@@ -510,8 +511,10 @@ v293_mapping <- c("66" = 0.5, "0" = 0, "1" = 1, "1.5" = 1.5, "2" = 2, "3" = 3, "
                   "14" = 14, "15" = 15, "18" = 18, "20" = 20, "24" = 24, "28" = 28, 
                   "30" = 30, "36" = 36, "42" = 42, "77" = NA, "88" = NA, "99" = NA)
 
-num_data$v293m <- v293_mapping[as.character(num_data$v293)]
-num_data$v293m <- as.numeric(num_data$v293m)
+num_data$v293minv <- v293_mapping[as.character(num_data$v293)]
+num_data$v293minv <- as.numeric(num_data$v293minv)
+num_data$v293m <- num_data$v293minv*-1
+table(num_data$v293m)
 
 #v294
 unique(num_data$v294)
@@ -527,9 +530,10 @@ v294_mapping <- c("66" = 0.5, "0" = 0, "1" = 1, "1.5" = 1.5, "2" = 2, "3" = 3, "
                   "14" = 14, "15" = 15, "18" = 18, "19" = 19, "20" = 20, "21" = 21, "28" = 28, 
                   "30" = 30, "77" = NA, "88" = NA, "99" = NA)
 
-num_data$v294m <- v294_mapping[as.character(num_data$v294)]
-num_data$v294m <- as.numeric(num_data$v294m)
-
+num_data$v294minv <- v294_mapping[as.character(num_data$v294)]
+num_data$v294minv <- as.numeric(num_data$v294minv)
+num_data$v294m <- num_data$v294minv*-1
+table(num_data$v294m)
 
 #v295 
 unique(num_data$v295)
@@ -545,9 +549,10 @@ v295_mapping <- c("66" = 0.5, "0" = 0, "0.5" = 0.5, "1" = 1, "1.5" = 1.5, "2" = 
                   "14" = 14, "15" = 15, "16" = 16,  "20" = 20, "21" = 21, 
                   "100" = 100, "77" = NA, "88" = NA, "99" = NA)
 
-num_data$v295m <- v295_mapping[as.character(num_data$v295)]
-num_data$v295m <- as.numeric(num_data$v295m)
-
+num_data$v295minv <- v295_mapping[as.character(num_data$v295)]
+num_data$v295minv <- as.numeric(num_data$v295minv)
+num_data$v295m <- num_data$v295minv*-1
+table(num_data$v295m)
 
 # v296 
 sort(unique(num_data$v296))
@@ -563,9 +568,10 @@ v296_mapping <- c("66" = 0.5, "0" = 0, "1" = 1,  "2" = 2,  "3" = 3, "4" = 4,
                   "14" = 14,  "21" = 21, "25" = 25, "662" = NA,
                   "77" = NA, "88" = NA, "99" = NA)
 
-num_data$v296m <- v296_mapping[as.character(num_data$v296)]
-num_data$v296m <- as.numeric(num_data$v296m)
-
+num_data$v296minv <- v296_mapping[as.character(num_data$v296)]
+num_data$v296minv <- as.numeric(num_data$v296minv)
+num_data$v296m <- num_data$v296minv*-1
+table(num_data$v296m)
 
 # v297
 sort(unique(num_data$v297m))
@@ -581,8 +587,10 @@ v297_mapping <- c("66" = 0.5, "0" = 0, "1" = 1,  "2" = 2,  "3" = 3, "4" = 4,
                   "14" = 14, 
                   "77" = NA, "88" = NA, "99" = NA)
 
-num_data$v297m <- v297_mapping[as.character(num_data$v297)]
-num_data$v297m <- as.numeric(num_data$v297m)
+num_data$v297minv <- v297_mapping[as.character(num_data$v297)]
+num_data$v297minv <- as.numeric(num_data$v297minv)
+num_data$v297m <- num_data$v297minv*-1
+table(num_data$v297m)
 
 # v298
 'Compared to 10 years ago, do you drink? 	
@@ -595,7 +603,10 @@ num_data$v297m <- as.numeric(num_data$v297m)
 '
 ## Exclude for now - no added knowlege of how much they are consuming
 
-#### BMI - No further variable re-coding necessary
+#### BMI - invert
+# BMIm
+table(num_data$BMIm)
+num_data$BMIm <- num_data$BMI *-1
 
 # Depression
 'Variables: additional_HADS_depressionm, HADSmodified, v422m, v639m
@@ -611,8 +622,10 @@ vHD_mapping <- c( "0" = 0, "1" = 1,  "2" = 2,  "3" = 3, "4" = 4,
                   "12" = 12, "13" = 13, "15" = 15,"17" = 17, 
                   "9999" = NA)
 
-num_data$HADS_depressionm <- vHD_mapping[as.character(num_data$HADS_depression)]
-num_data$HADS_depressionm <- as.numeric(num_data$HADS_depressionm)
+num_data$HADS_depressionminv <- vHD_mapping[as.character(num_data$HADS_depression)]
+num_data$HADS_depressionminv <- as.numeric(num_data$HADS_depressionminv)
+num_data$HADS_depressionm <- num_data$HADS_depressionminv*-1
+table(num_data$HADS_depressionm)
 
 #v422
 sort(unique(num_data$v422))
@@ -627,8 +640,10 @@ sort(unique(num_data$v422))
 v422_mapping <- c( "1" = 1,  "2" = 2,
                    "9" = NA)
 
-num_data$v422m <- v422_mapping[as.character(num_data$v422)]
-num_data$v422m <- as.numeric(num_data$v422m)
+num_data$v422minv <- v422_mapping[as.character(num_data$v422)]
+num_data$v422minv <- as.numeric(num_data$v422minv)
+num_data$v422m <- num_data$v422minv*-1
+table(num_data$v422m)
 
 #v639
 sort(unique(num_data$v639m))
@@ -643,8 +658,10 @@ sort(unique(num_data$v639m))
 v639_mapping <- c( "1" = 1,  "2" = 2,
                    "7"=NA,"8"=NA,"9" = NA)
 
-num_data$v639m <- v639_mapping[as.character(num_data$v639)]
-num_data$v639m <- as.numeric(num_data$v639m)
+num_data$v639minv <- v639_mapping[as.character(num_data$v639)]
+num_data$v639minv <- as.numeric(num_data$v639minv)
+num_data$v639m <- num_data$v639minv*-1
+table(num_data$v639m)
 
 #v640
 sort(unique(num_data$v640))
@@ -665,19 +682,15 @@ num_data$v377
 v377_mapping <- c( "1" = 1,  "2" = 2,
                    "7"=NA,"8"=NA,"9" = NA)
 
-num_data$v377m <- v377_mapping[as.character(num_data$v377)]
-num_data$v377m <- as.numeric(num_data$v377m)
+num_data$v377minv <- v377_mapping[as.character(num_data$v377)]
+num_data$v377minv <- as.numeric(num_data$v377minv)
+num_data$v377m <- num_data$v377minv*-1
+table(num_data$v377m)
 
 
 # Education
 'variables: qualmodified, v74'
 
-unique(num_data$qualmodified) # reverse coding, so higher scores mean less education
-qualm_mapping <- c( "1" = 4,  "2" = 3,
-                    "3"=2,"4"=1)
-
-num_data$qualm <- qualm_mapping[as.character(num_data$qualmodified)]
-num_data$qualm <- as.numeric(num_data$qualm)
 
 table(num_data$v74) #To be discussed, exclude for now (we could either subtract from current age
 # to have a measuer of how many years ago its been, given there is evidence, that if it is too long ago
@@ -685,7 +698,7 @@ table(num_data$v74) #To be discussed, exclude for now (we could either subtract 
 
 
 # Hearing Problems
-'variables: v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620
+'variables: v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620m
 '
 
 #v336
@@ -724,7 +737,7 @@ names(num_data) <- make.names(names(num_data), unique = TRUE)
 
 ## Correction, so that 7/8/9 are NA
 
-v336789_mapping <- c( "1" = 1,  "2" = 2,
+v336789_mapping <- c( "1" = 2,  "2" = 1,
                       "7"=NA,"8"=NA,"9" = NA)
 
 num_data <- num_data %>%
@@ -748,36 +761,38 @@ for (col in cols) {
 'Wearing a Hearing Aid' # exclude for now, difficult to interpret, could not be wearing one but still have issues, if included this should be conditional on whether they have issues
 
 #v344
-table(num_data$v344m) # invert
+table(num_data$v344m) 
 'Number of tones heard 1-3'
-v344_mapping <- c( "1" = 3,  "2" = 2,
-                   "3"=1,"7"=NA, "8"=NA,"9"=NA)
+v344_mapping <- c( "1" = 1,  "2" = 2,
+                   "3"=3,"7"=NA, "8"=NA,"9"=NA)
 
 num_data$v344m <- v344_mapping[as.character(num_data$v344)]
 num_data$v344m <- as.numeric(num_data$v344m)
 
 #v345
-table(num_data$v345m) # invert, same mapping as v344
+table(num_data$v345m) # same mapping as v344
 num_data$v345m <- v344_mapping[as.character(num_data$v345)]
 num_data$v345m <- as.numeric(num_data$v345m)
 
 #v346
-table(num_data$v346m) # invert, same mapping as v344
+table(num_data$v346m) # isame mapping as v344
 num_data$v346m <- v344_mapping[as.character(num_data$v346)]
 num_data$v346m <- as.numeric(num_data$v346m)
 
 #v347
-table(num_data$v347m) # invert, same mapping as v344
+table(num_data$v347m) #  same mapping as v344
 num_data$v347m <- v344_mapping[as.character(num_data$v347)]
 num_data$v347m <- as.numeric(num_data$v347m)
 
-#v6220
+#v620
 'Hearing problems that interfered with questioning	
 1. No
 2. To some extent
 3. To marked extent
 4. Deaf'
-table(num_data$v620) # okay as is
+table(num_data$v620) 
+num_data$v620m <- num_data$v620*-1
+table(num_data$v620m)# okay as is
 
 # High Blood Pressure
 'variable: v349m, v352m, v354m, v629m, v632m, v634m
@@ -813,9 +828,9 @@ table(num_data$v620) # okay as is
 8. No answer
 9. Not asked'
 
-## Correction, so that 7/8/9 are NA
+## Correction, so that 7/8/9 are NA, invertes 1/2
 
-BP_mapping <- c( "1" = 1,  "2" = 2,
+BP_mapping <- c( "1" = 2,  "2" = 1,
                  "7"=NA,"8"=NA,"9" = NA)
 
 num_data <- num_data %>%
@@ -848,8 +863,8 @@ for (col in cols) {
 7. Don’t know
 8. No answer
 9. Not asked'
-## Recode so that No is 2 and Yes is 1 (because higher value is worse for cognition)
-BP2_mapping <- c( "1" = 2,  "2" = 1,
+## Recode NAs
+BP2_mapping <- c( "1" = 1,  "2" = 2,
                   "7"=NA, "8"=NA,"9"=NA)
 #v352m
 num_data$v352m <- BP2_mapping[as.character(num_data$v352)]
@@ -861,7 +876,7 @@ num_data$v632m <- as.numeric(num_data$v632m)
 # High cholesterol
 'variables: v355m
 '
-#v355
+#v355 # invert and NAs
 'High blood cholesterol (hyperlipidaemia)	
 1. No 
 2. Yes 
@@ -869,7 +884,7 @@ num_data$v632m <- as.numeric(num_data$v632m)
 8. No answer
 9. Not asked
 '
-v355_mapping <- c( "1" = 1,  "2" = 2,
+v355_mapping <- c( "1" = 2,  "2" = 1,
                    "7"=NA, "8"=NA,"9"=NA)
 
 num_data$v355m <- v355_mapping[as.character(num_data$v355)]
@@ -1550,7 +1565,7 @@ Alcohol <- num_data %>%
 # BMI
 'Variables: BMI'
 BMI <- num_data %>%
-  select(BMI)
+  select(BMIm)
 
 # Depression
 'Variables: additional_HADS_depressionm, HADSmodified, v422m, v639m
@@ -1566,10 +1581,10 @@ Diabetes <- num_data %>%
 # Education
 'Variables: qualm'
 Education <- num_data %>%
-  select(qualm)
+  select(qualmodified)
 
 # Hearing Problems
-'variables: v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620
+'variables: v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620m
 '
 Hearing <- num_data %>%
   select(v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620)
@@ -1613,14 +1628,69 @@ Vision <- num_data %>%
 'currently excluded'
 
 'To Do'
-## Make sure all variables are coded in the same direction i.e., higher values mean either better or worse habits!
+## Make sure all variables are coded in the same direction i.e., higher values mean either better or worse habits
+'done'
 ## Update Excel about which variables you ended up using
 ## Create master Excel lisitng all new variables and how they were maipulated / if the were included or tbd or not
 ## Correct the model and clean included variables 
 ## Perhaps create seperate factors before putting them into one models
 ## Perhaps break code down into multiple scripts
 
-CFA_model <-'
+
+## CFA Model (14.04.2025)
+
+CFA_Model <- 
+  'Alcohol =~ alcoholmodified + v290m+v291m+ v293m+ v294m+ v295m+ v296m+ v297m
+  BMIf =~ BMIm
+  Depression =~ HADS_depressionm+ HADSmodified+ v422m+ v639m
+  Diabetes =~ v377m
+  Education =~ qualmodified
+  Hearing =~ v336m+ v337m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
+  BP =~ v349m+ v352m+ v354m+ v629m+ v632m+ v634m
+  Cholesterol =~ v355m
+  PhysicalActivity =~ HOME_PAEE+ LEIS_PAEE+ PAEE+ WORK_PAEE
+  Smoking =~ smokermodified+ v241m+ v242m+ v244m+ v245m+ v247m+ v251m+ v252m+ v253m+ v255m+ v256m+ v259m+ v260m+ v261m
+  SocialIsolation =~ v5m+ v86+ v87m+ v89+ v90m+ v91m+v92m+v93m+v94m+ v95m+ v96modified+ v97m+ v98m
+  TBI =~ v457m+ v459m+ v542m+ v543m+ v545m
+  Vision =~ v328m+ v329m+ v330m+ v333modified+ v334modified+ v335modified+ v621m
+  
+'
+## CFA
+fit <- cfa(CFA_Model2, data = num_data) # Error
+
+# Check if any column has only NAs
+which(sapply(num_data, function(x) all(is.na(x)))) 
+sapply(num_data, function(x) var(x, na.rm = TRUE))
+
+#Check if any column has 0 variance
+which(sapply(num_data, function(x) var(x, na.rm = TRUE) == 0)) #v106, v108, v627, place, v354m
+
+#Adjusted model
+CFA_Model2 <- 
+  'Alcohol =~ alcoholmodified + v290m+v291m+ v293m+ v294m+ v295m+ v296m+ v297m
+  BMIf =~ BMIm
+  Depression =~ HADS_depressionm+ HADSmodified+ v422m+ v639m
+  Diabetes =~ v377m
+  Education =~ qualmodified
+  Hearing =~ v336m+ v337m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
+  BP =~ v349m+ v352m+ v629m+ v632m+ v634m
+  Cholesterol =~ v355m
+  PhysicalActivity =~ HOME_PAEE+ LEIS_PAEE+ PAEE+ WORK_PAEE
+  Smoking =~ smokermodified+ v241m+ v242m+ v244m+ v245m+ v247m+ v251m+ v252m+ v253m+ v255m+ v256m+ v259m+ v260m+ v261m
+  SocialIsolation =~ v5m+ v86+ v87m+ v89+ v90m+ v91m+v92m+v93m+v94m+ v95m+ v96modified+ v97m+ v98m
+  TBI =~ v457m+ v459m+ v542m+ v543m+ v545m
+  Vision =~ v328m+ v329m+ v330m+ v333modified+ v334modified+ v335modified+ v621m'
+  
+fit <- cfa(CFA_Model2, data = num_data, missing = "fiml") #Still Error
+
+
+summary(fit, fit.measures = TRUE, standardized = TRUE)
+
+
+
+'
+### OLD Model
+CFA_model <-
 Alcohol =~ alcohol + v290 + v291 + v292 + v293 + v294 + v295 + v296 + v297 + v298
 BMI =~ weight +height
 Depression=~ HADS_depression + HADS_dep_category + v422 + v639 + v640 
@@ -1637,7 +1707,4 @@ Vision Problems=~ v326 + v327 + v328+ v329 + v330 + v331 + v332 + v333 + v334 + 
 
 '
 
-#Air pollution=~
 
-## CFA
-fit <- cfa(CFA_model, data = data_dwi)
