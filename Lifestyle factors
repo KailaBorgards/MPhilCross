@@ -1681,10 +1681,51 @@ CFA_Model2 <-
   TBI =~ v457m+ v459m+ v542m+ v543m+ v545m
   Vision =~ v328m+ v329m+ v330m+ v333modified+ v334modified+ v335modified+ v621m'
   
-fit <- cfa(CFA_Model2, data = num_data, missing = "fiml") #Still Error
+fit <- cfa(CFA_Model2, data = num_data, missing = "fiml") #Error
+
+
+my_data_scaled <- scale(num_data)
+fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 1000)
+
 
 
 summary(fit, fit.measures = TRUE, standardized = TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
