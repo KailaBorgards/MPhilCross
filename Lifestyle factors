@@ -1633,7 +1633,7 @@ Vision <- num_data %>%
 ## Update Excel about which variables you ended up using
 ## Create master Excel lisitng all new variables and how they were maipulated / if the were included or tbd or not
 ## Correct the model and clean included variables 
-## Perhaps create seperate factors before putting them into one models
+'WIP'
 ## Perhaps break code down into multiple scripts
 
 
@@ -1691,10 +1691,45 @@ fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max =
 
 summary(fit, fit.measures = TRUE, standardized = TRUE)
 
+###Inspect
+## check covariance
+fit_check <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", do.fit = FALSE)
+lavInspect(fit_check, "coverage") # error cannot converge, meaning there is something wrong even before fitting the data
+
+## Check how complex the model is
+length(all.vars(parse(text = CFA_Model2))) #86
+
+#Check pairwise coverage
+coverage_matrix <- outer(
+  names(my_data_scaled), names(my_data_scaled),
+  Vectorize(function(x, y) mean(complete.cases(my_data_scaled[, c(x, y)])))
+)
+
+dimnames(coverage_matrix) <- list(names(my_data_scaled), names(my_data_scaled))
+
+low_coverage_vars <- names(which(rowMeans(coverage_matrix < 0.1) > 0.5))
+low_coverage_vars
 
 
+CFA_ModelSmall <- 
+  'Alcohol =~ alcoholmodified 
+  BMIf =~ BMIm
+  Depression =~ HADS_depressionm+ HADSmodified
+  Diabetes =~ v377m
+  Education =~ qualmodified
+  Hearing =~ v336m+ v337m
+  BP =~ v349m+ v352m+ v629m
+  Cholesterol =~ v355m
+  PhysicalActivity =~ PAEE
+  Smoking =~ smokermodified
+  SocialIsolation =~ v5m + v90m
+  TBI =~ v457m+ v459m + v545m
+  Vision =~ v328m+ v329m'
+fit <- cfa(CFA_ModelSmall, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 1000, do.fit=FALSE)
+lavInspect(fit, "coverage")
 
 
+summary(fit, fit.measures = TRUE, standardized = TRUE)
 
 
 
