@@ -117,139 +117,62 @@ fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max =
 inspect(fit, "gradient") #physical activity had value of greater 0.01 // 0.85 -> so simplified
 fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS") # updated model
 inspect(fit, "converged") #True
-summary(fit, fit.measures = T, standardized = T, verbose = T)
+summary(fit, fit.measures = T, standardized = T) #Bad metrics
 
 
+############ Variables adjustment #############
+################################################
+# remove because of low factor loadings
+#Alcohol
+'remove v295m, v296m, v297m'
 
-############# Adjusted model without variables with coverage <0.3 ###########
-############################################################################
+# Smoking
+'remove = v261m, v259m'
 
-#Adjusted model #  without variables with coverage <0.3, except v337 for diabetes
+## Social isolation
+'remove: v5m, v92m, v94m, v95m, v96modified, v97m'
+
+#TBI
+'remove: v542m, v543'
+
+#Vision
+'remove: v621m'
+
+
+############# Adjusted model without variables with low factor loadings ###########
+###################################################################################
+
+ 
 CFA_Model3 <- 
-  'Alcohol =~ alcoholmodified + v290m+ v293m+ v294m+ v295m+ v296m+ v297m
+  'Alcohol =~ alcoholmodified + v290m+ v293m+ v294m
   BMIf =~ BMIm
-  Depression =~ HADS_depressionm+ HADSmodified+ v422m+ v639m
+  Depression =~ HADS_depressionm+ HADSmodified+ v422m
   Diabetes =~ v377m
   Education =~ qualmodified
-  Hearing =~ v336m+ v337m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
-  BP =~ v349m+ v629m
-  Cholesterol =~ v355m
-  PhysicalActivity =~ HOME_PAEE+ LEIS_PAEE+ PAEE+ WORK_PAEE
-  Smoking =~ smokermodified+ v241m+  v251m+ v259m+ v261m
-  SocialIsolation =~ v5m+ v86+ v87m+ v89+ v90m+ v91m+v92m+v93m+v94m+ v95m+ v96modified+ v97m+ v98m
-  TBI =~ v457m+ v542m+ v543m
-  Vision =~ v328m+ v333modified+ v334modified+ v335modified+ v621m'
-
-
-fit_check2 <- cfa(CFA_Model3, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000)
-
-
-
-
-
-
-
-
-
-
-
-
-##### New subset
-
-df_cfa2 <- df_cfa %>% select(-v337m, v352m, v459m, v545m, v329m)
-
-
-############# Adjusted model without variables of coverage <0.3 ###########
-###########################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-### Actual Model fit 
-fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 1000) #Still error
-summary(fit, fit.measures = TRUE, standardized = TRUE)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Check pairwise coverage
-coverage_matrix <- outer(
-  names(my_data_scaled), names(my_data_scaled),
-  Vectorize(function(x, y) mean(complete.cases(my_data_scaled[, c(x, y)])))
-)
-
-dimnames(coverage_matrix) <- list(names(my_data_scaled), names(my_data_scaled))
-
-low_coverage_vars <- names(which(rowMeans(coverage_matrix < 0.1) > 0.3))
-low_coverage_vars # NULL 
-
-
-
-###Inspect
-
-
-### Smaller model to try and investigate which variables have low convergence
-
-CFA_ModelSmall <- 
-  'Alcohol =~ alcoholmodified 
-  BMIf =~ BMIm
-  Depression =~ HADS_depressionm+ HADSmodified
-  Diabetes =~ v377m
-  Education =~ qualmodified
-  Hearing =~ v336m+ v337m
-  BP =~ v349m+ v352m+ v629m
+  Hearing =~ v336m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
+  BP =~ v349m + v629m
   Cholesterol =~ v355m
   PhysicalActivity =~ PAEE
-  Smoking =~ smokermodified
-  SocialIsolation =~ v5m + v90m
-  TBI =~ v457m+ v459m + v545m
-  Vision =~ v328m+ v329m'
+  Smoking =~ smokermodified+ v241m+  v251m
+  SocialIsolation =~ v86+ v87m+ v89+ v90m+ v91m+v93m+ v98m
+  TBI =~ v457m + v542m+ v543m
+  Vision =~ v328m+ v333modified+ v334modified+ v335modified'
 
-lavInspect(fit, "coverage")
-#summary(fit, fit.measures = TRUE, standardized = TRUE)
-# investigate which coverages are lower 0.2-0.3
-# Step 1: Run lavaan to extract coverage matrix without fitting the model
-fit_check <- cfa(CFA_ModelSmall, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 1000, do.fit=FALSE)
 
-# Step 2: Extract the coverage matrix
-coverage_matrix <- lavInspect(fit_check, "coverage")
 
-# Step 3: Calculate mean pairwise coverage for each variable
-coverage_means <- rowMeans(coverage_matrix, na.rm = TRUE)
 
-# Step 4: Set a threshold (e.g., 0.3) and identify low-coverage variables
-threshold <- 0.3
-low_coverage_vars <- names(coverage_means[coverage_means < threshold]) # "v337m" "v352m" "v459m" "v545m" "v329m"
+fit2 <- cfa(CFA_Model3, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS") # updated model
+inspect(fit2, "converged") #True
+summary(fit2, fit.measures = T, standardized = T) #Bad metrics
 
-## Remove from model an dtry again
-#################### Inspect Variables ###########
-##################################################
 
-table(num_data$v337m)
-table(num_data$v352m)
-table(num_data$v459m)
-table(num_data$v545m)
-table(num_data$v329m)
-lapply(num_data[c("v337m", "v352m", "v459m", "v545m", "v329m")], summary)
+##Print Outpu
+install.packages("semTools")
+library(semTools)
 
+
+fitStats <- fitMeasures(fit2)
+round(fitStats[c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "srmr")], 3)
 
 
 
