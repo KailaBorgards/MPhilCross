@@ -1,3 +1,4 @@
+
 'To Do'
 ## Make sure all variables are coded in the same direction i.e., higher values mean either better or worse habits
 'done'
@@ -6,6 +7,9 @@
 ## Correct the model and clean included variables 
 'WIP'
 ## Perhaps break code down into multiple scripts
+
+############# Ideal model with all variables ###########
+#########################################################
 
 
 ## CFA Model (14.04.2025)
@@ -36,33 +40,53 @@ sapply(num_data, function(x) var(x, na.rm = TRUE))
 #Check if any column has 0 variance
 which(sapply(num_data, function(x) var(x, na.rm = TRUE) == 0)) #v106, v108, v627, place, v354m
 
-#Adjusted model
+
+######## Clean Data for Model ###########
+#########################################
+#Dataframe for model
+df_cfa <- num_data %>%
+  select( alcoholmodified ,v290m,v291m, v293m, v294m, v295m, v296m, v297m, BMIm, HADS_depressionm, HADSmodified, v422m, v639m,
+          v377m, qualmodified, v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620m,
+          v349m, v352m, v354m, v629m, v632m, v634m, v355m, HOME_PAEE, LEIS_PAEE, PAEE, WORK_PAEE, 
+          smokermodified, v241m, v242m, v244m, v245m, v247m, v251m, v252m, v253m, v255m, v256m, v259m, v260m, v261m,
+          v5m, v86, v87m, v89, v90m, v91m,v92m,v93m,v94m, v95m, v96modified, v97m, v98m,
+          v457m, v459m, v542m, v543m, v545m,
+          v328m, v329m, v330m, v333modified, v334modified, v335modified, v621m
+  )
+
+
+# Check for NAs morre than 80%
+na_percent <- colMeans(is.na(df_cfa))
+high_na_cols <- names(na_percent[na_percent > 0.8])
+high_na_cols
+
+ncol(df_cfa)
+#  "v291m" "v352m" "v354m" "v632m" "v634m" "v242m" "v244m" "v245m" "v247m" "v255m" "v260m" "v459m" "v545m" "v329m" "v330m"
+
+
+############# Adjusted model without variables >80% NAs ###########
+####################################################################
+
+#Adjusted model #  without variables >80% NAs 
 CFA_Model2 <- 
-  'Alcohol =~ alcoholmodified + v290m+v291m+ v293m+ v294m+ v295m+ v296m+ v297m
+  'Alcohol =~ alcoholmodified + v290m+ v293m+ v294m+ v295m+ v296m+ v297m
   BMIf =~ BMIm
   Depression =~ HADS_depressionm+ HADSmodified+ v422m+ v639m
   Diabetes =~ v377m
   Education =~ qualmodified
   Hearing =~ v336m+ v337m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
-  BP =~ v349m+ v352m+ v629m+ v632m+ v634m
+  BP =~ v349m+ v629m
   Cholesterol =~ v355m
   PhysicalActivity =~ HOME_PAEE+ LEIS_PAEE+ PAEE+ WORK_PAEE
-  Smoking =~ smokermodified+ v241m+ v242m+ v244m+ v245m+ v247m+ v251m+ v252m+ v253m+ v255m+ v256m+ v259m+ v260m+ v261m
+  Smoking =~ smokermodified+ v241m+  v251m+ v252m+ v253m+ v256m+ v259m+ v261m
   SocialIsolation =~ v5m+ v86+ v87m+ v89+ v90m+ v91m+v92m+v93m+v94m+ v95m+ v96modified+ v97m+ v98m
-  TBI =~ v457m+ v459m+ v542m+ v543m+ v545m
-  Vision =~ v328m+ v329m+ v330m+ v333modified+ v334modified+ v335modified+ v621m'
-  
-fit <- cfa(CFA_Model2, data = num_data, missing = "fiml") #Error
+  TBI =~ v457m+ v542m+ v543m
+  Vision =~ v328m+ v333modified+ v334modified+ v335modified+ v621m'
 
+##Scale data because variances are by a factor 1000 larger
+my_data_scaled <- scale(df_cfa)
 
-my_data_scaled <- scale(num_data)
-fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 1000)
-
-
-
-summary(fit, fit.measures = TRUE, standardized = TRUE)
-
-###Inspect
+#investigate which variables have low convergence
 ## check covariance
 fit_check <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", do.fit = FALSE)
 lavInspect(fit_check, "coverage") # error cannot converge, meaning there is something wrong even before fitting the data
@@ -78,28 +102,41 @@ coverage_matrix <- outer(
 
 dimnames(coverage_matrix) <- list(names(my_data_scaled), names(my_data_scaled))
 
-low_coverage_vars <- names(which(rowMeans(coverage_matrix < 0.1) > 0.5))
-low_coverage_vars
+low_coverage_vars <- names(which(rowMeans(coverage_matrix < 0.1) > 0.3))
+low_coverage_vars # NULL 
+
+### Delete which variables have low coverage
+# Step 2: Extract the coverage matrix
+coverage_matrix <- lavInspect(fit_check, "coverage")
+
+# Step 3: Calculate mean pairwise coverage for each variable
+coverage_means <- rowMeans(coverage_matrix, na.rm = TRUE)
+
+# Step 4: Set a threshold (e.g., 0.3) and identify low-coverage variables
+threshold <- 0.3
+low_coverage_vars <- names(coverage_means[coverage_means < threshold]) # "v337m" "v352m" "v459m" "v545m" "v329m"
+
+##### New subset
+
+df_cfa2 <- df_cfa %>% select(-v337m, v352m, v459m, v545m, v329m)
 
 
-CFA_ModelSmall <- 
-  'Alcohol =~ alcoholmodified 
-  BMIf =~ BMIm
-  Depression =~ HADS_depressionm+ HADSmodified
-  Diabetes =~ v377m
-  Education =~ qualmodified
-  Hearing =~ v336m+ v337m
-  BP =~ v349m+ v352m+ v629m
-  Cholesterol =~ v355m
-  PhysicalActivity =~ PAEE
-  Smoking =~ smokermodified
-  SocialIsolation =~ v5m + v90m
-  TBI =~ v457m+ v459m + v545m
-  Vision =~ v328m+ v329m'
-fit <- cfa(CFA_ModelSmall, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 1000, do.fit=FALSE)
-lavInspect(fit, "coverage")
+############# Adjusted model without variables of coverage <0.3 ###########
+###########################################################################
 
 
+
+
+
+
+
+
+
+
+
+
+### Actual Model fit 
+fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 1000) #Still error
 summary(fit, fit.measures = TRUE, standardized = TRUE)
 
 
@@ -117,6 +154,78 @@ summary(fit, fit.measures = TRUE, standardized = TRUE)
 
 
 
+###Inspect
+
+
+### Smaller model to try and investigate which variables have low convergence
+
+CFA_ModelSmall <- 
+  'Alcohol =~ alcoholmodified 
+  BMIf =~ BMIm
+  Depression =~ HADS_depressionm+ HADSmodified
+  Diabetes =~ v377m
+  Education =~ qualmodified
+  Hearing =~ v336m+ v337m
+  BP =~ v349m+ v352m+ v629m
+  Cholesterol =~ v355m
+  PhysicalActivity =~ PAEE
+  Smoking =~ smokermodified
+  SocialIsolation =~ v5m + v90m
+  TBI =~ v457m+ v459m + v545m
+  Vision =~ v328m+ v329m'
+
+lavInspect(fit, "coverage")
+#summary(fit, fit.measures = TRUE, standardized = TRUE)
+# investigate which coverages are lower 0.2-0.3
+# Step 1: Run lavaan to extract coverage matrix without fitting the model
+fit_check <- cfa(CFA_ModelSmall, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 1000, do.fit=FALSE)
+
+# Step 2: Extract the coverage matrix
+coverage_matrix <- lavInspect(fit_check, "coverage")
+
+# Step 3: Calculate mean pairwise coverage for each variable
+coverage_means <- rowMeans(coverage_matrix, na.rm = TRUE)
+
+# Step 4: Set a threshold (e.g., 0.3) and identify low-coverage variables
+threshold <- 0.3
+low_coverage_vars <- names(coverage_means[coverage_means < threshold]) # "v337m" "v352m" "v459m" "v545m" "v329m"
+
+## Remove from model an dtry again
+#################### Inspect Variables ###########
+##################################################
+
+table(num_data$v337m)
+table(num_data$v352m)
+table(num_data$v459m)
+table(num_data$v545m)
+table(num_data$v329m)
+lapply(num_data[c("v337m", "v352m", "v459m", "v545m", "v329m")], summary)
+
+
+
+
+############ Functioning Model #############
+############################################
+
+## all metrics are good!!
+CFA_ModelSmall2 <- 
+  'Alcohol =~ alcoholmodified 
+  BMIf =~ BMIm
+  Depression =~ HADS_depressionm+ HADSmodified
+  Diabetes =~ v377m
+  Education =~ qualmodified
+  Hearing =~ v336m
+  BP =~ v349m+ v629m
+  Cholesterol =~ v355m
+  PhysicalActivity =~ PAEE
+  Smoking =~ smokermodified
+  SocialIsolation =~ v5m + v90m
+  TBI =~ v457m 
+  Vision =~ v328m'
+
+
+fit_check <- cfa(CFA_ModelSmall2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 1000)
+summary(fit_check, fit.measures = TRUE, standardized = TRUE)
 
 
 
@@ -124,34 +233,5 @@ summary(fit, fit.measures = TRUE, standardized = TRUE)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-'
-### OLD Model
-CFA_model <-
-Alcohol =~ alcohol + v290 + v291 + v292 + v293 + v294 + v295 + v296 + v297 + v298
-BMI =~ weight +height
-Depression=~ HADS_depression + HADS_dep_category + v422 + v639 + v640 
-Diabetes=~ v377 + v378
-Education=~ qual + v73 + v74
-Hearing Problems=~ v336 + v337 + v338 + v339 + v340 + v341 + v342 + v343 + v344 + v345 + v346 + v347 + v620
-High Blood Pressure=~ v349 + v350 + v352 + v353 + v354 + v629 + v630 + v632 + v633 + v634 
-High cholesterol=~ v355 + v356
-Physical activity=~ GETABOUT_bikedist + GETABOUT_walkdist + DURGETABOUT_BIKE + DURGETABOUT_WALK + GETABOUTBIKEadj + GETABOUTWALKadj + DURGETABOUT + DURTV + TVadj + WALKMILES + CYCLEMILES + CARMILES + PUBLICMILES + CARadj + PUBLICadj + CYCLEadj + WALKadj + HOMEtime + WORKtime + DURJOB + COMMUTEtime + LEIStime + UNACCOUNTED_TIME + TOTMETHRS + TOTMETHRS_w_UNACCtime + TOTALtime + ACTMETS + SED_INTENSITY + LIGHT_INTENSITY + MODERATE_INTENSITY + VIGOROUS_INTENSITY + SLEEPtime + SEDtime + LIGHTtime + MODERATEtime + VIGOROUStime + HOME_METS + WORK_METS + LEIS_METS + COMMUTE_METS + leisure_missing_all_data + leisure_missing_freq + leisure_missing_duration + activities_done +PAEE + HOME_PAEE + WORK_PAEE + LEIS_PAEE + COMMUTE_PAEE
-Smoking=~ smoker + v241 + v242 + v245 + v246 + v249 + v251 + v252 + v253 + v255 + v256 + v257 + v259 + v260 + v261 + v244 + v247
-Social activities=~ v106 + v108 + v14 + v5 + v86 + v87 + v89 + v90 + v91 + v92 + v93 + v94 + v95 + v96 + v97 + v98
-TBI=~ v457 + v458 + v459 + v460 + v542 + v543 + v544 + v545 
-Vision Problems=~ v326 + v327 + v328+ v329 + v330 + v331 + v332 + v333 + v334 + v335 + v621 + v668 + v669
-
-'
 
 
