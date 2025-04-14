@@ -169,41 +169,23 @@ summary(fit2, fit.measures = T, standardized = T) #Bad metrics
 ##Print Outpu
 install.packages("semTools")
 library(semTools)
+library(knitr)
+library(kableExtra)
 
-
-fitStats <- fitMeasures(fit2)
-round(fitStats[c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "srmr")], 3)
-
-
-
-############ Functioning Model #############
-############################################
-
-## all metrics are good!!
-CFA_ModelSmall2 <- 
-  'Alcohol =~ alcoholmodified 
-  BMIf =~ BMIm
-  Depression =~ HADS_depressionm+ HADSmodified
-  Diabetes =~ v377m
-  Education =~ qualmodified
-  Hearing =~ v336m
-  BP =~ v349m+ v629m
-  Cholesterol =~ v355m
-  PhysicalActivity =~ PAEE
-  Smoking =~ smokermodified
-  SocialIsolation =~ v5m + v90m
-  TBI =~ v457m 
-  Vision =~ v328m'
-
-
-fit_check <- cfa(CFA_ModelSmall2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 1000)
-summary(fit_check, fit.measures = TRUE, standardized = TRUE)
+# Select and format the ones you want
+fit_table <- data.frame(
+  Measure = c("Chi-square", "Degrees of Freedom", "p-value", 
+              "CFI", "TLI", 
+              "RMSEA", "RMSEA 90% CI (lower)", "RMSEA 90% CI (upper)",
+              "SRMR"),
+  Value = round(fitStats[c("chisq", "df", "pvalue", 
+                           "cfi", "tli", 
+                           "rmsea", "rmsea.ci.lower", "rmsea.ci.upper", 
+                           "srmr")], 3)
+)
 
 
 
-
-
-
-
-
+kable(fit_table, caption = "Model Fit Indices") %>%
+  kable_styling(full_width = FALSE, position = "center")
 
