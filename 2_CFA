@@ -32,14 +32,11 @@ CFA_Model <-
 '
 ## CFA
 fit <- cfa(CFA_Model2, data = num_data) # Error
-
-# Check if any column has only NAs
-which(sapply(num_data, function(x) all(is.na(x)))) 
-sapply(num_data, function(x) var(x, na.rm = TRUE))
-
-#Check if any column has 0 variance
-which(sapply(num_data, function(x) var(x, na.rm = TRUE) == 0)) #v106, v108, v627, place, v354m
-
+'
+Warnings: variance is by factor 1000 different -> scale data
+Warnings: 0% pairwise coverage - some variables never overlap with others -> identify and exclude
+EM algorithm not converging -> increase iterations
+Smaööes eigenvalue too small -> tbd'
 
 ######## Clean Data for Model ###########
 #########################################
@@ -57,53 +54,49 @@ df_cfa <- num_data %>%
 
 # Check for NAs morre than 80%
 na_percent <- colMeans(is.na(df_cfa))
-high_na_cols <- names(na_percent[na_percent > 0.8])
+high_na_cols <- names(na_percent[na_percent > 0.5])
 high_na_cols
+#80%  "v291m" "v352m" "v354m" "v632m" "v634m" "v242m" "v244m" "v245m" "v247m" "v255m" "v260m" "v459m" "v545m" "v329m" "v330m"
 
-ncol(df_cfa)
-#  "v291m" "v352m" "v354m" "v632m" "v634m" "v242m" "v244m" "v245m" "v247m" "v255m" "v260m" "v459m" "v545m" "v329m" "v330m"
+# 50% additionally "v639m" "v337m"  "v629m"  "v252m" "v253m"  "v256m"  
+
+ncol(df_cfa) # 74
+
+#Check if any column has 0 variance
+which(sapply(df_cfa, function(x) var(x, na.rm = TRUE) == 0)) #"v354m" 
+
+## Scale data
+my_data_scaled <- scale(df_cfa)
 
 
-############# Adjusted model without variables >80% NAs ###########
+
+############# Adjusted model without variables >50% NAs ###########
 ####################################################################
 
-#Adjusted model #  without variables >80% NAs 
+#Adjusted model #  without variables >50% NAs 
 CFA_Model2 <- 
   'Alcohol =~ alcoholmodified + v290m+ v293m+ v294m+ v295m+ v296m+ v297m
   BMIf =~ BMIm
-  Depression =~ HADS_depressionm+ HADSmodified+ v422m+ v639m
+  Depression =~ HADS_depressionm+ HADSmodified+ v422m
   Diabetes =~ v377m
   Education =~ qualmodified
-  Hearing =~ v336m+ v337m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
-  BP =~ v349m+ v629m
+  Hearing =~ v336m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
+  BP =~ v349m
   Cholesterol =~ v355m
-  PhysicalActivity =~ HOME_PAEE+ LEIS_PAEE+ PAEE+ WORK_PAEE
-  Smoking =~ smokermodified+ v241m+  v251m+ v252m+ v253m+ v256m+ v259m+ v261m
+  PhysicalActivity =~ PAEE
+  Smoking =~ smokermodified+ v241m+  v251m+ v259m+ v261m
   SocialIsolation =~ v5m+ v86+ v87m+ v89+ v90m+ v91m+v92m+v93m+v94m+ v95m+ v96modified+ v97m+ v98m
   TBI =~ v457m+ v542m+ v543m
   Vision =~ v328m+ v333modified+ v334modified+ v335modified+ v621m'
 
-##Scale data because variances are by a factor 1000 larger
-my_data_scaled <- scale(df_cfa)
 
 #investigate which variables have low convergence
 ## check covariance
-fit_check <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", do.fit = FALSE)
-lavInspect(fit_check, "coverage") # error cannot converge, meaning there is something wrong even before fitting the data
+fit_check <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", do.fit = FALSE, em.h1.iter.max = 10000)
+lavInspect(fit_check, "coverage") 
 
 ## Check how complex the model is
-length(all.vars(parse(text = CFA_Model2))) #86
-
-#Check pairwise coverage
-coverage_matrix <- outer(
-  names(my_data_scaled), names(my_data_scaled),
-  Vectorize(function(x, y) mean(complete.cases(my_data_scaled[, c(x, y)])))
-)
-
-dimnames(coverage_matrix) <- list(names(my_data_scaled), names(my_data_scaled))
-
-low_coverage_vars <- names(which(rowMeans(coverage_matrix < 0.1) > 0.3))
-low_coverage_vars # NULL 
+length(all.vars(parse(text = CFA_Model2))) #72
 
 ### Delete which variables have low coverage
 # Step 2: Extract the coverage matrix
@@ -115,6 +108,51 @@ coverage_means <- rowMeans(coverage_matrix, na.rm = TRUE)
 # Step 4: Set a threshold (e.g., 0.3) and identify low-coverage variables
 threshold <- 0.3
 low_coverage_vars <- names(coverage_means[coverage_means < threshold]) # "v337m" "v352m" "v459m" "v545m" "v329m"
+low_coverage_vars #0
+
+## Model Fit
+
+fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS")
+
+inspect(fit, "gradient") #physical activity had value of greater 0.01 // 0.85 -> so simplified
+fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS") # updated model
+inspect(fit, "converged") #True
+summary(fit, fit.measures = T, standardized = T, verbose = T)
+
+
+
+############# Adjusted model without variables with coverage <0.3 ###########
+############################################################################
+
+#Adjusted model #  without variables with coverage <0.3, except v337 for diabetes
+CFA_Model3 <- 
+  'Alcohol =~ alcoholmodified + v290m+ v293m+ v294m+ v295m+ v296m+ v297m
+  BMIf =~ BMIm
+  Depression =~ HADS_depressionm+ HADSmodified+ v422m+ v639m
+  Diabetes =~ v377m
+  Education =~ qualmodified
+  Hearing =~ v336m+ v337m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
+  BP =~ v349m+ v629m
+  Cholesterol =~ v355m
+  PhysicalActivity =~ HOME_PAEE+ LEIS_PAEE+ PAEE+ WORK_PAEE
+  Smoking =~ smokermodified+ v241m+  v251m+ v259m+ v261m
+  SocialIsolation =~ v5m+ v86+ v87m+ v89+ v90m+ v91m+v92m+v93m+v94m+ v95m+ v96modified+ v97m+ v98m
+  TBI =~ v457m+ v542m+ v543m
+  Vision =~ v328m+ v333modified+ v334modified+ v335modified+ v621m'
+
+
+fit_check2 <- cfa(CFA_Model3, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000)
+
+
+
+
+
+
+
+
+
+
+
 
 ##### New subset
 
@@ -151,6 +189,17 @@ summary(fit, fit.measures = TRUE, standardized = TRUE)
 
 
 
+
+#Check pairwise coverage
+coverage_matrix <- outer(
+  names(my_data_scaled), names(my_data_scaled),
+  Vectorize(function(x, y) mean(complete.cases(my_data_scaled[, c(x, y)])))
+)
+
+dimnames(coverage_matrix) <- list(names(my_data_scaled), names(my_data_scaled))
+
+low_coverage_vars <- names(which(rowMeans(coverage_matrix < 0.1) > 0.3))
+low_coverage_vars # NULL 
 
 
 
