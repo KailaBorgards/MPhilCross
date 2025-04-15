@@ -14,39 +14,6 @@ sapply(data_dwi, class)  # Returns the class of each column
 # Only non-numeric columns
 sapply(data_dwi, class)[sapply(data_dwi,class)=="character"]
 
-
-
-'
-columns that are characters:
-  CCID # okay will not be used             
-  sex  # needs to be transformed        
-  elig_700  #okay will not be used           
-  v14       # Relationship to Houselhold members    
-  v73       # Which qualification do you have    
-  v96       # Attend any meetings/groups/classes?
-  v328      # Any of the following problems with eyes?
-  v333      # Line read - Left eye        
-  v334      # Line read - Right eye       
-  v335      # Line read - Both eye      
-  smoker    # Smoking summary       
-  alcohol   # Alcohol summary
-  HADS_dep_category #HADS depression category             
-  qual      # Highest qualification      
-  height    # Height        
-  weight    # Weight          
-  C1.y      # Cattell 1
-  C2.y      # Cattell 2 
-  C3.y      # Cattell 3        
-  C4.y      # Cattell 4
-  WMHI_NORM_TIV   #         
-  FA_mean          
-  MSD_mean         
-  MSK_mean 
-  NDI_mean        
-  ODI_mean        
-  Fiso_mean 
-'
-
 ######## TRANSFORM NUMERIC DATA ###########
 ###########################################
 'In green we have the exact question content - to be deleted later'
@@ -61,16 +28,6 @@ data_dwi$elig_700 <- ifelse(data_dwi$elig_700 == "True", 1, 0)
 
 ## Relationship to Household members  
 data_dwi$v14 # Print -> TBD because answers are multiple
-'How are the other people who live with you related to you? (YOU CAN SELECT MORE THAN ONE ANSWER) 	0. Not related
-1. Husband, wife or partner 
-2. Son and/or daughter (include step children) 
-3. Brother and/or sister 
-4. Mother and/or father 
-5. Grandchild 
-6. Other related 
-7. Do not know
-8. No answer 
-'
 # EXCLUDE - For now (because uncertain how much incremental validity this question brings to social isolation)
 
 ## Which qualification do you have
@@ -79,36 +36,6 @@ data_dwi$v73 # Print -> Multiple answers, replace with "qual"?
 
 ## Attend any meetings/groups/classes?
 data_dwi$v96 # Print -> TBD, Multiple answers
-'
-Do you attend meetings of any community, church/mosque or social groups such as WI, evening classes?
-  (YOU MAY ANSWER MORE THAN ONE)
-EACH QUESTION WILL BE FOLLOWED BY HOW OFTEN RATING	00. No clubs
-01. Political parties
-02. Trade unions (including student union)
-03. Environmental groups
-04. Tenants, residents group or neighbourhood watch
-05. Evening classes
-06. U3A
-07. Other adult learning
-08. Arts, music or singing group
-09. Charity, volunteer or community group
-11. Group for the elderly
-12. Youth group (guides, scouts, youth club)
-13. Women’s Institute
-14. Social club (rotary, working men’s)
-15. Sports club, gym, exercise group
-16. Church/religious group
-17. Other group or organisation 
-77. Don’t know
-88. No answer
-99. Not asked
-How often?	0. For less than yearly
-1. Occasionally if unpredictably or less than monthly
-2. Regularly (daily, weekly, monthly or predictably)
-7. Don’t know
-8. No answer
-9. Not asked
-'
 # What I did: create a sum score of how often they attended any meetings -> This will not be ideal becasue it means that people who went to two types of meetings occasionally (perhaps only yearly) will have the same score as someone who went to one meeting regularly (multiple times a week) but alas it's an approximation
 # Extract numbers after the colon and sum them (ignoring standalone numbers)
 data_dwi$v96modified <- sapply(strsplit(data_dwi$v96, ", "), function(x) {
@@ -122,17 +49,6 @@ data_dwi$v96modified <- sapply(strsplit(data_dwi$v96, ", "), function(x) {
 
 
 ## Any of the following problems with eyes?
-'Has a doctor told you that you have any of the following problems with your eyes? (YOU CAN SELECT MORE THAN ONE ANSWER) 	1. Diabetes related eye disease 
-2. Glaucoma 
-3. Injury OR trauma resulting in loss of vision 
-4. Cataract 
-5. Macular degeneration 
-6. Other serious eye condition 
-0. None of the above 
-7. Do not know 
-8. No answer
-9. Not asked	If 0 (None) goto IntroHC2/HC11
-'
 data_dwi$v328 # Print -> Only three participants with multiple answers and one .
 # What I did: 0 = No eye problem; 1-6 = 1 meaning yes, there is a problem; 7-9 = NA
 v328_mapping <- c("0" = 0,
@@ -151,17 +67,6 @@ data_dwi$v328_modified <- as.numeric(data_dwi$v328_modified)
 
 ## Line read - Left eye 
 data_dwi$v333 # Print -> Coded in letters, need to be transformed
-'Left eye	A: Can’t read any line
-B: 4.0
-C: 2.0
-D: 1.4
-E: 1.2
-F: 1.0
-G: 0.8
-H: 0.6
-I: 0.5
-J: 0.4
-'
 # I will map A as 0 and B as 2 and so on; So a higher score should be positively correlated with outcomes "higher vision retention is positively associated with outcomes"
 # Ensure all letters are uppercase and remove spaces
 data_dwi$v333modified <- trimws(toupper(data_dwi$v333))
@@ -369,17 +274,6 @@ num_data$alcoholmodified
 
 #v290 
 num_data$v290
-'About how often do you drink alcohol? 
-1. Daily OR almost daily 
-2. Three OR four times a week 
-3. Once OR twice a week 
-4. One to three times a month 
-5. Special occasions only 
-6. Never
-7. Don’t know
-8. No answer
-9. Not asked
-'
 ## Recode so that 7-9 are NA
 v290_mapping <- c("1" = 1, "2" = 2, "3" = 3, "4" = 4, "5" = 5,
                   "6" = 6, "7" = NA, "8" = NA, "9" = NA)
@@ -389,14 +283,6 @@ num_data$v290m <- as.numeric(num_data$v290m)
 
 #v291
 num_data$v291
-'
-Did you previously drink alcohol? 
-1. Yes 
-2. No 
-7. Don’t know
-8. No answer
-9. Not asked
-'
 ## Recode so that 7-9 are NA
 v291_mapping <- c("1" = 1, "2" = 2, "7" = NA, "8" = NA, "9" = NA)
 num_data$v291m <- v291_mapping[as.character(num_data$v291)]
@@ -404,27 +290,10 @@ num_data$v291m <- as.numeric(num_data$v291m)
 
 # v292 
 unique(num_data$v292)
-'Why did you stop drinking alcohol? 
-1. Illness OR ill health 
-2. Doctor’s advice 
-3. Health precaution 
-4. Financial reasons 
-5. Other reason 
-7. Do not know 
-8. No answer 
-9999. NA
-'
 ## Exclude, does not directly indicate the intensity of drinking 
 
 #v293
 unique(num_data$v293)
-'In an average week, how many glasses of red wine would you drink? 
-Enter number OR 
-66. Less than 1
-77. Do not know
-88. No answer 
-99. Not asked
-'
 # Re-code, 66 = 0.5 because less than one, rest of given answers NA
 v293_mapping <- c("66" = 0.5, "0" = 0, "1" = 1, "1.5" = 1.5, "2" = 2, "3" = 3, "4" = 4, 
                   "5" = 5, "6" = 6, "7" = 7, "8" = 8, "9" = 9, "10" = 10, "12" = 12, 
@@ -438,12 +307,6 @@ table(num_data$v293m)
 
 #v294
 unique(num_data$v294)
-'In an average week, how many glasses of white wine or champagne would you drink?
-66. Less than 1
-77. Do not know
-88. No answer 
-99. Not asked
-'
 # Re-code, 66 = 0.5 because less than one, rest of given answers NA
 v294_mapping <- c("66" = 0.5, "0" = 0, "1" = 1, "1.5" = 1.5, "2" = 2, "3" = 3, "4" = 4, 
                   "5" = 5, "6" = 6, "7" = 7, "8" = 8, "9" = 9, "10" = 10, "12" = 12, 
@@ -457,12 +320,6 @@ table(num_data$v294m)
 
 #v295 
 unique(num_data$v295)
-'In an average week how many pints of beer or cider would you drink? 
-66. Less than 1
-77. Do not know
-88. No answer 
-99. Not asked
-'
 # Re-code, 66 = 0.5 because less than one, rest of given answers NA
 v295_mapping <- c("66" = 0.5, "0" = 0, "0.5" = 0.5, "1" = 1, "1.5" = 1.5, "2" = 2, "2.5" = 2.5, "3" = 3, "3.5" = 3.5, "4" = 4, 
                   "5" = 5, "6" = 6, "7" = 7, "8" = 8, "9" = 9, "10" = 10, "12" = 12, "13" = 13,
@@ -476,12 +333,6 @@ table(num_data$v295m)
 
 # v296 
 sort(unique(num_data$v296))
-'In an average week how many standard measures of spirits or liqueurs would you drink? 
-66. Less than 1
-77. Do not know
-88. No answer 
-99. Not asked
-'
 # Re-code, 66 = 0.5 because less than one, rest of given answers NA
 v296_mapping <- c("66" = 0.5, "0" = 0, "1" = 1,  "2" = 2,  "3" = 3, "4" = 4, 
                   "5" = 5, "6" = 6, "7" = 7, "8" = 8, "9" = 9, "10" = 10, "12" = 12, 
@@ -495,12 +346,6 @@ table(num_data$v296m)
 
 # v297
 sort(unique(num_data$v297m))
-'In an average week how many glasses of fortified wine would you drink? 
-66. Less than 1
-77. Do not know
-88. No answer 
-99. Not asked
-'
 # Re-code, 66 = 0.5 because less than one, rest of given answers NA, & invert answers (*-1) for better interpetabilit
 v297_mapping <- c("66" = 0.5, "0" = 0, "1" = 1,  "2" = 2,  "3" = 3, "4" = 4, 
                   "5" = 5, "6" = 6, "7" = 7, "8" = 8,
@@ -513,14 +358,6 @@ num_data$v297m <- num_data$v297minv*-1
 table(num_data$v297m)
 
 # v298
-'Compared to 10 years ago, do you drink? 	
-1. More nowadays 
-2. About the same 
-3. Less nowadays 
-7. Do not know 
-8. No answer 
-9. Not asked
-'
 ## Exclude for now - no added knowlege of how much they are consuming
 
 #### BMI - invert
@@ -549,13 +386,6 @@ table(num_data$HADS_depressionm)
 
 #v422
 sort(unique(num_data$v422))
-'Depression requiring treatment	
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked'
-
 # Re-code, 9 = NA
 v422_mapping <- c( "1" = 1,  "2" = 2,
                    "9" = NA)
@@ -567,13 +397,6 @@ table(num_data$v422m)
 
 #v639
 sort(unique(num_data$v639m))
-'Depression requiring treatment
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked
-'
 #Re-code so 7-9 = NA
 v639_mapping <- c( "1" = 1,  "2" = 2,
                    "7"=NA,"8"=NA,"9" = NA)
@@ -585,20 +408,12 @@ table(num_data$v639m)
 
 #v640
 sort(unique(num_data$v640))
-'Age'
 # Exclude for now - No direct indication of severity of depression
 
 
 # Diabetes
 'variables: v377, v378 (excluded, cause just age)'
 num_data$v377
-'Diabetes (not during pregnancy)	
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked
-'
 v377_mapping <- c( "1" = 1,  "2" = 2,
                    "7"=NA,"8"=NA,"9" = NA)
 
@@ -623,33 +438,9 @@ table(num_data$v74) #To be discussed, exclude for now (we could either subtract 
 
 #v336
 unique(num_data$v336)
-'Do you have any difficulty with your hearing? 	
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked'
 #v337
-'Do these problems interfere with your day to day living	
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked'
 #v338
-'Do you find it difficult to follow a conversation if there is background noise (such as TV, radio, children playing)? 	
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked'
 #v339
-'Do you use a hearing aid most of the time? 
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked'
 
 # get rid of duplicate columns ot perform mutate()
 names(num_data)[duplicated(names(num_data))]
@@ -705,11 +496,6 @@ num_data$v347m <- v344_mapping[as.character(num_data$v347)]
 num_data$v347m <- as.numeric(num_data$v347m)
 
 #v620
-'Hearing problems that interfered with questioning	
-1. No
-2. To some extent
-3. To marked extent
-4. Deaf'
 table(num_data$v620) 
 num_data$v620m <- num_data$v620*-1
 table(num_data$v620m)# okay as is
@@ -718,36 +504,9 @@ table(num_data$v620m)# okay as is
 'variable: v349m, v352m, v354m, v629m, v632m, v634m
 '
 #v349
-'High blood pressure (hypertension) 
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked'
-
 #354
-'Is your HBP still uncontrolled?	
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked'
 # 629
-'High blood pressure (hypertension) (hypertension during pregnancy does not count here)	
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked'
-
 #634
-'Is your HBP still uncontrolled?	
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked'
-
 ## Correction, so that 7/8/9 are NA, invertes 1/2
 
 BP_mapping <- c( "1" = 2,  "2" = 1,
@@ -770,19 +529,7 @@ for (col in cols) {
 
 
 #632
-'Did/do you receive medication for your High blood pressure (hypertension))	
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked'
 #352
-'Did/do you receive medication for your High blood pressure (hypertension))
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked'
 ## Recode NAs
 BP2_mapping <- c( "1" = 1,  "2" = 2,
                   "7"=NA, "8"=NA,"9"=NA)
@@ -797,13 +544,6 @@ num_data$v632m <- as.numeric(num_data$v632m)
 'variables: v355m
 '
 #v355 # invert and NAs
-'High blood cholesterol (hyperlipidaemia)	
-1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked
-'
 v355_mapping <- c( "1" = 2,  "2" = 1,
                    "7"=NA, "8"=NA,"9"=NA)
 
@@ -840,14 +580,6 @@ num_data$LEIS_PAEE + num_data$HOME_PAEE + num_data$WORK_PAEE == num_data$PAEE # 
 #smokermodified
 table(num_data$smokermodified) # here: higher number, HEALTHIER Habit, need to recode the rest accordingly!!!
 #v241 # recode so 7/8/9 are NAs
-'Do you smoke tobacco now? 
-1. Yes, on most or all days 
-2. Only occasionally 
-3. No 
-7. Don’t know
-8. No answer 
-9. Not asked
-'
 v241_mapping <- c( "1" = 1,  "2" = 2,
                    "3"=3,"7"=NA, "8"=NA,"9"=NA)
 
@@ -855,11 +587,6 @@ num_data$v241m <- v241_mapping[as.character(num_data$v241)]
 num_data$v241m <- as.numeric(num_data$v241m)
 
 #v242 #NA coding + rest okay, because older = "healthier" so higher number is healthier, which is ok
-'How old were you when you first started smoking on most days?
-Enter number OR 
-777. Don’t know
-888. No answer
-999. Not asked'
 num_data$v242m <- num_data$v242
 num_data$v242m[num_data$v242 == 777] <- NA
 num_data$v242m[num_data$v242 == 888] <- NA
@@ -867,13 +594,6 @@ num_data$v242m[num_data$v242 == 999] <- NA
 table(num_data$v242m)
 
 #244 # recode for NAs
-'Did you previously smoke cigarettes on most or all days? 
-1. Yes 
-2. No 
-7. Don’t know
-8. No answer 
-9. Not asked
-'
 num_data$v244m <- num_data$v244
 num_data$v244m[num_data$v244 == 7] <- NA
 num_data$v244m[num_data$v244 == 8] <- NA
@@ -881,13 +601,6 @@ num_data$v244m[num_data$v244 == 9] <- NA
 table(num_data$v244m)
 
 #v245 # recode NAs + invert because here higher number means unhealthier habit
-'About how many cigarettes did you smoke on average each day?
-Enter number OR 
-66. Less than one a day OR
-77. Don’t know
-88. No answer
-99. Not asked 
-'
 num_data$v245m <- num_data$v245 * -1
 num_data$v245m[num_data$v245 == 66] <- 0.5
 num_data$v245m[num_data$v245 == 77] <- NA
@@ -897,19 +610,9 @@ num_data$v245m[num_data$v245 == 99] <- NA # does not always work, double check
 table(num_data$v245m)
 
 #v246
-'How old were you when you last smoked cigarettes on most days? 	Enter number OR 
-777. Don’t know
-888. No answer
-999. Not asked'
 ## Exclude for now, would really only make sense, if calculated as how long ago in comparison to now
 
 #247 # recode NAs + invert because here higher number means unhealthier habit
-'About how many cigarettes do you smoke on average each day? (include hand-rolled cigarettes if smoked) 	Enter number OR 
-66. Less than one a day OR
-77. Don’t know
-88. No answer
-99. Not asked
-'
 num_data$v247m <- num_data$v247 * -1
 num_data$v247m[num_data$v247 == 66] <- 0.5
 num_data$v247m[num_data$v247 == 77] <- NA
@@ -918,25 +621,10 @@ num_data$v247m[num_data$v247 == 99] <- NA # does not always work, double check
 table(num_data$v247m)
 
 #v249
-'Compared to 10 years ago do you smoke? 	
-1. More nowadays 
-2. About the same 
-3. Less nowadays 
-7. Don’t know
-8. No answer 
-9. Not asked'
 ## Exclude for now, only gives us insight in relation to how long they smoked before
 
 ## HEre below is NON-CURRENT smoker
 #v251 # recode NAs
-'In the past, how often have you smoked tobacco? 	
-1. Smoked on most or all days 
-2. Smoked occasionally 
-3. Just tried once or twice 
-4. I have never smoked 
-7. Don’t know
-8. No answer 
-9. Not asked'
 num_data$v251m <- num_data$v251 
 num_data$v251m[num_data$v251 == 7] <- NA
 num_data$v251m[num_data$v251 == 8] <- NA
@@ -944,13 +632,6 @@ num_data$v251m[num_data$v251 == 9] <- NA # does not always work, double check
 table(num_data$v251m)
 
 #v252 # recoded NAs
-'In your lifetime, have you smoked a total of at least 100 times? 	
-1. Yes 
-2. No 
-7. Don’t know
-8. No answer
-9. Not asked
-'
 num_data$v252m <- num_data$v252 
 num_data$v252m[num_data$v252 == 7] <- NA
 num_data$v252m[num_data$v252 == 8] <- NA
@@ -958,12 +639,6 @@ num_data$v252m[num_data$v252 == 9] <- NA # does not always work, double check
 table(num_data$v252m)
 
 #v253
-'How old were you when you first started smoking on most days? 	
-Enter age OR 
-777. Do not know
-888. No answer
-999. Not asked 
-'
 num_data$v253m <- num_data$v253
 num_data$v253m[num_data$v253 == 777] <- NA
 num_data$v253m[num_data$v253 == 888] <- NA
@@ -972,13 +647,6 @@ num_data$v253m[num_data$v253 == 9999] <- NA
 table(num_data$v253m)
 
 #v255 # NAs
-'Did you previously smoke cigarettes on most or all days? 	
-1. Yes 
-2. No 
-7. Don’t know
-8. No answer
-9. Not asked
-'
 num_data$v255m <- num_data$v255 
 num_data$v255m[num_data$v255 == 7] <- NA
 num_data$v255m[num_data$v255 == 8] <- NA
@@ -986,13 +654,6 @@ num_data$v255m[num_data$v255 == 9] <- NA
 table(num_data$v255m)
 
 #v256 # NAs and invert
-'About how many cigarettes did you smoke on average each day? (include hand-rolled cigarettes if smoked) 	
-Enter number OR 
-66. Less than one a day OR
-77. Don’t know
-88. No answer
-99. Not asked
-'
 num_data$v256m <- num_data$v256 * -1
 num_data$v256m[num_data$v256 == 77] <- NA
 num_data$v256m[num_data$v256 == 88] <- NA
@@ -1001,23 +662,9 @@ num_data$v256m[num_data$v256 == 66] <- 0.5
 table(num_data$v256m)
 
 #v257
-'How old were you when you last smoked cigarettes on most days? 	
-Enter number OR 
-777.Do not know
-888. No answer
-999. Not asked 
-'
 ## Exclude for now, would really only make sense, if calculated as how long ago in comparison to now
 
 #v259 # NAs + inverted
-'Does anyone in your household smoke? 	
-1. No 
-2. Yes, one household member smokes 
-3. Yes, more than one household member smokes 
-7. Do not know 
-8. No answer 
-9. Not asked
-'
 num_data$v259m <- num_data$v259 * -1
 num_data$v259m[num_data$v259 == 7] <- NA
 num_data$v259m[num_data$v259 == 8] <- NA
@@ -1025,12 +672,6 @@ num_data$v259m[num_data$v259 == 9] <- NA
 table(num_data$v259m)
 
 #v260 # NAs + inverted
-'At home, about how many hours per week are you exposed to other people’s tobacco smoke? 	
-Enter number OR 
-777. Do not know
-888. No answer
-999. Not asked
-'
 num_data$v260m <- num_data$v260 * -1
 num_data$v260m[num_data$v260 == 777] <- NA
 num_data$v260m[num_data$v260 == 888] <- NA
@@ -1038,12 +679,6 @@ num_data$v260m[num_data$v260 == 999] <- NA
 table(num_data$v260m)
 
 #v261 #Nas + inverted
-'Outside of your home, about how many hours per week are you exposed to other people’s tobacco smoke? 	
-Enter number OR 
-777. Do not know
-888. No answer
-999. Not asked
-'
 num_data$v261m <- num_data$v261 * -1
 num_data$v261m[num_data$v261 == 777] <- NA
 num_data$v261m[num_data$v261 == 888] <- NA
@@ -1055,27 +690,9 @@ table(num_data$v261m)
 '
 
 #v14 # Excluded above
-'How are the other people who live with you related to you? (YOU CAN SELECT MORE THAN ONE ANSWER) 	
-0. Not related
-1. Husband, wife or partner 
-2. Son and/or daughter (include step children) 
-3. Brother and/or sister 
-4. Mother and/or father 
-5. Grandchild 
-6. Other related 
-7. Do not know
-8. No answer 
-'
 
 table(data_dwi$v14)
 #v5
-'What is your marital status?	
-1. Single (never married)
-2. Married / civil partnership
-3. Co-habiting
-4. Divorced/ separated
-5. Widowed
-'
 table(num_data$v5)
 # Recode, so higher = healthier (Tbd whether divorced is better than widowed)
 num_data$v5m[num_data$v5 == 1] <- 1
@@ -1087,36 +704,16 @@ table(num_data$v5m)
 
 
 #v86 # okay
-'Do you have any children of your own?	
-1. No
-2. Yes (include adopted children)
-'
-
 #v87
-'How many	Enter number of living children'
 table(num_data$v87) # 9999 = NA, rest is okay
 num_data$v87m <- num_data$v87 
 num_data$v87m[num_data$v87 == 9999] <- NA 
 table(num_data$v87m)
 
 #v89 # okay
-'Do any of your close relatives live in the area or within easy reach of the area	1. No relatives
-2. No relatives in area
-3. Yes
-'
 table(num_data$v89)
 
 #v90 # recode NAs and reorder
-'How often do you see any of your relatives to speak to?	1. Never
-2. Daily
-3. 2-3 times a week
-4. At least weekly
-5. At least monthly
-6. Less often
-7. Don’t know
-8. No answer
-9. Not asked
-'
 table(num_data$v90)
 num_data$v90m <- num_data$v90 
 num_data$v90m[num_data$v90 == 1] <- 1 
@@ -1132,16 +729,6 @@ table(num_data$v90m)
 
 
 #v91 # recode
-'How often do you speak to your relatives over the phone?	1. Never
-2. Daily
-3. 2-3 times a week
-4. At least weekly
-5. At least monthly
-6. Less often
-7. Don’t know
-8. No answer
-9. Not asked
-'
 table(num_data$v91)
 num_data$v91m <- num_data$v91 
 num_data$v91m[num_data$v91 == 1] <- 1 
@@ -1156,16 +743,6 @@ num_data$v91m[num_data$v91 == 9] <- NA
 table(num_data$v91m)
 
 #v92
-'How often do you text/email your relatives?	1. Never
-2. Daily
-3. 2-3 times a week
-4. At least weekly
-5. At least monthly
-6. Less often
-7. Don’t know
-8. No answer
-9. Not asked
-'
 table(num_data$v92)
 num_data$v92m <- num_data$v92
 num_data$v92m[num_data$v92 == 1] <- 1 
@@ -1180,16 +757,6 @@ num_data$v92m[num_data$v92 == 9] <- NA
 table(num_data$v92m)
 
 #v93
-'How often do you visit friends or family or they visit you? 	01. Almost daily 
-02. 2-4 times a week 
-03. About once a week
-04. About once a month
-05. Once every few months 
-06. Never or almost never 
-07. No friends/family outside household 
-77. Do not know
-88. No answer 
-'
 table(num_data$v93)
 num_data$v93m <- num_data$v93
 num_data$v93m[num_data$v93 == 1] <- 6
@@ -1204,16 +771,6 @@ num_data$v93m[num_data$v93 ==88] <- NA
 table(num_data$v93m)
 
 #v94
-'How often do you speak to your friends over the phone?	1. Never
-2. Daily
-3. 2-3 times a week
-4. At least weekly
-5. At least monthly
-6. Less often
-7. Don’t know
-8. No answer
-9. Not asked
-'
 table(num_data$v94)
 num_data$v94m <- num_data$v94
 num_data$v94m[num_data$v94 == 1] <- 1 
@@ -1228,16 +785,6 @@ num_data$v94m[num_data$v94 == 9] <- NA
 table(num_data$v94m)
 
 #v95
-'How often do you text/email your friends?	1. Never
-2. Daily
-3. 2-3 times a week
-4. At least weekly
-5. At least monthly
-6. Less often
-7. Don’t know
-8. No answer
-9. Not asked
-'
 table(num_data$v95)
 num_data$v95m <- num_data$v95
 num_data$v95m[num_data$v95 == 1] <- 1 
@@ -1251,15 +798,10 @@ num_data$v95m[num_data$v95 == 8] <- NA
 num_data$v95m[num_data$v95 == 9] <- NA 
 table(num_data$v95m)
 #v96modified
-'Number of meetings attended per week'
+
 #okay
 #v97
-'Do you have friends in this community?	1. No
-2. Yes
-7. Don’t know
-8. No answer
-9. Not asked
-'
+
 table(num_data$v97)
 num_data$v97m <- num_data$v97
 num_data$v97m[num_data$v97 == 7] <- NA 
@@ -1267,17 +809,6 @@ num_data$v97m[num_data$v97 == 8] <- NA
 num_data$v97m[num_data$v97 == 9] <- NA 
 table(num_data$v97m)
 #v98
-'How often do you see any of your neighbours to have a chat or do something with?	
-0. No neighbours
-1. Never
-2. Daily
-3. 2-3 times a week
-4. At least weekly
-5. At least monthly
-6. Less often
-7. Don’t know
-8. No answer
-9. Not asked'
 
 table(num_data$v98)
 num_data$v98m <- num_data$v98
@@ -1296,12 +827,6 @@ table(num_data$v98m)
 # TBI 
 'variables: v457m, v459m, v542m, v543m, v545m'
 #v457
-'Have you ever had a serious head injury and been unconscious after it? (Have you ever been knocked out?)	1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked
-'
 num_data$v457m <- num_data$v457
 num_data$v457m[num_data$v457 == 1] <- 2 
 num_data$v457m[num_data$v457 == 2] <- 1
@@ -1311,26 +836,15 @@ num_data$v457m[num_data$v457 == 9] <- NA
 table(num_data$v457m)
 
 #v459 # invert and NA
-'Number of times	Numerical answer'
 table(num_data$v459)
 num_data$v459m <- num_data$v459 *-1
 num_data$v459m[num_data$v459 == 9999] <- NA 
 table(num_data$v459m)
 
 #v460 # only 1 and NA for answers, so exclude, because no variation
-'Did you lose consciousness for more than 2 hours?	1. No
-2. Yes
-'
 table(num_data$v460)
 
 #v542
-'Have you fallen in the last year? (By falling I mean unintentionally coming to the floor, or ground or lower level such as landing on a chair or stair.)	
-1. No
-2. Yes
-7. Don’t know
-8. No answer
-9. Not asked
-'
 num_data$v542m <- num_data$v542
 num_data$v542m[num_data$v542 == 1] <- 2 
 num_data$v542m[num_data$v542 == 2] <- 1
@@ -1340,12 +854,6 @@ num_data$v542m[num_data$v542 == 9] <- NA
 table(num_data$v542m)
 
 #v543
-'Have you ever fallen?	1. No
-2. Yes
-7. Don’t know
-8. No answer
-9. Not asked
-'
 num_data$v543m <- num_data$v543
 num_data$v543m[num_data$v543 == 1] <- 2 
 num_data$v543m[num_data$v543 == 2] <- 1
@@ -1355,17 +863,7 @@ num_data$v543m[num_data$v543 == 9] <- NA
 table(num_data$v543m)
 
 #v544 #Exclude, unclear how to interpret, if better or worse that they fell long ago
-'If you have ever fallen, when was the last time you fell?
-  MM
-77 Don’t know
-88 No answer
-99 Not asked '
-
 #v545
-'How many times	Numeric entry
-77 Don’t know
-88 No answer
-99 Not asked'
 num_data$v545m <- num_data$v545 * -1
 num_data$v545m[num_data$v545 == 77] <- NA 
 num_data$v545m[num_data$v545 == 88] <- NA 
@@ -1377,20 +875,9 @@ table(num_data$v545m)
 '
 # v 328, 333, 334, 335 are modified
 #v326 # exclude, only interpretable if person has vision imparment in the first place
-'Do you wear glasses or contact lenses to correct your vision? 	1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked
-'
 table(num_data$v326)
 
 #v327 #Exclude hard to interpet, unless we know when vision impaiment set on
-'What age did you first start to wear glasses or contact lenses? 	Enter number OR 
-77. Do not know 
-88. No answer
-99. Not asked
-'
 #v328m
 # What I did: 0 = No eye problem; 1-6 = 1 meaning yes, there is a problem; 7-9 = NA
 table(num_data$v328_modified)
@@ -1400,12 +887,6 @@ num_data$v328m[num_data$v328_modified == 1] <- 1
 table(num_data$v328m)
 
 #v329
-'Do you have any other problems with your eyes or eyesight? 	1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked'
-
 num_data$v329m <- num_data$v329
 num_data$v329m[num_data$v329 == 1] <- 2 
 num_data$v329m[num_data$v329 == 2] <- 1
@@ -1415,12 +896,6 @@ num_data$v329m[num_data$v329 == 9] <- NA
 table(num_data$v329m)
 
 #v330
-'Do any of these eye problems interfere with day to day living	1. No 
-2. Yes 
-7. Don’t know
-8. No answer
-9. Not asked
-'
 num_data$v330m <- num_data$v330
 num_data$v330m[num_data$v330 == 1] <- 2 
 num_data$v330m[num_data$v330 == 2] <- 1
@@ -1430,15 +905,7 @@ num_data$v330m[num_data$v330 == 9] <- NA
 table(num_data$v330m)
 
 #v331 # Exclude, consent
-'Are you happy for me to do this?	1. Yes
-2. No, blind in both eyes
-3. No, some vision loss doesn’t want to
-4. No, can’t read (volunteered)
-5. No, other reason
-'
 #v332
-'RESPONDENT USING GLASSES/CONTACT LENSES	1. Yes
-2. No'
 #  exclude, only helpful ig we know if there is vision impariment
 
 #v333modified # okay
@@ -1446,25 +913,12 @@ table(num_data$v330m)
 #v335modified # okay
 
 #v621 # invert
-'Poor/no eyesight that interfered with reading, writing or drawing	1. No
-2. To some extent
-3. To marked extent
-4. Blind
-'
 table(num_data$v621)
 num_data$v621m <- num_data$v621 *-1
 table(num_data$v621m)
 
 #v668 # Exclude, Hard to interpret
-'Have you ever had an operation on your eyes?	1. No
-2. Yes
-'
 #v669 # Exclude Hard to interpret
-'What kind? (IF MORE THAN ONE INCLUDES OTHER OPERATION THEN CODE THAT) 	1. Cataract surgery
-2. Laser treatment
-3. Corneal grafts
-4. Other operations (including eye prosthesis)
-'
 
 # Air pollution
 'currently not included'
