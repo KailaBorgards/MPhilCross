@@ -132,7 +132,7 @@ summary(fit, fit.measures = T, standardized = T) #Bad metrics
 ## Social isolation
 'remove: v5m, v92m, v94m, v95m, v96modified, v97m'
 
-#TBI
+#TBI #KEEP BECUASE TBI HAS TOO FEW VARIABLES
 'remove: v542m, v543'
 
 #Vision
