@@ -32,3 +32,36 @@ fa.diagram(efa_result)
 #Export to Table
 loadings_df <- as.data.frame(efa_result$loadings[1:ncol(efa_data), ])
 write.csv(loadings_df, "efa_loadings.csv")
+
+
+################# PCA for White Matter ################
+#######################################################
+
+
+# Matrix of WM scores
+pca_WM <- num_data[, c("WMHI_NORM_TIV", "FA_mean","MSD_mean","MSK_mean","NDI_mean","ODI_mean","Fiso_mean")]
+
+pca_result <- prcomp(pca_WM, center = TRUE, scale. = TRUE)
+
+summary(pca_result)
+
+plot(pca_result, type = "l")  # Scree plot
+
+pca_result$rotation  # Loadings matrix
+
+
+pca_scores <- pca_result$x  # Each row = one participant's scores on the components
+head(pca_scores)
+
+install.packages("factoextra")
+library(factoextra)
+
+# Individuals (rows)
+fviz_pca_ind(pca_result, geom.ind = "point", col.ind = "cos2", repel = TRUE)
+
+# Variables (original predictors)
+fviz_pca_var(pca_result, col.var = "contrib", repel = TRUE)
+
+
+################## EFA for Cognition ##################
+#######################################################
