@@ -1,0 +1,55 @@
+## Schmierblatt, trying to look for a better CFA model 
+
+##Get rid of varibales with less than 80% adherence and 0 variance
+
+# 1. Identify columns with >20% missing values
+xna_percent <- colMeans(is.na(num_data))
+xhigh_na_cols <- names(xna_percent[na_percent > 0.4])
+
+# 2. Identify columns with 0 variance (ignoring NAs)
+zero_var_cols <- names(which(sapply(num_data, function(x) var(x, na.rm = TRUE) == 0)))
+
+# 3. Combine columns to remove
+cols_to_remove <- union(xhigh_na_cols, zero_var_cols)
+
+# 4. Create a clean version of the data
+xnum_data_clean <- num_data[, !(names(num_data) %in% cols_to_remove)]
+
+ncol(xnum_data_clean) #176 vs 247 
+'currently only using 36 of the available variables, re-analyze'
+
+
+## Now get rid of participants with less than 80% adherence
+# 1. Calculate the percent of missing values per row
+row_na_percent <- rowMeans(is.na(xnum_data_clean))
+
+# 2. Keep only rows with 20% or fewer NAs
+xxnum_data_clean <- xnum_data_clean[row_na_percent <= 0.4, ]
+
+nrow(xxnum_data_clean) #706 vs 708
+
+
+# Find overlapping variable names
+common_vars <- intersect(names(xxnum_data_clean), names(df_cfa))
+
+# View result
+print(common_vars)
+unique_to_df2 <- setdiff(names(df_cfa), names(xxnum_data_clean))
+unique_to_df1 <- setdiff(names(xxnum_data_clean), names(df_cfa))
+
+
+# Define the variables you're interested in
+vars <- c("v290m"    ,    "v291m"     ,   "v297m"   ,     "BMIm"    ,     "v422m"   ,     "v639m"   ,     "v377m"   ,     "qualmodified", "v354m"  ,      "bp_sys",      
+           "v355m"  ,      "v244m"      ,  "v247m"    ,    "v251m"   ,     "v261m"      ,  "v98m"      ,   "v543m" )  # replace with your actual variable names
+
+# Calculate % of NAs for each variable
+na_table <- data.frame(
+  Variable = vars,
+  Percent_NA = sapply(vars, function(v) round(mean(is.na(num_data[[v]])) * 100, 2))
+)
+
+# View the result
+na_table
+
+
+
