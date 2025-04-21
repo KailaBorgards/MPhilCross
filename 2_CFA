@@ -2,26 +2,23 @@
 'To Do'
 ## Make sure all variables are coded in the same direction i.e., higher values mean either better or worse habits
 'done'
-## Update Excel about which variables you ended up using
-## Create master Excel lisitng all new variables and how they were maipulated / if the were included or tbd or not
 ## Correct the model and clean included variables 
 'WIP'
-## Perhaps break code down into multiple scripts
 
 ############# Ideal model with all variables ###########
 #########################################################
 
 
-## CFA Model (14.04.2025)
+## CFA Model (21.04.2025)
 
-CFA_Model <- 
+CFA_Model2 <- 
   'Alcohol =~ alcoholmodified + v290m+v291m+ v293m+ v294m+ v295m+ v296m+ v297m
   BMIf =~ BMIm
   Depression =~ HADS_depressionm+ HADSmodified+ v422m+ v639m
   Diabetes =~ v377m
   Education =~ qualmodified
   Hearing =~ v336m+ v337m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
-  BP =~ v349m+ v352m+ v354m+ v629m+ v632m+ v634m
+  BP =~ v349m+ v352m+ v354m+ v629m+ v632m+ v634m + bp_sys
   Cholesterol =~ v355m
   PhysicalActivity =~ HOME_PAEE+ LEIS_PAEE+ PAEE+ WORK_PAEE
   Smoking =~ smokermodified+ v241m+ v242m+ v244m+ v245m+ v247m+ v251m+ v252m+ v253m+ v255m+ v256m+ v259m+ v260m+ v261m
@@ -33,6 +30,7 @@ CFA_Model <-
 ## CFA
 fit <- cfa(CFA_Model2, data = num_data) # Error
 '
+Error: Some variables have no values or no variance
 Warnings: variance is by factor 1000 different -> scale data
 Warnings: 0% pairwise coverage - some variables never overlap with others -> identify and exclude
 EM algorithm not converging -> increase iterations
@@ -44,7 +42,7 @@ Smaööes eigenvalue too small -> tbd'
 df_cfa <- num_data %>%
   select( alcoholmodified ,v290m,v291m, v293m, v294m, v295m, v296m, v297m, BMIm, HADS_depressionm, HADSmodified, v422m, v639m,
           v377m, qualmodified, v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620m,
-          v349m, v352m, v354m, v629m, v632m, v634m, v355m, HOME_PAEE, LEIS_PAEE, PAEE, WORK_PAEE, 
+          v349m, v352m, v354m, v629m, v632m, v634m,bp_sys,v355m, HOME_PAEE, LEIS_PAEE, PAEE, WORK_PAEE, 
           smokermodified, v241m, v242m, v244m, v245m, v247m, v251m, v252m, v253m, v255m, v256m, v259m, v260m, v261m,
           v5m, v86, v87m, v89, v90m, v91m,v92m,v93m,v94m, v95m, v96modified, v97m, v98m,
           v457m, v459m, v542m, v543m, v545m,
@@ -60,7 +58,7 @@ high_na_cols
 
 # 50% additionally "v639m" "v337m"  "v629m"  "v252m" "v253m"  "v256m"  
 
-ncol(df_cfa) # 74
+ncol(df_cfa) # 75
 
 #Check if any column has 0 variance
 which(sapply(df_cfa, function(x) var(x, na.rm = TRUE) == 0)) #"v354m" 
@@ -81,7 +79,7 @@ CFA_Model2 <-
   Diabetes =~ v377m
   Education =~ qualmodified
   Hearing =~ v336m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
-  BP =~ v349m
+  BP =~ v349m+ bp_sys
   Cholesterol =~ v355m
   PhysicalActivity =~ PAEE
   Smoking =~ smokermodified+ v241m+  v251m+ v259m+ v261m
@@ -92,11 +90,11 @@ CFA_Model2 <-
 
 #investigate which variables have low convergence
 ## check covariance
-fit_check <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", do.fit = FALSE, em.h1.iter.max = 10000)
+fit_check <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", do.fit = FALSE, em.h1.iter.max = 10000, verbose = TRUE)
 lavInspect(fit_check, "coverage") 
 
 ## Check how complex the model is
-length(all.vars(parse(text = CFA_Model2))) #72
+length(all.vars(parse(text = CFA_Model2))) #64
 
 ### Delete which variables have low coverage
 # Step 2: Extract the coverage matrix
@@ -108,32 +106,32 @@ coverage_means <- rowMeans(coverage_matrix, na.rm = TRUE)
 # Step 4: Set a threshold (e.g., 0.3) and identify low-coverage variables
 threshold <- 0.3
 low_coverage_vars <- names(coverage_means[coverage_means < threshold]) # "v337m" "v352m" "v459m" "v545m" "v329m"
-low_coverage_vars #0
+low_coverage_vars #0, after excluding the above
 
-## Model Fit
+
+ ## Model Fit
 
 fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS")
 
-inspect(fit, "gradient") #physical activity had value of greater 0.01 // 0.85 -> so simplified
-fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS") # updated model
+inspect(fit, "gradient") #physical activity had value of greater 0.01 // 0.85 -> so simplified to only include PAEE
 inspect(fit, "converged") #True
 summary(fit, fit.measures = T, standardized = T) #Bad metrics
 
 
 ############ Variables adjustment #############
-################################################
+###############################################
 # remove because of low factor loadings
 #Alcohol
-'remove v295m, v296m, v297m'
+'remove v295m, v296m'
 
 # Smoking
-'remove = v261m, v259m'
+'remove = v259m'
 
 ## Social isolation
 'remove: v5m, v92m, v94m, v95m, v96modified, v97m'
 
-#TBI #KEEP BECUASE TBI HAS TOO FEW VARIABLES
-'remove: v542m, v543'
+#TBI
+'remove: v542m '
 
 #Vision
 'remove: v621m'
@@ -142,7 +140,7 @@ summary(fit, fit.measures = T, standardized = T) #Bad metrics
 ############# Adjusted model without variables with low factor loadings ###########
 ###################################################################################
 
- 
+## Model sent to Petar (14.04.25)
 CFA_Model3 <- 
   'Alcohol =~ alcoholmodified + v290m+ v293m+ v294m
   BMIf =~ BMIm
@@ -150,7 +148,7 @@ CFA_Model3 <-
   Diabetes =~ v377m
   Education =~ qualmodified
   Hearing =~ v336m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
-  BP =~ v349m + v629m
+  BP =~ v349m + v629m+ bp_sys
   Cholesterol =~ v355m
   PhysicalActivity =~ PAEE
   Smoking =~ smokermodified+ v241m+  v251m
@@ -166,13 +164,55 @@ inspect(fit2, "converged") #True
 summary(fit2, fit.measures = T, standardized = T) #Bad metrics
 
 
-##Print Outpu
-install.packages("semTools")
-library(semTools)
-library(knitr)
-library(kableExtra)
 
-# Select and format the ones you want
+############# Adjusted model without variables with low factor loadings ###########
+###################################################################################
+
+############ Variables adjustment #############
+###############################################
+# remove because of low factor loadings
+#Alcohol
+'remove v295m, v296m'
+
+# Smoking
+'remove = v259m, v261'
+
+## Social isolation
+'remove: v5m, v92m, v94m, v95m, v96modified, v97m, v98m, v87m'
+
+#TBI
+'remove: v542m, v543 '
+
+#Vision
+'remove: v621m'
+
+## Model 24.04.25
+CFA_Model4 <- 
+  'Alcohol =~ alcoholmodified + v290m+ v293m+ v294m+ v297m
+  BMIf =~ BMIm
+  Depression =~ HADS_depressionm+ HADSmodified+ v422m
+  Diabetes =~ v377m
+  Education =~ qualmodified
+  Hearing =~ v336m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
+  BP =~ v349m+ bp_sys
+  Cholesterol =~ v355m
+  PhysicalActivity =~ PAEE
+  Smoking =~ smokermodified+ v241m+  v251m
+  SocialIsolation =~ v86+ v89+ v90m+ v91m+v93m
+  TBI =~ v457m
+  Vision =~ v328m+ v333modified+ v334modified+ v335modified'
+
+
+fit3 <- cfa(CFA_Model4, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS") # updated model
+inspect(fit3, "converged") #True #with warnings 1) some standard errors could not be computed and 2) some variances are negative
+summary(fit3, fit.measures = T, standardized = T) #Bad metrics
+
+######## Print Output ##########
+################################
+
+##  Define variable
+fitStats <- fitMeasures(fit2)
+# Select and format the ones I want
 fit_table <- data.frame(
   Measure = c("Chi-square", "Degrees of Freedom", "p-value", 
               "CFI", "TLI", 
@@ -183,7 +223,6 @@ fit_table <- data.frame(
                            "rmsea", "rmsea.ci.lower", "rmsea.ci.upper", 
                            "srmr")], 3)
 )
-
 
 
 kable(fit_table, caption = "Model Fit Indices") %>%
