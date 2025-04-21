@@ -4,27 +4,51 @@
 ###########################################
 
 SEM <- '
-  # Latent variables #only first two factors of Henriques // no factor loadings but rather "replicating them"
+  # Latent variables
   WM1 =~ MSK_mean + NDI_mean
   WM2 =~ MSD_mean + Fiso_mean
   COG =~ C1.y + C2.y + C3.y + C4.y
 
-  # Paths from lifestyle factors (factor scores)
-  WM1 ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6
-  WM2 ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6
-  COG ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6
+  # Paths from lifestyle factors to WM
+  WM1 ~ a1*ML1 + a2*ML2 + a3*ML3 + a4*ML4 + a5*ML5 + a6*ML6
+  WM2 ~ a7*ML1 + a8*ML2 + a9*ML3 + a10*ML4 + a11*ML5 + a12*ML6
 
-  # White matter to cognition
-  COG ~ WM1 + WM2
-  
-  #allow for correlation between LS factors
+  # Paths to cognition
+  COG ~ b1*WM1 + b2*WM2 +
+         c1*ML1 + c2*ML2 + c3*ML3 + c4*ML4 + c5*ML5 + c6*ML6
+
+  # Indirect effects for each ML through WM1
+  ind_ML1_WM1 := a1 * b1
+  ind_ML2_WM1 := a2 * b1
+  ind_ML3_WM1 := a3 * b1
+  ind_ML4_WM1 := a4 * b1
+  ind_ML5_WM1 := a5 * b1
+  ind_ML6_WM1 := a6 * b1
+
+  # Indirect effects for each ML through WM2
+  ind_ML1_WM2 := a7 * b2
+  ind_ML2_WM2 := a8 * b2
+  ind_ML3_WM2 := a9 * b2
+  ind_ML4_WM2 := a10 * b2
+  ind_ML5_WM2 := a11 * b2
+  ind_ML6_WM2 := a12 * b2
+
+  # Total indirect effects (WM1 + WM2)
+  total_ind_ML1 := ind_ML1_WM1 + ind_ML1_WM2
+  total_ind_ML2 := ind_ML2_WM1 + ind_ML2_WM2
+  total_ind_ML3 := ind_ML3_WM1 + ind_ML3_WM2
+  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
+  total_ind_ML5 := ind_ML5_WM1 + ind_ML5_WM2
+  total_ind_ML6 := ind_ML6_WM1 + ind_ML6_WM2
+
+  # Correlations among lifestyle factors
   ML1 ~~ ML2 + ML3 + ML4 + ML5 + ML6 
   ML2 ~~ ML3 + ML4 + ML5 + ML6
   ML3 ~~ ML4 + ML5 + ML6
   ML4 ~~ ML5 + ML6
   ML5 ~~ ML6
-
 '
+
 
 SemFit <- sem(SEM, data = data_num_with_LS, std.lv = TRUE)
 summary(SemFit, fit.measures = TRUE, standardized = TRUE)
@@ -51,35 +75,53 @@ dev.off()
 ############ SEM including Age ############
 ###########################################
 'Is this correct?'
-
 SEMAge <- '
-  # Latent variables #only first two factors of Henriques // no factor loadings but rather "replicating them"
+  # Latent variables
   WM1 =~ MSK_mean + NDI_mean
   WM2 =~ MSD_mean + Fiso_mean
   COG =~ C1.y + C2.y + C3.y + C4.y
 
-  # Paths from lifestyle factors (factor scores)
-  WM1 ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6
-  WM2 ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6
-  COG ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6
+  # Paths from lifestyle factors to WM
+  WM1 ~ a1*ML1 + a2*ML2 + a3*ML3 + a4*ML4 + a5*ML5 + a6*ML6 + Age
+  WM2 ~ a7*ML1 + a8*ML2 + a9*ML3 + a10*ML4 + a11*ML5 + a12*ML6 + Age
 
-  # White matter to cognition
-  COG ~ WM1 + WM2
+  # Paths to cognition
+  COG ~ b1*WM1 + b2*WM2 +
+         c1*ML1 + c2*ML2 + c3*ML3 + c4*ML4 + c5*ML5 + c6*ML6 +
+         Age
 
-  # include Age later as a covariate
-  COG  ~ Age
-  WM1  ~ Age
-  WM2  ~ Age
-   
-  
-  #allow for correlation between LS factors
+  # Indirect effects for each ML through WM1
+  ind_ML1_WM1 := a1 * b1
+  ind_ML2_WM1 := a2 * b1
+  ind_ML3_WM1 := a3 * b1
+  ind_ML4_WM1 := a4 * b1
+  ind_ML5_WM1 := a5 * b1
+  ind_ML6_WM1 := a6 * b1
+
+  # Indirect effects for each ML through WM2
+  ind_ML1_WM2 := a7 * b2
+  ind_ML2_WM2 := a8 * b2
+  ind_ML3_WM2 := a9 * b2
+  ind_ML4_WM2 := a10 * b2
+  ind_ML5_WM2 := a11 * b2
+  ind_ML6_WM2 := a12 * b2
+
+  # Total indirect effects (WM1 + WM2)
+  total_ind_ML1 := ind_ML1_WM1 + ind_ML1_WM2
+  total_ind_ML2 := ind_ML2_WM1 + ind_ML2_WM2
+  total_ind_ML3 := ind_ML3_WM1 + ind_ML3_WM2
+  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
+  total_ind_ML5 := ind_ML5_WM1 + ind_ML5_WM2
+  total_ind_ML6 := ind_ML6_WM1 + ind_ML6_WM2
+
+  # Correlations among lifestyle factors
   ML1 ~~ ML2 + ML3 + ML4 + ML5 + ML6 
   ML2 ~~ ML3 + ML4 + ML5 + ML6
   ML3 ~~ ML4 + ML5 + ML6
   ML4 ~~ ML5 + ML6
   ML5 ~~ ML6
-
 '
+
 
 SemFitage <- sem(SEMAge, data = data_num_with_LS, std.lv = TRUE)
 summary(SemFitage, fit.measures = TRUE, standardized = TRUE)
@@ -130,40 +172,4 @@ SEMcfaAge <- '
 
 SemFitCfaAge <- sem(SEMcfaAge, data = data_num_with_LS_sem, std.lv = TRUE)
 summary(SemFitCfaAge, fit.measures = TRUE, standardized = TRUE)
-
-
-##Without Age
-SEMcfa <- '
-  # Latent variables #only first two factors of Henriques // no factor loadings but rather "replicating them"
-  WM1 =~ MSK_mean + NDI_mean
-  WM2 =~ MSD_mean + Fiso_mean
-  COG =~ C1.y + C2.y + C3.y + C4.y
-
-  # Paths from lifestyle factors (factor scores)
-  WM1 ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  WM2 ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  COG ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-
-  # White matter to cognition
-  COG ~ WM1 + WM2
-  
-  #allow for correlation between LS factors
-  Alcohol ~~ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision 
-  BMIf ~~ Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  Depression ~~ Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  Diabetes ~~ Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  Education ~~ Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  Hearing ~~ BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  BP ~~ Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  Cholesterol ~~ PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  PhysicalActivity ~~ Smoking  + SocialIsolation + TBI + Vision
-  Smoking  ~~ SocialIsolation + TBI + Vision
-  SocialIsolation ~~ TBI + Vision
-  TBI ~~ Vision
-
-'
-
-SemFitCfa <- sem(SEMcfa, data = data_num_with_LS_sem, std.lv = TRUE)
-summary(SemFitCfa, fit.measures = TRUE, standardized = TRUE)
-
 
