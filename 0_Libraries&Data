@@ -8,7 +8,11 @@ install.packages("tidyr", type ="binary", dependency = TRUE) # For additional da
 install.packages("psych", type ="binary", dependency = TRUE) # For additional data manipulation
 install.packages("ggplot2", type ="binary", dependency = TRUE) # For additional data manipulation
 install.packages("corrplot", type ="binary", dependency = TRUE) # For additional data manipulation
-install.packages("lavaan", type ="binary", dependency = TRUE) # For additional data manipulation
+install.packages("lavaan", type ="binary", dependency = TRUE)# For additional data manipulation
+install.packages("semTools", type ="binary", dependency = TRUE)
+install.packages("knitr", type ="binary", dependency = TRUE)
+install.packages("kableExtra", type ="binary", dependency = TRUE)
+install.packages("GPArotation", type ="binary", dependency = TRUE)
 
 
 ## Import packages
@@ -20,6 +24,10 @@ library(psych)
 library(ggplot2)
 library(corrplot)
 library (lavaan)
+library(semTools)
+library(knitr)
+library(kableExtra)
+library(GPArotation)
 
 ###### LOAD DATA (do not repeat every time)#######
 ########################
