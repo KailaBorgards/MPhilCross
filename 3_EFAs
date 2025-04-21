@@ -85,7 +85,3 @@ print(fa_result$loadings, cutoff = 0.3)
 # Optional: Plot loadings
 fa.diagram(fa_result)
 
-
-################## EFA for Cognition ##################
-#######################################################
-
