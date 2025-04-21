@@ -1,0 +1,34 @@
+### EFA ###
+
+
+############## EFA for Lifestyle Factors ##############
+#######################################################
+ 
+#Factor Scores
+factor_scores <- lavPredict(fit3)
+#turn into dataframe
+factor_scores_df <- as.data.frame(factor_scores)
+
+#Rename
+efa_data <- factor_scores_df
+
+
+# Test appropriateness
+KMO(efa_data)           # Kaiser-Meyer-Olkin measure
+cortest.bartlett(cor(efa_data), n = nrow(efa_data))  # Bartlett’s test of sphericity
+
+## Determine number of Factors
+fa.parallel(efa_data, fa = "fa", n.iter = 100) #3 but only 1 with Eigenvalue >1
+
+# running the EFA
+efa_result <- fa(efa_data, nfactors = 6, rotate = "oblimin", fm = "ml")
+print(efa_result, cutoff = 0.3)  # Loadings above 0.3
+## Best Metrics with 6 factors 
+
+#visualize
+fa.diagram(efa_result)
+
+
+#Export to Table
+loadings_df <- as.data.frame(efa_result$loadings[1:ncol(efa_data), ])
+write.csv(loadings_df, "efa_loadings.csv")
