@@ -9,6 +9,10 @@ factor_scores <- lavPredict(fit3)
 #turn into dataframe
 factor_scores_df <- as.data.frame(factor_scores)
 
+### Adding CFA factor scores to data frame
+data_num_with_LS_sem <- cbind(data_num_with_LS, factor_scores_df)
+
+
 #Rename
 efa_data <- factor_scores_df
 
@@ -24,6 +28,8 @@ fa.parallel(efa_data, fa = "fa", n.iter = 100) #3 but only 1 with Eigenvalue >1
 efa_result <- fa(efa_data, nfactors = 6, rotate = "oblimin", fm = "ml")
 print(efa_result, cutoff = 0.3)  # Loadings above 0.3
 ## Best Metrics with 6 factors 
+factor_scores <- as.data.frame(efa_result$scores)
+head(factor_scores)
 
 #visualize
 fa.diagram(efa_result)
@@ -34,34 +40,52 @@ loadings_df <- as.data.frame(efa_result$loadings[1:ncol(efa_data), ])
 write.csv(loadings_df, "efa_loadings.csv")
 
 
+# Bind lifestyle factor scores to original data
+num_data_scaled <- scale(num_data)
+data_num_with_LS <- cbind(num_data_scaled, factor_scores)
+
+
 ################# PCA for White Matter ################
 #######################################################
 
 
 # Matrix of WM scores
-pca_WM <- num_data[, c("WMHI_NORM_TIV", "FA_mean","MSD_mean","MSK_mean","NDI_mean","ODI_mean","Fiso_mean")]
+pca_WM <- num_data[, c("FA_mean","MSD_mean","MSK_mean","NDI_mean","ODI_mean","Fiso_mean")]
 
-pca_result <- prcomp(pca_WM, center = TRUE, scale. = TRUE)
+sum(is.na(pca_WM_clean))      # Count NAs #528
 
-summary(pca_result)
+pca_WM_clean <- pca_WM[complete.cases(pca_WM) & apply(pca_WM, 1, function(x) all(is.finite(x))), ]
 
-plot(pca_result, type = "l")  # Scree plot
+nrow(pca_WM_clean) #620 / 88 removed
 
-pca_result$rotation  # Loadings matrix
+# Perform PCA
+pca_result <- prcomp(pca_WM_clean, center = TRUE, scale. = TRUE)
 
+# Variance explained
+explained <- summary(pca_result)$importance[2, ] * 100  # Percent variance
+latent <- pca_result$sdev^2  # Eigenvalues
 
-pca_scores <- pca_result$x  # Each row = one participant's scores on the components
-head(pca_scores)
+# Kaiser criterion (eigenvalue > 1)
+nPC <- sum(latent * length(latent) / sum(latent) > 1)
+print(nPC)  # Should return 3 but returns 2
 
-install.packages("factoextra")
-library(factoextra)
+# Scree plot
+fviz_eig(pca_result, addlabels = TRUE)
 
-# Individuals (rows)
-fviz_pca_ind(pca_result, geom.ind = "point", col.ind = "cos2", repel = TRUE)
+# Or barplot like in the MATLAB code
+barplot(explained, col = "cornflowerblue", main = "Explained Variance", ylab = "% Variance")
 
-# Variables (original predictors)
-fviz_pca_var(pca_result, col.var = "contrib", repel = TRUE)
+## FA
+# Run factor analysis with 3 factors and varimax rotation
+fa_result <- fa(pca_WM_clean, nfactors = 3, rotate = "varimax", fm = "ml")
+
+# Print factor loadings
+print(fa_result$loadings, cutoff = 0.3)
+
+# Optional: Plot loadings
+fa.diagram(fa_result)
 
 
 ################## EFA for Cognition ##################
 #######################################################
+
