@@ -1,10 +1,8 @@
-
-
 ######## INSPECT DATA ###########
 #################################
 
 nrow(data_dwi)
-ncol(data_dwi) #176             
+ncol(data_dwi) #178             
 colnames(data_dwi)
 summary(data_dwi)
 describe(data_dwi)
@@ -14,7 +12,7 @@ sapply(data_dwi, class)  # Returns the class of each column
 # Only non-numeric columns
 sapply(data_dwi, class)[sapply(data_dwi,class)=="character"]
 
-
+table(data_dwi$place)
 
 '
 columns that are characters:
@@ -33,7 +31,9 @@ columns that are characters:
   HADS_dep_category #HADS depression category             
   qual      # Highest qualification      
   height    # Height        
-  weight    # Weight          
+  weight    # Weight
+  bp_sys2   #BP
+  bp_sys3   #BP
   C1.y      # Cattell 1
   C2.y      # Cattell 2 
   C3.y      # Cattell 3        
@@ -268,6 +268,16 @@ data_dwi$weight    # Print -> Technically in numbers, so further inspection
 data_dwi$weight[data_dwi$weight == "NaN"] <- NA # So that NaN os no longer a string
 data_dwi$weight <- as.numeric(data_dwi$weight)
 
+#bp_sys2
+data_dwi$bp_sys2
+data_dwi$bp_sys2[data_dwi$bp_sys2 == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$bp_sys2 <- as.numeric(data_dwi$bp_sys2)
+
+#bp_sys3 
+data_dwi$bp_sys3
+data_dwi$bp_sys3[data_dwi$bp_sys3 == "NaN"] <- NA # So that NaN os no longer a string
+data_dwi$bp_sys3 <- as.numeric(data_dwi$bp_sys3)
+
 # Cattell 1          
 data_dwi$C1.y     # Print -> Technically in numbers, so further inspection
 data_dwi$C1.y[data_dwi$C1.y == "NaN"] <- NA # So that NaN os no longer a string
@@ -322,14 +332,14 @@ data_dwi$Fiso_mean <- as.numeric(data_dwi$Fiso_mean)
 ######### Subset of only numeric variables #########
 ####################################################
 
-ncol(data_dwi) #185
+ncol(data_dwi) #187
 sapply(data_dwi, class) # Returns the class of each column
 # Only non-numeric columns
 sapply(data_dwi, class)[sapply(data_dwi,class)=="character"]
 
 ## Exclude numeric columns
 num_data <- data_dwi[, sapply(data_dwi, is.numeric)]
-ncol(num_data) #173 (because we excluded CCID,V14 and V73)
+ncol(num_data) #175 (because we excluded CCID,V14 and V73)
 
 ##Columns that were modified for future reference
 grep("modified", names(num_data), value = TRUE)
@@ -350,6 +360,9 @@ colnames(num_data)
 ## BMI
 num_data$BMI <- num_data$weight / ((num_data$height/100)^2) #weight in kg, height in cm
 print(num_data$BMI)
+
+## systolic Blood Pressure
+num_data$bp_sys <- rowMeans(cbind(num_data$bp_sys2, num_data$bp_sys3), na.rm = TRUE) #Averaged because README file of Cardio says so
 
 
 ######## Correction of Variables for Factors for use of CFA###########
@@ -501,7 +514,7 @@ sort(unique(num_data$v297m))
 88. No answer 
 99. Not asked
 '
-# Re-code, 66 = 0.5 because less than one, rest of given answers NA, & invert answers (*-1) for better interpetabilit
+# Re-code, 66 = 0.5 because less than one, rest of given answers NA
 v297_mapping <- c("66" = 0.5, "0" = 0, "1" = 1,  "2" = 2,  "3" = 3, "4" = 4, 
                   "5" = 5, "6" = 6, "7" = 7, "8" = 8,
                   "14" = 14, 
@@ -655,7 +668,7 @@ unique(num_data$v336)
 names(num_data)[duplicated(names(num_data))]
 names(num_data) <- make.names(names(num_data), unique = TRUE)
 
-## Correction, so that 7/8/9 are NA, inverted
+## Correction, so that 7/8/9 are NA
 
 v336789_mapping <- c( "1" = 2,  "2" = 1,
                       "7"=NA,"8"=NA,"9" = NA)
@@ -715,7 +728,7 @@ num_data$v620m <- num_data$v620*-1
 table(num_data$v620m)# okay as is
 
 # High Blood Pressure
-'variable: v349m, v352m, v354m, v629m, v632m, v634m
+'variable: v349m, v352m, v354m, v629m, v632m, v634m, bp_sys
 '
 #v349
 'High blood pressure (hypertension) 
@@ -747,6 +760,7 @@ table(num_data$v620m)# okay as is
 7. Don’t know
 8. No answer
 9. Not asked'
+
 
 ## Correction, so that 7/8/9 are NA, invertes 1/2
 
@@ -792,6 +806,11 @@ num_data$v352m <- as.numeric(num_data$v352m)
 #v632
 num_data$v632m <- BP2_mapping[as.character(num_data$v632)]
 num_data$v632m <- as.numeric(num_data$v632m)
+
+#bp_sys
+'Measured on day of scanning by RA, twice. This is the average of systolic blood pressure'
+# invert
+num_data$bp_sys <- num_data$bp_sys *-1
 
 # High cholesterol
 'variables: v355m
@@ -1510,10 +1529,10 @@ Hearing <- num_data %>%
   select(v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620)
 
 # High Blood Pressure
-'variable: v349m, v352m, v354m, v629m, v632m, v634m
+'variable: v349m, v352m, v354m, v629m, v632m, v634m, bp_sys
 ' # potentially duplicates!!
 BP <- num_data %>%
-  select(v349m, v352m, v354m, v629m, v632m, v634m)
+  select(v349m, v352m, v354m, v629m, v632m, v634m, bp_sys)
 
 # High cholesterol
 'Variables: v355m'
