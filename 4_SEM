@@ -1,0 +1,169 @@
+
+
+############ SEM excluding Age ############
+###########################################
+
+SEM <- '
+  # Latent variables #only first two factors of Henriques // no factor loadings but rather "replicating them"
+  WM1 =~ MSK_mean + NDI_mean
+  WM2 =~ MSD_mean + Fiso_mean
+  COG =~ C1.y + C2.y + C3.y + C4.y
+
+  # Paths from lifestyle factors (factor scores)
+  WM1 ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6
+  WM2 ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6
+  COG ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6
+
+  # White matter to cognition
+  COG ~ WM1 + WM2
+  
+  #allow for correlation between LS factors
+  ML1 ~~ ML2 + ML3 + ML4 + ML5 + ML6 
+  ML2 ~~ ML3 + ML4 + ML5 + ML6
+  ML3 ~~ ML4 + ML5 + ML6
+  ML4 ~~ ML5 + ML6
+  ML5 ~~ ML6
+
+'
+
+SemFit <- sem(SEM, data = data_num_with_LS, std.lv = TRUE)
+summary(SemFit, fit.measures = TRUE, standardized = TRUE)
+
+## Visualize
+semPaths(SemFit, 
+         what = "std",        # standardized estimates
+         layout = "tree2",     # nice clean tree layout
+         edge.label.cex = 1.1, # size of path labels
+         sizeMan = 6,          # observed variable size
+         sizeLat = 8,          # latent variable size
+         nCharNodes = 0,       # show full variable names
+         style = "lisrel",     # classic SEM look
+         residuals = FALSE,    # hide residual arrows
+         intercepts = FALSE)   # hide intercepts
+
+# Saving it
+png("sem_plot.png", width = 1000, height = 800)
+semPaths(fit, what = "std", layout = "tree", edge.label.cex = 1.1)
+dev.off()
+
+
+
+############ SEM including Age ############
+###########################################
+'Is this correct?'
+
+SEMAge <- '
+  # Latent variables #only first two factors of Henriques // no factor loadings but rather "replicating them"
+  WM1 =~ MSK_mean + NDI_mean
+  WM2 =~ MSD_mean + Fiso_mean
+  COG =~ C1.y + C2.y + C3.y + C4.y
+
+  # Paths from lifestyle factors (factor scores)
+  WM1 ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6
+  WM2 ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6
+  COG ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6
+
+  # White matter to cognition
+  COG ~ WM1 + WM2
+
+  # include Age later as a covariate
+  COG  ~ Age
+  WM1  ~ Age
+  WM2  ~ Age
+   
+  
+  #allow for correlation between LS factors
+  ML1 ~~ ML2 + ML3 + ML4 + ML5 + ML6 
+  ML2 ~~ ML3 + ML4 + ML5 + ML6
+  ML3 ~~ ML4 + ML5 + ML6
+  ML4 ~~ ML5 + ML6
+  ML5 ~~ ML6
+
+'
+
+SemFitage <- sem(SEMAge, data = data_num_with_LS, std.lv = TRUE)
+summary(SemFitage, fit.measures = TRUE, standardized = TRUE)
+
+
+
+### NOT TO BE INTERPRETED
+############ SEM with CFAs LS factors  ############
+###################################################
+'poor metrics and too low power'
+#with Age
+
+SEMcfaAge <- '
+  # Latent variables #only first two factors of Henriques // no factor loadings but rather "replicating them"
+  WM1 =~ MSK_mean + NDI_mean
+  WM2 =~ MSD_mean + Fiso_mean
+  COG =~ C1.y + C2.y + C3.y + C4.y
+
+  # Paths from lifestyle factors (factor scores)
+  WM1 ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  WM2 ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  COG ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+
+  # White matter to cognition
+  COG ~ WM1 + WM2
+
+  # include Age later as a covariate
+  COG  ~ Age
+  WM1  ~ Age
+  WM2  ~ Age
+   
+  
+  #allow for correlation between LS factors
+  Alcohol ~~ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision 
+  BMIf ~~ Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Depression ~~ Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Diabetes ~~ Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Education ~~ Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Hearing ~~ BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  BP ~~ Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Cholesterol ~~ PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  PhysicalActivity ~~ Smoking  + SocialIsolation + TBI + Vision
+  Smoking  ~~ SocialIsolation + TBI + Vision
+  SocialIsolation ~~ TBI + Vision
+  TBI ~~ Vision
+
+'
+
+SemFitCfaAge <- sem(SEMcfaAge, data = data_num_with_LS_sem, std.lv = TRUE)
+summary(SemFitCfaAge, fit.measures = TRUE, standardized = TRUE)
+
+
+##Without Age
+SEMcfa <- '
+  # Latent variables #only first two factors of Henriques // no factor loadings but rather "replicating them"
+  WM1 =~ MSK_mean + NDI_mean
+  WM2 =~ MSD_mean + Fiso_mean
+  COG =~ C1.y + C2.y + C3.y + C4.y
+
+  # Paths from lifestyle factors (factor scores)
+  WM1 ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  WM2 ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  COG ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+
+  # White matter to cognition
+  COG ~ WM1 + WM2
+  
+  #allow for correlation between LS factors
+  Alcohol ~~ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision 
+  BMIf ~~ Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Depression ~~ Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Diabetes ~~ Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Education ~~ Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Hearing ~~ BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  BP ~~ Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Cholesterol ~~ PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  PhysicalActivity ~~ Smoking  + SocialIsolation + TBI + Vision
+  Smoking  ~~ SocialIsolation + TBI + Vision
+  SocialIsolation ~~ TBI + Vision
+  TBI ~~ Vision
+
+'
+
+SemFitCfa <- sem(SEMcfa, data = data_num_with_LS_sem, std.lv = TRUE)
+summary(SemFitCfa, fit.measures = TRUE, standardized = TRUE)
+
+
