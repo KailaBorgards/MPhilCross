@@ -5,6 +5,15 @@
 ## Correct the model and clean included variables 
 'WIP'
 
+
+########################  CLEAN DATA  ####################
+##########################################################
+
+##  Goal: Get rid of participants with more than 20% Nas in Lifestyle
+
+
+
+
 ############# Ideal model with all variables ###########
 #########################################################
 
