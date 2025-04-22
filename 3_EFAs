@@ -1,5 +1,5 @@
 ### EFA ###
-
+table(num_data$v356)
 
 ############## EFA for Lifestyle Factors ##############
 #######################################################
@@ -44,6 +44,42 @@ write.csv(loadings_df, "efa_loadings.csv")
 num_data_scaled <- scale(num_data)
 data_num_with_LS <- cbind(num_data_scaled, factor_scores)
 
+
+################# PCA for Lifestyle fyi################
+#######################################################
+
+
+# Matrix of LS scores
+factor_scores_df
+
+sum(is.na(factor_scores_df))      # Count NAs #0
+
+# Perform PCA
+pca_result_ls <- prcomp(factor_scores_df, center = TRUE, scale. = TRUE)
+
+# Variance explained
+explained_ls <- summary(pca_result_ls)$importance[2, ] * 100  # Percent variance
+latent_ls <- pca_result_ls$sdev^2  # Eigenvalues
+
+# Kaiser criterion (eigenvalue > 1)
+nPC_ls <- sum(latent_ls * length(latent_ls) / sum(latent_ls) > 1)
+print(nPC_ls)  # returns 5- consider using 6
+
+# Scree plot
+fviz_eig(pca_result_ls, addlabels = TRUE)
+
+# Or barplot like in the MATLAB code
+barplot(explained_ls, col = "cornflowerblue", main = "Explained Variance", ylab = "% Variance")
+
+## FA
+# Run factor analysis with 3 factors and varimax rotation
+fa_result_ls <- fa(factor_scores_df, nfactors = nPC_ls, rotate = "varimax", fm = "ml")
+
+# Print factor loadings
+print(fa_result_ls$loadings, cutoff = 0.3)
+
+# Optional: Plot loadings
+fa.diagram(fa_result_ls)
 
 ################# PCA for White Matter ################
 #######################################################
