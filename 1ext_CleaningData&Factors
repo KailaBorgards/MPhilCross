@@ -7,6 +7,8 @@ colnames(data_dwi)
 summary(data_dwi)
 describe(data_dwi)
 
+
+
 ## covariance  
 sapply(data_dwi, class)  # Returns the class of each column
 # Only non-numeric columns
@@ -361,9 +363,44 @@ colnames(num_data)
 num_data$BMI <- num_data$weight / ((num_data$height/100)^2) #weight in kg, height in cm
 print(num_data$BMI)
 
-## systolic Blood Pressure
+##Blood Pressure
+#systolic BP
 num_data$bp_sys <- rowMeans(cbind(num_data$bp_sys2, num_data$bp_sys3), na.rm = TRUE) #Averaged because README file of Cardio says so
 
+describe(num_data$bp_sys)
+describe(num_data$BMI)
+
+#Age since hypertension diagnosis
+## How long hypertension has been diagnosed
+table(num_data$v350)
+## Recode so 9999 are NAs
+num_data$v350m <- num_data$v350
+num_data$v350m[num_data$v350 == 9999] <- NA
+num_data$v350m[num_data$v350 == 790] <- NA
+# compute duration of hypertension diagnosis so that it is Age - Age of diagnosis
+num_data$v350proxy <- num_data$Age - num_data$v350m
+table(num_data$v350proxy)
+
+
+#Diabetes
+## How long diabetes has been diagnosed
+table(num_data$v378)
+## Recode so 9999 are NAs
+num_data$v378m <- num_data$v378
+num_data$v378m[num_data$v378 == 9999] <- NA
+# compute duration of diabetes diagnosis so that it is Age - Age of diagnosis
+num_data$v378proxy <- num_data$Age - num_data$v378m
+table(num_data$v378proxy)
+
+## High Cholesterol
+## How long cholesterol has been diagnosed
+table(num_data$v356)
+## Recode so 9999 are NAs
+num_data$v356m <- num_data$v356
+num_data$v356m[num_data$v356 == 9999] <- NA
+# compute duration of cholesterol diagnosis so that it is Age - Age of diagnosis
+num_data$v356proxy <- num_data$Age - num_data$v356m
+table(num_data$v356proxy)
 
 ######## Correction of Variables for Factors for use of CFA###########
 #####################################################################
@@ -603,7 +640,7 @@ sort(unique(num_data$v640))
 
 
 # Diabetes
-'variables: v377, v378 (excluded, cause just age)'
+'variables: v377, v378 (excluded, cause just age), v378proxym'
 num_data$v377
 'Diabetes (not during pregnancy)	
 1. No 
@@ -620,6 +657,8 @@ num_data$v377minv <- as.numeric(num_data$v377minv)
 num_data$v377m <- num_data$v377minv*-1
 table(num_data$v377m)
 
+#v378proxy # invert
+num_data$v378proxym <- num_data$v378proxy *-1
 
 # Education
 'variables: qualmodified, v74'
@@ -728,8 +767,12 @@ num_data$v620m <- num_data$v620*-1
 table(num_data$v620m)# okay as is
 
 # High Blood Pressure
-'variable: v349m, v352m, v354m, v629m, v632m, v634m, bp_sys
+'variable: v349m, v352m, v354m, v629m, v632m, v634m, bp_sys, v350proxym
 '
+
+#v350proxy # invert
+num_data$v350proxym <- num_data$v350proxy *-1
+
 #v349
 'High blood pressure (hypertension) 
 1. No 
@@ -813,7 +856,7 @@ num_data$v632m <- as.numeric(num_data$v632m)
 num_data$bp_sys <- num_data$bp_sys *-1
 
 # High cholesterol
-'variables: v355m
+'variables: v355m, v356proxym
 '
 #v355 # invert and NAs
 'High blood cholesterol (hyperlipidaemia)	
@@ -829,6 +872,8 @@ v355_mapping <- c( "1" = 2,  "2" = 1,
 num_data$v355m <- v355_mapping[as.character(num_data$v355)]
 num_data$v355m <- as.numeric(num_data$v355m)
 
+#v356proxy # invert
+num_data$v356proxym <- num_data$v356proxy *-1
 
 # Physical activity
 'Variables: activities_done, ACTMETS, CARadj, CARMILES, COMMUTE_METS, COMMUTE_PAEE, 
@@ -1515,7 +1560,7 @@ Depression <- num_data %>%
 # Diabetes
 'Variables: v377'
 Diabetes <- num_data %>%
-  select(v377m)
+  select(v377m, v378proxym)
 
 # Education
 'Variables: qualm'
@@ -1529,20 +1574,20 @@ Hearing <- num_data %>%
   select(v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620)
 
 # High Blood Pressure
-'variable: v349m, v352m, v354m, v629m, v632m, v634m, bp_sys
+'variable: v349m, v352m, v354m, v629m, v632m, v634m, bp_sys, v350proxym
 ' # potentially duplicates!!
 BP <- num_data %>%
-  select(v349m, v352m, v354m, v629m, v632m, v634m, bp_sys)
+  select(v349m, v352m, v354m, v629m, v632m, v634m, bp_sys, v350proxym)
 
 # High cholesterol
-'Variables: v355m'
+'Variables: v355m, v356proxym'
 Cholesterol <- num_data %>%
-  select(v355m)
+  select(v355m, v356proxym)
 
 # Physical activity
-'variables: HOME_PAEE, LEIS_PAEE, PAEE, WORK_PAEE'
+'variables: HOME_PAEE, LEIS_PAEE, COMMUTE_PAEE, WORK_PAEE'
 PhysicalActivity <- num_data %>%
-  select(HOME_PAEE, LEIS_PAEE, PAEE, WORK_PAEE)
+  select(HOME_PAEE, LEIS_PAEE, COMMUTE_PAEE, WORK_PAEE)
 
 # Smoking
 'variables:smokermodified, v241m, v242m, v244m, v245m, v247m, v251m, v252m, v253m, v255m, v256m, v259m, v260m, v261m'
@@ -1561,7 +1606,7 @@ TBI <- num_data %>%
 'variables: v328m, v329m, v330m, v333modified, v334modified, v335modified, v621m
 '
 Vision <- num_data %>%
-  select( v328m, v329m, v330m, v333modified, v334modified, v335modified, v621m)
+  select(v328m, v329m, v330m, v333modified, v334modified, v335modified, v621m)
 
 # Air pollution
 'currently excluded'
