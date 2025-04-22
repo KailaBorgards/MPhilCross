@@ -82,13 +82,13 @@ SEMAge <- '
   COG =~ C1.y + C2.y + C3.y + C4.y
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML2 + a3*ML3 + a4*ML4 + a5*ML5 + a6*ML6 + Age
-  WM2 ~ a7*ML1 + a8*ML2 + a9*ML3 + a10*ML4 + a11*ML5 + a12*ML6 + Age
+  WM1 ~ a1*ML1 + a2*ML2 + a3*ML3 + a4*ML4 + a5*ML5 + a6*ML6 + age_iv
+  WM2 ~ a7*ML1 + a8*ML2 + a9*ML3 + a10*ML4 + a11*ML5 + a12*ML6 + age_iv
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
          c1*ML1 + c2*ML2 + c3*ML3 + c4*ML4 + c5*ML5 + c6*ML6 +
-         Age
+         age_iv
 
   # Indirect effects for each ML through WM1
   ind_ML1_WM1 := a1 * b1
