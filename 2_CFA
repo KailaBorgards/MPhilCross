@@ -6,68 +6,68 @@
 'WIP'
 
 
-########################  CLEAN DATA  ####################
-##########################################################
-
-##  Goal: Get rid of participants with more than 20% Nas in Lifestyle
-
-
-
-
 ############# Ideal model with all variables ###########
 #########################################################
 
 
 ## CFA Model (21.04.2025)
 
+
 CFA_Model2 <- 
   'Alcohol =~ alcoholmodified + v290m+v291m+ v293m+ v294m+ v295m+ v296m+ v297m
   BMIf =~ BMIm
   Depression =~ HADS_depressionm+ HADSmodified+ v422m+ v639m
-  Diabetes =~ v377m
-  Education =~ qualmodified
+  Diabetes =~ v377m + v378proxym
+  Education =~ qualmodified + yearsedum
   Hearing =~ v336m+ v337m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
-  BP =~ v349m+ v352m+ v354m+ v629m+ v632m+ v634m + bp_sys
-  Cholesterol =~ v355m
-  PhysicalActivity =~ HOME_PAEE+ LEIS_PAEE+ PAEE+ WORK_PAEE
+  BP =~ v349m+ v352m+ v354m+ v629m+ v632m+ v634m + bp_sys + v350proxym
+  Cholesterol =~ v355m + v356proxym
+  PhysicalActivity =~ HOME_PAEE+ LEIS_PAEE+ COMMUTE_PAEE+ WORK_PAEE, PAEE
   Smoking =~ smokermodified+ v241m+ v242m+ v244m+ v245m+ v247m+ v251m+ v252m+ v253m+ v255m+ v256m+ v259m+ v260m+ v261m
   SocialIsolation =~ v5m+ v86+ v87m+ v89+ v90m+ v91m+v92m+v93m+v94m+ v95m+ v96modified+ v97m+ v98m
   TBI =~ v457m+ v459m+ v542m+ v543m+ v545m
   Vision =~ v328m+ v329m+ v330m+ v333modified+ v334modified+ v335modified+ v621m
   
 '
+
 ## CFA
 fit <- cfa(CFA_Model2, data = num_data) # Error
+lavInspect(fit, "coverage") 
 '
 Error: Some variables have no values or no variance
 Warnings: variance is by factor 1000 different -> scale data
 Warnings: 0% pairwise coverage - some variables never overlap with others -> identify and exclude
 EM algorithm not converging -> increase iterations
-Smaööes eigenvalue too small -> tbd'
+Smallest eigenvalue too small -> tbd'
 
+ 
 ######## Clean Data for Model ###########
 #########################################
-#Dataframe for model
+#Dataframe for model 79 variables
 df_cfa <- num_data %>%
-  select( alcoholmodified ,v290m,v291m, v293m, v294m, v295m, v296m, v297m, BMIm, HADS_depressionm, HADSmodified, v422m, v639m,
-          v377m, qualmodified, v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620m,
-          v349m, v352m, v354m, v629m, v632m, v634m,bp_sys,v355m, HOME_PAEE, LEIS_PAEE, PAEE, WORK_PAEE, 
+  select( alcoholmodified ,v290m,v291m, v293m, v294m, v295m, v296m, v297m,
+          BMIm,
+          HADS_depressionm, HADSmodified, v422m, v639m,
+          v377m , v378proxym,
+          qualmodified , yearsedum,
+          v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620m,
+          v349m, v352m, v354m, v629m, v632m, v634m , bp_sys , v350proxym,
+          v355m , v356proxym,
+          HOME_PAEE, LEIS_PAEE, COMMUTE_PAEE, WORK_PAEE,PAEE,
           smokermodified, v241m, v242m, v244m, v245m, v247m, v251m, v252m, v253m, v255m, v256m, v259m, v260m, v261m,
           v5m, v86, v87m, v89, v90m, v91m,v92m,v93m,v94m, v95m, v96modified, v97m, v98m,
           v457m, v459m, v542m, v543m, v545m,
-          v328m, v329m, v330m, v333modified, v334modified, v335modified, v621m
+          v328m, v329m, v330m, v333modified, v334modified, v335modified, v621m,
   )
 
 
-# Check for NAs morre than 80%
-na_percent <- colMeans(is.na(df_cfa))
-high_na_cols <- names(na_percent[na_percent > 0.5])
+# Check for NAs, percentage
+na_percent <- round(colMeans(is.na(df_cfa)) *100, 2)
+na_percent
+## over 20% NAs
+high_na_cols <- names(na_percent[na_percent > 20])
 high_na_cols
-#80%  "v291m" "v352m" "v354m" "v632m" "v634m" "v242m" "v244m" "v245m" "v247m" "v255m" "v260m" "v459m" "v545m" "v329m" "v330m"
 
-# 50% additionally "v639m" "v337m"  "v629m"  "v252m" "v253m"  "v256m"  
-
-ncol(df_cfa) # 75
 
 #Check if any column has 0 variance
 which(sapply(df_cfa, function(x) var(x, na.rm = TRUE) == 0)) #"v354m" 
@@ -80,7 +80,7 @@ my_data_scaled <- scale(df_cfa)
 ############# Adjusted model without variables >50% NAs ###########
 ####################################################################
 
-#Adjusted model #  without variables >50% NAs 
+#Adjusted model #  without variables >20% NAs 
 CFA_Model2 <- 
   'Alcohol =~ alcoholmodified + v290m+ v293m+ v294m+ v295m+ v296m+ v297m
   BMIf =~ BMIm
@@ -125,7 +125,6 @@ fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max =
 inspect(fit, "gradient") #physical activity had value of greater 0.01 // 0.85 -> so simplified to only include PAEE
 inspect(fit, "converged") #True
 summary(fit, fit.measures = T, standardized = T) #Bad metrics
-
 
 ############ Variables adjustment #############
 ###############################################
@@ -236,4 +235,47 @@ fit_table <- data.frame(
 
 kable(fit_table, caption = "Model Fit Indices") %>%
   kable_styling(full_width = FALSE, position = "center")
+
+
+
+
+
+
+
+
+############# EXPERIMENTAL ###############
+##########################################
+## only less than 25% NAs
+
+CFA_ModelE1 <- 
+  'Alcohol =~  alcoholmodified + v290m +v293m + v294m
+  BMIf =~ BMIm
+  Depression =~ HADS_depressionm+ HADSmodified+ v422m
+  Diabetes =~ v377m 
+  Education =~ qualmodified + yearsedum
+  Hearing =~ v336m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
+  BP =~ v349m+ bp_sys 
+  Cholesterol =~ v355m 
+  PhysicalActivity =~ PAEE
+  Smoking =~ smokermodified+ v241m+ v251m
+  SocialIsolation =~  v86+ v89+ v90m+ v91m+v93m
+  TBI =~ v457m
+  Vision =~ v328m+ v333modified+ v334modified+ v335modified
+  
+'
+fite1 <- cfa(CFA_ModelE1, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS")
+fite1 <- cfa(CFA_ModelE1, data = my_data_scaled, em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS", estimator = "WLSMV") # estimator does listwise deletion and only 222 norw are left
+#do.fit = FALSE
+summary(fite1, standardized = TRUE)
+
+parameterEstimates(fite1) %>% 
+  filter(lhs == rhs, op == "~~") %>%
+  filter(lhs == "PhysicalActivity")
+
+
+inspect(fite1, "converged") 
+inspect(fite1, "gradient")
+
+summary(fite1, fit.measures = T, standardized = T) #Bad metrics
+
 
