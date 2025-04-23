@@ -5,7 +5,7 @@ table(num_data$v356)
 #######################################################
  
 #Factor Scores
-factor_scores <- lavPredict(fit3)
+factor_scores <- lavPredict(fite1)
 #turn into dataframe
 factor_scores_df <- as.data.frame(factor_scores)
 
@@ -25,7 +25,7 @@ cortest.bartlett(cor(efa_data), n = nrow(efa_data))  # Bartlett’s test of sphe
 fa.parallel(efa_data, fa = "fa", n.iter = 100) #3 but only 1 with Eigenvalue >1
 
 # running the EFA
-efa_result <- fa(efa_data, nfactors = 6, rotate = "oblimin", fm = "ml")
+efa_result <- fa(efa_data, nfactors = 4, rotate = "oblimin", fm = "ml")
 print(efa_result, cutoff = 0.3)  # Loadings above 0.3
 ## Best Metrics with 6 factors 
 factor_scores <- as.data.frame(efa_result$scores)
