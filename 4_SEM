@@ -173,3 +173,54 @@ SEMcfaAge <- '
 SemFitCfaAge <- sem(SEMcfaAge, data = data_num_with_LS_sem, std.lv = TRUE)
 summary(SemFitCfaAge, fit.measures = TRUE, standardized = TRUE)
 
+
+
+######## SOLUTION with 5 factors #### ## Not better
+####################################
+SEM2 <- '
+  # Latent variables
+  WM1 =~ MSK_mean + NDI_mean
+  WM2 =~ MSD_mean + Fiso_mean
+  COG =~ C1.y + C2.y + C3.y + C4.y
+
+  # Paths from lifestyle factors to WM
+  WM1 ~ a1*ML1 + a2*ML2 + a3*ML3 + a4*ML4 
+  WM2 ~ a6*ML1 + a7*ML2 + a8*ML3 + a9*ML4 
+
+  # Paths to cognition
+  COG ~ b1*WM1 + b2*WM2 +
+         c1*ML1 + c2*ML2 + c3*ML3 + c4*ML4 
+
+  # Indirect effects for each ML through WM1
+  ind_ML1_WM1 := a1 * b1
+  ind_ML2_WM1 := a2 * b1
+  ind_ML3_WM1 := a3 * b1
+  ind_ML4_WM1 := a4 * b1
+ 
+
+  # Indirect effects for each ML through WM2
+  ind_ML1_WM2 := a6 * b2
+  ind_ML2_WM2 := a7 * b2
+  ind_ML3_WM2 := a8 * b2
+  ind_ML4_WM2 := a9 * b2
+  
+
+
+  # Total indirect effects (WM1 + WM2)
+  total_ind_ML1 := ind_ML1_WM1 + ind_ML1_WM2
+  total_ind_ML2 := ind_ML2_WM1 + ind_ML2_WM2
+  total_ind_ML3 := ind_ML3_WM1 + ind_ML3_WM2
+  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
+ 
+
+  # Correlations among lifestyle factors
+  ML1 ~~ ML2 + ML3 + ML4 
+  ML2 ~~ ML3 + ML4
+  ML3 ~~ ML4
+
+ 
+'
+
+
+SemFit2 <- sem(SEM2, data = data_num_with_LS, std.lv = TRUE)
+summary(SemFit2, fit.measures = TRUE, standardized = TRUE)
