@@ -661,13 +661,16 @@ table(num_data$v377m)
 num_data$v378proxym <- num_data$v378proxy *-1
 
 # Education
-'variables: qualmodified, v74'
+'variables: qualmodified, v74, yearsedum'
 
 
 table(num_data$v74) #To be discussed, exclude for now (we could either subtract from current age
 # to have a measuer of how many years ago its been, given there is evidence, that if it is too long ago
 # it does not have en effect, or we use it as is but reverse coding)
 
+#question_num_years_edu
+num_data$yearsedu <- num_data$question_num_years_edu
+num_data$yearsedum <- num_data$yearsedu
 
 # Hearing Problems
 'variables: v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620m
@@ -1565,7 +1568,7 @@ Diabetes <- num_data %>%
 # Education
 'Variables: qualm'
 Education <- num_data %>%
-  select(qualmodified)
+  select(qualmodified,yearsedum)
 
 # Hearing Problems
 'variables: v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620m
@@ -1587,7 +1590,7 @@ Cholesterol <- num_data %>%
 # Physical activity
 'variables: HOME_PAEE, LEIS_PAEE, COMMUTE_PAEE, WORK_PAEE'
 PhysicalActivity <- num_data %>%
-  select(HOME_PAEE, LEIS_PAEE, COMMUTE_PAEE, WORK_PAEE)
+  select(HOME_PAEE, LEIS_PAEE, COMMUTE_PAEE, WORK_PAEE, PAEE)
 
 # Smoking
 'variables:smokermodified, v241m, v242m, v244m, v245m, v247m, v251m, v252m, v253m, v255m, v256m, v259m, v260m, v261m'
@@ -1610,3 +1613,47 @@ Vision <- num_data %>%
 
 # Air pollution
 'currently excluded'
+
+
+################# Covariances Matrices ############
+###################################################
+
+cov_matrix_alc <- cor(Alcohol, use = "pairwise.complete.obs")
+corrplot(cov_matrix_alc, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7) #v291m does not overlap with any
+
+
+cov_matrix_bmi <- cor(BMI, use = "pairwise.complete.obs")
+corrplot(cov_matrix_bmi, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7) # just one variable, unnecessary
+
+cov_matrix_dep <- cor(Depression, use = "pairwise.complete.obs")
+corrplot(cov_matrix_dep, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7)
+
+cov_matrix_diab <- cor(Diabetes, use = "pairwise.complete.obs")
+corrplot(cov_matrix_diab, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7) #v378proxym no variance
+
+cov_matrix_edu <- cor(Education, use = "pairwise.complete.obs")
+corrplot(cov_matrix_edu, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7)
+
+cov_matrix_hear <- cor(Hearing, use = "pairwise.complete.obs")
+corrplot(cov_matrix_hear, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7) #v337 low to no correlation
+
+cov_matrix_bp <- cor(BP, use = "pairwise.complete.obs")
+corrplot(cov_matrix_bp, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7) # v354m, v352m, v350proxym, v629m, v634m bad to no corrs
+
+cov_matrix_chol <- cor(Cholesterol, use = "pairwise.complete.obs")
+corrplot(cov_matrix_chol, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7) #v3356proxym bad
+
+cov_matrix_pa <- cor(PhysicalActivity, use = "pairwise.complete.obs")
+corrplot(cov_matrix_pa, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7) # COMMUTE_PAEE bad
+
+cov_matrix_smok <- cor(Smoking, use = "pairwise.complete.obs")
+corrplot(cov_matrix_smok, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7) #Many really bad
+
+cov_matrix_soc <- cor(SocialIsolation, use = "pairwise.complete.obs")
+corrplot(cov_matrix_soc, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7) # Low corr
+
+cov_matrix_tbi <- cor(TBI, use = "pairwise.complete.obs")
+corrplot(cov_matrix_tbi, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7) # All Low
+
+cov_matrix_vis <- cor(Vision, use = "pairwise.complete.obs")
+corrplot(cov_matrix_vis, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7) # v329m, v330m
