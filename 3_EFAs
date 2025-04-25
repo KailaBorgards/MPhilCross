@@ -1,7 +1,7 @@
 ### EFA ###
 table(num_data$v356)
 
-############## EFA for Lifestyle Factors ##############
+############## prep Lifestyle Factors ##############
 #######################################################
  
 #Factor Scores
@@ -11,38 +11,6 @@ factor_scores_df <- as.data.frame(factor_scores)
 
 ### Adding CFA factor scores to data frame
 data_num_with_LS_sem <- cbind(data_num_with_LS, factor_scores_df)
-
-
-#Rename
-efa_data <- factor_scores_df
-
-
-# Test appropriateness
-KMO(efa_data)           # Kaiser-Meyer-Olkin measure
-cortest.bartlett(cor(efa_data), n = nrow(efa_data))  # Bartlett’s test of sphericity
-
-## Determine number of Factors
-fa.parallel(efa_data, fa = "fa", n.iter = 100) #3 but only 1 with Eigenvalue >1
-
-# running the EFA
-efa_result <- fa(efa_data, nfactors = 4, rotate = "oblimin", fm = "ml")
-print(efa_result, cutoff = 0.3)  # Loadings above 0.3
-## Best Metrics with 6 factors 
-factor_scores <- as.data.frame(efa_result$scores)
-head(factor_scores)
-
-#visualize
-fa.diagram(efa_result)
-
-
-#Export to Table
-loadings_df <- as.data.frame(efa_result$loadings[1:ncol(efa_data), ])
-write.csv(loadings_df, "efa_loadings.csv")
-
-
-# Bind lifestyle factor scores to original data
-num_data_scaled <- scale(num_data)
-data_num_with_LS <- cbind(num_data_scaled, factor_scores)
 
 
 ################# PCA for Lifestyle fyi################
@@ -76,10 +44,48 @@ barplot(explained_ls, col = "cornflowerblue", main = "Explained Variance", ylab 
 fa_result_ls <- fa(factor_scores_df, nfactors = nPC_ls, rotate = "varimax", fm = "ml")
 
 # Print factor loadings
-print(fa_result_ls$loadings, cutoff = 0.3)
+print(fa_result_ls$loadings, cutoff = 0.1)
 
 # Optional: Plot loadings
 fa.diagram(fa_result_ls)
+
+
+#################### EFA # #######################
+#################################################
+
+
+#Rename
+efa_data <- factor_scores_df
+
+'necessary?'
+# Test appropriateness
+KMO(efa_data)           # Kaiser-Meyer-Olkin measure
+cortest.bartlett(cor(efa_data), n = nrow(efa_data))  # Bartlett’s test of sphericity
+
+## Determine number of Factors
+fa.parallel(efa_data, fa = "fa", n.iter = 100) #3 but only 1 with Eigenvalue >1
+
+# running the EFA
+efa_result <- fa(efa_data, nfactors = 5, rotate = "oblimin", fm = "ml")
+print(efa_result, cutoff = 0.3)  # Loadings above 0.3
+## Best Metrics with 6 factors 
+factor_scores <- as.data.frame(efa_result$scores)
+head(factor_scores)
+
+#visualize
+fa.diagram(efa_result)
+
+
+#Export to Table
+loadings_df <- as.data.frame(efa_result$loadings[1:ncol(efa_data), ])
+write.csv(loadings_df, "efa_loadings.csv")
+
+
+# Bind lifestyle factor scores to original data
+num_data_scaled <- scale(num_data)
+data_num_with_LS <- cbind(num_data_scaled, factor_scores)
+
+
 
 ################# PCA for White Matter ################
 #######################################################
