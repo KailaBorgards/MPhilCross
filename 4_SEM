@@ -1,4 +1,5 @@
-
+########
+Do Correlations just LS and WM and WM and Cog And LS and Cog just to investigate a-priori which ones make sense to be included in the model, because it is currently suffering from over-complextiy
 
 ############ SEM excluding Age ############
 ###########################################
@@ -184,18 +185,19 @@ SEM2 <- '
   COG =~ C1.y + C2.y + C3.y + C4.y
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML2 + a3*ML3 + a4*ML4 
-  WM2 ~ a6*ML1 + a7*ML2 + a8*ML3 + a9*ML4 
+  WM1 ~ a1*ML1 + a2*ML2 + a3*ML3 + a4*ML4 +a5*ML5
+  WM2 ~ a6*ML1 + a7*ML2 + a8*ML3 + a9*ML4 + a10*ML5
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
-         c1*ML1 + c2*ML2 + c3*ML3 + c4*ML4 
+         c1*ML1 + c2*ML2 + c3*ML3 + c4*ML4 + c5*ML5
 
   # Indirect effects for each ML through WM1
   ind_ML1_WM1 := a1 * b1
   ind_ML2_WM1 := a2 * b1
   ind_ML3_WM1 := a3 * b1
   ind_ML4_WM1 := a4 * b1
+  ind_ML5_WM1 := a5 * b1
  
 
   # Indirect effects for each ML through WM2
@@ -203,6 +205,7 @@ SEM2 <- '
   ind_ML2_WM2 := a7 * b2
   ind_ML3_WM2 := a8 * b2
   ind_ML4_WM2 := a9 * b2
+  ind_ML5_WM2 := a10 * b2
   
 
 
@@ -211,12 +214,14 @@ SEM2 <- '
   total_ind_ML2 := ind_ML2_WM1 + ind_ML2_WM2
   total_ind_ML3 := ind_ML3_WM1 + ind_ML3_WM2
   total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
+  total_ind_ML5 := ind_ML5_WM1 + ind_ML5_WM2
  
 
   # Correlations among lifestyle factors
-  ML1 ~~ ML2 + ML3 + ML4 
-  ML2 ~~ ML3 + ML4
-  ML3 ~~ ML4
+  ML1 ~~ ML2 + ML3 + ML4  + ML5
+  ML2 ~~ ML3 + ML4 + ML5
+  ML3 ~~ ML4 + ML5
+  ML4 ~~ ML5
 
  
 '
