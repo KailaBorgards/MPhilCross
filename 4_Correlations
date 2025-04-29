@@ -1,0 +1,38 @@
+# Load libraries
+library(psych)
+library(ggplot2)
+library(reshape2)
+
+# Step 1: Select relevant variables
+cor_data <- data_num_with_LS %>%
+  select(ML1, ML2, ML3, ML4, ML5, ML6, WM1, WM2, COG)
+
+# Step 2: Calculate correlations and p-values
+corr_test_result <- corr.test(cor_data, use = "pairwise")
+
+# Extract matrices
+cor_matrix <- round(corr_test_result$r, 2)
+p_matrix <- round(corr_test_result$p, 4)
+
+# Step 3: Format for nice table output
+# Combine correlation and p-value
+cor_p_combined <- matrix(paste0(cor_matrix, "\n(p=", p_matrix, ")"), 
+                         nrow = nrow(cor_matrix), 
+                         dimnames = dimnames(cor_matrix))
+
+# Optional: Print to view
+print(cor_p_combined)
+
+# Step 4: Prepare for heatmap
+# Melt the correlation matrix
+cor_melt <- melt(cor_matrix)
+
+# Step 5: Plot the heatmap
+ggplot(cor_melt, aes(Var1, Var2, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0,
+                       limit = c(-1, 1), space = "Lab", name = "Correlation") +
+  theme_minimal() +
+  coord_fixed() +
+  labs(title = "Correlation Heatmap", x = "", y = "") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
