@@ -66,7 +66,8 @@ cortest.bartlett(cor(efa_data), n = nrow(efa_data))  # Bartlett’s test of sphe
 fa.parallel(efa_data, fa = "fa", n.iter = 100) #3 but only 1 with Eigenvalue >1
 
 # running the EFA
-efa_result <- fa(efa_data, nfactors = 5, rotate = "oblimin", fm = "ml")
+## Different rotations or fm = pa does not make a difference
+efa_result <- fa(efa_data, nfactors = 6, rotate = "oblimin", fm = "ml")
 print(efa_result, cutoff = 0.3)  # Loadings above 0.3
 ## Best Metrics with 6 factors 
 factor_scores <- as.data.frame(efa_result$scores)
@@ -126,4 +127,28 @@ print(fa_result$loadings, cutoff = 0.3)
 
 # Optional: Plot loadings
 fa.diagram(fa_result)
+
+
+
+
+############## Presentations ##############
+############################################
+
+
+
+fit_table_efa <- data.frame(
+  Measure = c("Chi-square", "Degrees of Freedom", "p-value", "TLI", "RMSEA", "BIC"),
+  Value = round(c(efa_result$STATISTIC,
+                  efa_result$dof,
+                  efa_result$PVAL,
+                  efa_result$TLI,
+                  efa_result$RMSEA[1],   # RMSEA estimate is the first value
+                  efa_result$BIC), 3)
+)
+
+#library(kableExtra)
+kable(fit_table_efa, caption = "EFA Model Fit Indices") %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+
 
