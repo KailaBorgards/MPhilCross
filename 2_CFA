@@ -219,14 +219,14 @@ summary(fit3, fit.measures = T, standardized = T) #Bad metrics
 ################################
 
 ##  Define variable
-fitStats <- fitMeasures(fit2)
+fitStat <- fitMeasures(fite1)
 # Select and format the ones I want
 fit_table <- data.frame(
   Measure = c("Chi-square", "Degrees of Freedom", "p-value", 
               "CFI", "TLI", 
               "RMSEA", "RMSEA 90% CI (lower)", "RMSEA 90% CI (upper)",
               "SRMR"),
-  Value = round(fitStats[c("chisq", "df", "pvalue", 
+  Value = round(fitStat[c("chisq", "df", "pvalue", 
                            "cfi", "tli", 
                            "rmsea", "rmsea.ci.lower", "rmsea.ci.upper", 
                            "srmr")], 3)
@@ -245,10 +245,11 @@ kable(fit_table, caption = "Model Fit Indices") %>%
 
 ############# EXPERIMENTAL ###############
 ##########################################
+## 23.04.2025
 ## only less than 25% NAs
-
+# after covariance, I decided to make alcohol and social negative 
 CFA_ModelE1 <- 
-  'Alcohol =~  alcoholmodified + v290m +v293m + v294m
+  'Alcohol =~  alcoholmodified + v290m 
   BMIf =~ BMIm
   Depression =~ HADS_depressionm+ HADSmodified+ v422m
   Diabetes =~ v377m 
@@ -258,7 +259,7 @@ CFA_ModelE1 <-
   Cholesterol =~ v355m 
   PhysicalActivity =~ PAEE
   Smoking =~ smokermodified+ v241m+ v251m
-  SocialIsolation =~  v86+ v89+ v90m+ v91m+v93m
+  SocialIsolation =~  -1*v86+ -1*v89+ -1*v90m+ -1*v91m+-1*v93m
   TBI =~ v457m
   Vision =~ v328m+ v333modified+ v334modified+ v335modified
   
@@ -266,7 +267,6 @@ CFA_ModelE1 <-
 fite1 <- cfa(CFA_ModelE1, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS")
 fite1 <- cfa(CFA_ModelE1, data = my_data_scaled, em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS", estimator = "WLSMV") # estimator does listwise deletion and only 222 norw are left
 #do.fit = FALSE
-summary(fite1, standardized = TRUE)
 
 parameterEstimates(fite1) %>% 
   filter(lhs == rhs, op == "~~") %>%
@@ -278,4 +278,24 @@ inspect(fite1, "gradient")
 
 summary(fite1, fit.measures = T, standardized = T) #Bad metrics
 
+########### Covariance matrix ###############
+#############################################
 
+my_data_scaleddf <- as.data.frame(my_data_scaled)
+cor_cfa <- my_data_scaleddf %>%
+  select(alcoholmodified, v290m, v293m, v294m 
+          BMIm, 
+          HADS_depressionm, HADSmodified, v422m, 
+          v377m,
+          qualmodified, yearsedum,
+          v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m,
+          v349m, bp_sys,
+          v355m,
+          PAEE,
+          smokermodified, v241m, v251m,
+          v86, v89, v90m, v91m, v93m,
+          v457m,
+          v328m, v333modified, v334modified, v335modified)
+
+cov_matrix_cfa <- cor(cor_cfa, use = "pairwise.complete.obs")
+corrplot(cov_matrix_cfa, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7)
