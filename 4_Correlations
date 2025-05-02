@@ -124,14 +124,19 @@ ML6 ~ WM2
 
 ## LS and COG
 '
-ML1 
+ML1 ~ COG
+ML3 ~ COG
+ML5 ~ COG
+ML6 ~ COG
 '
 
 ## WM and COG
 '
+WM1 ~ COG
+WM2 ~ COG
 '
 ## LS and LS
 '
 ML5 ~ ML6
-ML6 ~ ML§
+ML6 ~ ML3
 ML6 ~ ML4'
