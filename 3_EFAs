@@ -3,11 +3,15 @@ table(num_data$v356)
 
 ############## prep Lifestyle Factors ##############
 #######################################################
- 
+
 #Factor Scores
 factor_scores <- lavPredict(fite1)
 #turn into dataframe
 factor_scores_df <- as.data.frame(factor_scores)
+
+# Bind lifestyle factor scores to original data
+num_data_scaled <- scale(num_data)
+data_num_with_LS <- cbind(num_data_scaled, factor_scores)
 
 ### Adding CFA factor scores to data frame
 data_num_with_LS_sem <- cbind(data_num_with_LS, factor_scores_df)
@@ -41,10 +45,10 @@ barplot(explained_ls, col = "cornflowerblue", main = "Explained Variance", ylab 
 
 ## FA
 # Run factor analysis with 3 factors and varimax rotation
-fa_result_ls <- fa(factor_scores_df, nfactors = nPC_ls, rotate = "varimax", fm = "ml")
+fa_result_ls <- fa(factor_scores_df, nfactors = 6, rotate = "varimax", fm = "ml")
 
 # Print factor loadings
-print(fa_result_ls$loadings, cutoff = 0.1)
+print(fa_result_ls, cutoff = 0.1)
 
 # Optional: Plot loadings
 fa.diagram(fa_result_ls)
@@ -67,8 +71,8 @@ fa.parallel(efa_data, fa = "fa", n.iter = 100) #3 but only 1 with Eigenvalue >1
 
 # running the EFA
 ## Different rotations or fm = pa does not make a difference
-efa_result <- fa(efa_data, nfactors = 6, rotate = "oblimin", fm = "ml")
-print(efa_result, cutoff = 0.3)  # Loadings above 0.3
+efa_result <- fa(efa_data, nfactors = 6, rotate = "varimax", fm = "ml")
+print(efa_result, cutoff = 0.2)  # Loadings above 0.3
 ## Best Metrics with 6 factors 
 factor_scores <- as.data.frame(efa_result$scores)
 head(factor_scores)
@@ -85,8 +89,6 @@ write.csv(loadings_df, "efa_loadings.csv")
 # Bind lifestyle factor scores to original data
 num_data_scaled <- scale(num_data)
 data_num_with_LS <- cbind(num_data_scaled, factor_scores)
-
-
 
 ################# PCA for White Matter ################
 #######################################################
@@ -149,6 +151,3 @@ fit_table_efa <- data.frame(
 #library(kableExtra)
 kable(fit_table_efa, caption = "EFA Model Fit Indices") %>%
   kable_styling(full_width = FALSE, position = "center")
-
-
-
