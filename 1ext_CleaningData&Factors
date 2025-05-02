@@ -339,6 +339,7 @@ sapply(data_dwi, class) # Returns the class of each column
 # Only non-numeric columns
 sapply(data_dwi, class)[sapply(data_dwi,class)=="character"]
 
+
 ## Exclude numeric columns
 num_data <- data_dwi[, sapply(data_dwi, is.numeric)]
 ncol(num_data) #175 (because we excluded CCID,V14 and V73)
