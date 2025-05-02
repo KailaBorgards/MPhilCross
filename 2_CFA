@@ -45,7 +45,7 @@ Smallest eigenvalue too small -> tbd'
 #########################################
 #Dataframe for model 79 variables
 df_cfa <- num_data %>%
-  select( alcoholmodified ,v290m,v291m, v293m, v294m, v295m, v296m, v297m,
+  select( CCID, Age, alcoholmodified ,v290m,v291m, v293m, v294m, v295m, v296m, v297m,
           BMIm,
           HADS_depressionm, HADSmodified, v422m, v639m,
           v377m , v378proxym,
