@@ -95,7 +95,7 @@ data_num_with_LS <- cbind(num_data_scaled, factor_scores)
 
 
 # Matrix of WM scores
-pca_WM <- num_data[, c("FA_mean","MSD_mean","MSK_mean","NDI_mean","ODI_mean","Fiso_mean")]
+pca_WM <- num_data[, c( "FA_mean","MSD_mean","MSK_mean","NDI_mean","ODI_mean","Fiso_mean")]
 
 sum(is.na(pca_WM_clean))      # Count NAs #528
 
@@ -122,7 +122,7 @@ barplot(explained, col = "cornflowerblue", main = "Explained Variance", ylab = "
 
 ## FA
 # Run factor analysis with 3 factors and varimax rotation
-fa_result <- fa(pca_WM_clean, nfactors = 3, rotate = "varimax", fm = "ml")
+fa_result <- fa(pca_WM, nfactors = 3, rotate = "varimax", fm = "ml")
 
 # Print factor loadings
 print(fa_result$loadings, cutoff = 0.3)
@@ -131,6 +131,16 @@ print(fa_result$loadings, cutoff = 0.3)
 fa.diagram(fa_result)
 
 
+
+#Export to Table
+wm_loadings_df <- as.data.frame(fa_result$scores)
+
+
+
+# Bind lifestyle factor scores to original data
+wm_data_num_with_LS <- cbind(num_data_scaled, wm_loadings_df)
+
+wm_data_num_with_LS$CCID
 
 
 ############## Presentations ##############
