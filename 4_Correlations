@@ -11,23 +11,73 @@ library(reshape2)
 WMpetar <- read.csv("Changed Data/RData/DWI_Factor_620People.csv")
 head(WMpetar)
 
-WMcor  <- my_data_scaled %>%
+WMpetar$CCID
+
+wm_data_num_with_LS$CCID <- num_data$CCID
+wm_data_num_with_LS$CCID <- as.character(wm_data_num_with_LS$CCID)
+wm_data_num_with_LS$CCID <- paste0("CC", wm_data_num_with_LS$CCID)
+
+
+colnames(WMcor)
+WMcor  <- wm_data_num_with_LS %>%
   full_join(WMpetar, by = "CCID")
 
+
+WMcor2 <- WMcor %>%
+  select( ML1, ML2, ML3, Factor1, Factor2, Factor3
+  )
+
+## Perfect correlation
+cor_matrix_wm <- cor(WMcor2, use = "pairwise.complete.obs", method = "pearson")
+corrplot(cor_matrix_wm, method = "color")  
+
+## Rename
+wm_data_num_with_LS$WM1 <- wm_data_num_with_LS$ML1
+wm_data_num_with_LS$WM2 <- wm_data_num_with_LS$ML2
+
+colnames(wm_data_num_with_LS)
 
 
 
 ############# COG computation ###############
 #############################################
+cognition <- num_data %>%
+  select( C1.y,C2.y,C3.y,C4.y
+  )
+## FA
+# Run factor analysis with 3 factors and varimax rotation
+cog_result <- fa(cognition, nfactors = 1, rotate = "varimax", fm = "ml")
 
+# Print factor loadings
+print(cog_result$loadings, cutoff = 0.3)
+
+#Export to Table
+cog_loadings_df <- as.data.frame(cog_result$scores)
+cog_loadings_df$COG <- cog_loadings_df$ML1
 
 
 ############# Path correlations ###############
 ###############################################
 
-# Step 1: Select relevant variables
-cor_data <- data_num_with_LS %>%
-  select(ML1, ML2, ML3, ML4, ML5, ML6, WM1, WM2, COG)
+#### Dataframes solely, with the factor loadings
+## WM
+wm_data <- wm_data_num_with_LS %>%
+  select(WM1, WM2)
+
+## Lifestyle
+data_num_with_LS <- as.data.frame(data_num_with_LS)
+ls_data <- data_num_with_LS %>%
+  select( ML1, ML2, ML3, ML4, ML5, ML6)
+
+## Cognition
+cog_data <- cog_loadings_df %>%
+  select(COG)
+
+##### Factor Loadings into 1 dataset ####
+cor_data  <- cbind(wm_data, cog_data, ls_data)
+
+
+colnames(cor_data)
 
 # Step 2: Calculate correlations and p-values
 corr_test_result <- corr.test(cor_data, use = "pairwise")
@@ -58,3 +108,30 @@ ggplot(cor_melt, aes(Var1, Var2, fill = value)) +
   coord_fixed() +
   labs(title = "Correlation Heatmap", x = "", y = "") +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+
+## Positive paths from cor_p_combined
+
+## LS and WM
+'
+ML1 ~ WM1
+ML3 ~ WM1
+ML6 ~ WM1
+ML3 ~ WM2
+ML4 ~ WM2
+ML6 ~ WM2
+
+'
+
+## LS and COG
+'
+ML1 
+'
+
+## WM and COG
+'
+'
+## LS and LS
+'
+ML5 ~ ML6
+ML6 ~ ML§
+ML6 ~ ML4'
