@@ -40,7 +40,7 @@ Warnings: 0% pairwise coverage - some variables never overlap with others -> ide
 EM algorithm not converging -> increase iterations
 Smallest eigenvalue too small -> tbd'
 
- 
+
 ######## Clean Data for Model ###########
 #########################################
 #Dataframe for model 79 variables
@@ -118,7 +118,7 @@ low_coverage_vars <- names(coverage_means[coverage_means < threshold]) # "v337m"
 low_coverage_vars #0, after excluding the above
 
 
- ## Model Fit
+## Model Fit
 
 fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS")
 
@@ -227,9 +227,9 @@ fit_table <- data.frame(
               "RMSEA", "RMSEA 90% CI (lower)", "RMSEA 90% CI (upper)",
               "SRMR"),
   Value = round(fitStat[c("chisq", "df", "pvalue", 
-                           "cfi", "tli", 
-                           "rmsea", "rmsea.ci.lower", "rmsea.ci.upper", 
-                           "srmr")], 3)
+                          "cfi", "tli", 
+                          "rmsea", "rmsea.ci.lower", "rmsea.ci.upper", 
+                          "srmr")], 3)
 )
 
 
@@ -259,7 +259,7 @@ CFA_ModelE1 <-
   Cholesterol =~ v355m 
   PhysicalActivity =~ PAEE
   Smoking =~ smokermodified+ v241m+ v251m
-  SocialIsolation =~  -1*v86+ -1*v89+ -1*v90m+ -1*v91m+-1*v93m
+  SocialIsolation =~ v86m+ v89m+ v90minv+ v91minv+v93minv
   TBI =~ v457m
   Vision =~ v328m+ v333modified+ v334modified+ v335modified
   
@@ -283,19 +283,33 @@ summary(fite1, fit.measures = T, standardized = T) #Bad metrics
 
 my_data_scaleddf <- as.data.frame(my_data_scaled)
 cor_cfa <- my_data_scaleddf %>%
-  select(alcoholmodified, v290m, v293m, v294m 
-          BMIm, 
-          HADS_depressionm, HADSmodified, v422m, 
-          v377m,
-          qualmodified, yearsedum,
-          v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m,
-          v349m, bp_sys,
-          v355m,
-          PAEE,
-          smokermodified, v241m, v251m,
-          v86, v89, v90m, v91m, v93m,
-          v457m,
-          v328m, v333modified, v334modified, v335modified)
+  select(alcoholmodified, v290m, v293m, v294m ,
+         BMIm, 
+         HADS_depressionm, HADSmodified, v422m, 
+         v377m,
+         qualmodified, yearsedum,
+         v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m,
+         v349m, bp_sys,
+         v355m,
+         PAEE,
+         smokermodified, v241m, v251m,
+         v86, v89, v90m, v91m, v93m,
+         v457m,
+         v328m, v333modified, v334modified, v335modified)
 
 cov_matrix_cfa <- cor(cor_cfa, use = "pairwise.complete.obs")
 corrplot(cov_matrix_cfa, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7)
+
+#################### inverting Social Isolation ##############
+##############################################################
+
+'v86+ v89+ v90m+ v91m+v93m'
+
+df_cfa$v86m <- df_cfa$v86 *-1
+df_cfa$v89m <- df_cfa$v89 *-1
+df_cfa$v90minv <- df_cfa$v90m *-1
+df_cfa$v91minv <- df_cfa$v91m *-1
+df_cfa$v93minv <- df_cfa$v93m *-1
+
+
+
