@@ -1,7 +1,29 @@
+
 # Load libraries
 library(psych)
 library(ggplot2)
 library(reshape2)
+
+
+############# WM correlation ###############
+############################################
+
+WMpetar <- read.csv("Changed Data/RData/DWI_Factor_620People.csv")
+head(WMpetar)
+
+WMcor  <- my_data_scaled %>%
+  full_join(WMpetar, by = "CCID")
+
+
+
+
+############# COG computation ###############
+#############################################
+
+
+
+############# Path correlations ###############
+###############################################
 
 # Step 1: Select relevant variables
 cor_data <- data_num_with_LS %>%
