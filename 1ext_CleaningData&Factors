@@ -329,7 +329,8 @@ data_dwi$Fiso_mean # Print -> Technically in numbers, so further inspection
 data_dwi$Fiso_mean[data_dwi$Fiso_mean == "NaN"] <- NA # So that NaN os no longer a string
 data_dwi$Fiso_mean <- as.numeric(data_dwi$Fiso_mean)
 
-
+data_dwi$CCID <- sub("^CC", "", data_dwi$CCID)
+data_dwi$CCID <- as.numeric(data_dwi$CCID)
 
 ######### Subset of only numeric variables #########
 ####################################################
