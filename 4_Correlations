@@ -72,6 +72,104 @@ cor_data  <- cbind(wm_data, cog_data, ls_data)
 colnames(cor_data)
 
 
+# Select the variables
+ML_vars <- c("ML1", "ML2", "ML3", "ML4", "ML5", "ML6")
+WM_vars <- c("WM1", "WM2")
+COG_vars <- c("COG")
+
+# correlation and p-value submatrices for desired paths
+cor_ml_wm <- cor_matrix[WM_vars, ML_vars]
+p_ml_wm <- p_matrix[WM_vars, ML_vars]
+
+cor_ml_cog <- cor_matrix[COG_vars, ML_vars, drop = FALSE]
+p_ml_cog <- p_matrix[COG_vars, ML_vars, drop = FALSE]
+
+cor_wm_cog <- cor_matrix[COG_vars, WM_vars, drop = FALSE]
+p_wm_cog <- p_matrix[COG_vars, WM_vars, drop = FALSE]
+
+
+# Combining correlation and p-value into formatted matrices
+combine_corr_p <- function(cor, p) {
+  matrix(paste0(cor, "\n(p=", p, ")"),
+         nrow = nrow(cor),
+         dimnames = dimnames(cor))
+}
+
+cor_p_ml_wm <- combine_corr_p(cor_ml_wm, p_ml_wm)
+cor_p_ml_cog <- combine_corr_p(cor_ml_cog, p_ml_cog)
+cor_p_wm_cog <- combine_corr_p(cor_wm_cog, p_wm_cog)
+
+# Print results
+cat("\nML → WM:\n")
+print(cor_p_ml_wm)
+
+cat("\nML → COG:\n")
+print(cor_p_ml_cog)
+
+cat("\nWM → COG:\n")
+print(cor_p_wm_cog)
+
+## Positive paths from cor_p_combined -> Necessary for SEM
+## LS and WM
+'
+ML1 ~ WM1
+ML4 ~ WM1
+ML6 ~ WM1
+ML3 ~ WM2
+ML4 ~ WM2
+ML6 ~ WM2
+
+'
+
+## LS and COG
+'
+ML1 ~ COG
+ML4 ~ COG
+ML5 ~ COG
+ML6 ~ COG
+'
+
+## WM and COG
+'
+WM1 ~ COG
+WM2 ~ COG
+'
+## LS and LS
+'
+ML5 ~ ML6
+ML6 ~ ML3
+ML6 ~ ML4'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+########################## OLD ########################
+#######################################################
+
 ## Calculate correlations and p-values
 corr_test_result <- corr.test(cor_data, use = "pairwise")
 
@@ -103,34 +201,3 @@ ggplot(cor_melt, aes(Var1, Var2, fill = value)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 
 
-
-## Positive paths from cor_p_combined -> Necessary for SEM
-## LS and WM
-'
-ML1 ~ WM1
-ML3 ~ WM1
-ML6 ~ WM1
-ML3 ~ WM2
-ML4 ~ WM2
-ML6 ~ WM2
-
-'
-
-## LS and COG
-'
-ML1 ~ COG
-ML3 ~ COG
-ML5 ~ COG
-ML6 ~ COG
-'
-
-## WM and COG
-'
-WM1 ~ COG
-WM2 ~ COG
-'
-## LS and LS
-'
-ML5 ~ ML6
-ML6 ~ ML3
-ML6 ~ ML4'
