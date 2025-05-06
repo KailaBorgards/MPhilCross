@@ -1,12 +1,11 @@
 ######## INSPECT DATA ###########
 #################################
 
-nrow(data_dwi)
-ncol(data_dwi) #178             
+nrow(data_dwi) #708
+ncol(data_dwi) #179             
 colnames(data_dwi)
 summary(data_dwi)
 describe(data_dwi)
-
 
 
 ## covariance  
@@ -14,13 +13,10 @@ sapply(data_dwi, class)  # Returns the class of each column
 # Only non-numeric columns
 sapply(data_dwi, class)[sapply(data_dwi,class)=="character"]
 
-table(data_dwi$place)
-
 '
 columns that are characters:
   CCID # okay will not be used             
   sex  # needs to be transformed        
-  elig_700  #okay will not be used           
   v14       # Relationship to Houselhold members    
   v73       # Which qualification do you have    
   v96       # Attend any meetings/groups/classes?
@@ -40,13 +36,13 @@ columns that are characters:
   C2.y      # Cattell 2 
   C3.y      # Cattell 3        
   C4.y      # Cattell 4
-  WMHI_NORM_TIV   #         
-  FA_mean          
-  MSD_mean         
-  MSK_mean 
-  NDI_mean        
-  ODI_mean        
-  Fiso_mean 
+  WMHI_NORM_TIV   #WM potential control         
+  FA_mean         # M
+  MSD_mean        #WM
+  MSK_mean        #WM
+  NDI_mean        #WM
+  ODI_mean        #WM
+  Fiso_mean       #WM
 '
 
 ######## TRANSFORM NUMERIC DATA ###########
