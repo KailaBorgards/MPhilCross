@@ -15,7 +15,7 @@ install.packages("kableExtra", type ="binary", dependency = TRUE)
 install.packages("GPArotation", type ="binary", dependency = TRUE)
 install.packages("factoextra", type ="binary", dependency = TRUE)
 install.packages("semPlot", type ="binary", dependency = TRUE)
-
+install.packages("reshape2", type ="binary", dependency = TRUE)
 
 
 ## Import packages
@@ -33,6 +33,9 @@ library(kableExtra)
 library(GPArotation)
 library(factoextra)
 library(semPlot)
+library(reshape2)
+
+
 
 ###### LOAD DATA (do not repeat every time)#######
 ########################
