@@ -306,8 +306,6 @@ SEMsigAgefit <- sem(SEMsigAge, data = data_sem_age, std.lv = TRUE)
 summary(SEMsigAgefit, fit.measures = TRUE, standardized = TRUE)
 
 
-
-
 ############# FUll Script OLD ##### 
 
 ### Install packages
