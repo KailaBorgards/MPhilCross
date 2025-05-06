@@ -1,280 +1,13 @@
-########
-Do Correlations just LS and WM and WM and Cog And LS and Cog just to investigate a-priori which ones make sense to be included in the model, because it is currently suffering from over-complextiy
+'currently not including any covariates besides age, maybe also Sex?'
 
-############ SEM excluding Age ############
-###########################################
-
-SEM <- '
-  # Latent variables
-  WM1 =~ MSK_mean + NDI_mean
-  WM2 =~ MSD_mean + Fiso_mean
-  COG =~ C1.y + C2.y + C3.y + C4.y
-
-  # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML2 + a3*ML3 + a4*ML4 + a5*ML5 + a6*ML6
-  WM2 ~ a7*ML1 + a8*ML2 + a9*ML3 + a10*ML4 + a11*ML5 + a12*ML6
-
-  # Paths to cognition
-  COG ~ b1*WM1 + b2*WM2 +
-         c1*ML1 + c2*ML2 + c3*ML3 + c4*ML4 + c5*ML5 + c6*ML6
-
-  # Indirect effects for each ML through WM1
-  ind_ML1_WM1 := a1 * b1
-  ind_ML2_WM1 := a2 * b1
-  ind_ML3_WM1 := a3 * b1
-  ind_ML4_WM1 := a4 * b1
-  ind_ML5_WM1 := a5 * b1
-  ind_ML6_WM1 := a6 * b1
-
-  # Indirect effects for each ML through WM2
-  ind_ML1_WM2 := a7 * b2
-  ind_ML2_WM2 := a8 * b2
-  ind_ML3_WM2 := a9 * b2
-  ind_ML4_WM2 := a10 * b2
-  ind_ML5_WM2 := a11 * b2
-  ind_ML6_WM2 := a12 * b2
-
-  # Total indirect effects (WM1 + WM2)
-  total_ind_ML1 := ind_ML1_WM1 + ind_ML1_WM2
-  total_ind_ML2 := ind_ML2_WM1 + ind_ML2_WM2
-  total_ind_ML3 := ind_ML3_WM1 + ind_ML3_WM2
-  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
-  total_ind_ML5 := ind_ML5_WM1 + ind_ML5_WM2
-  total_ind_ML6 := ind_ML6_WM1 + ind_ML6_WM2
-
-  # Correlations among lifestyle factors
-  ML1 ~~ ML2 + ML3 + ML4 + ML5 + ML6 
-  ML2 ~~ ML3 + ML4 + ML5 + ML6
-  ML3 ~~ ML4 + ML5 + ML6
-  ML4 ~~ ML5 + ML6
-  ML5 ~~ ML6
-'
-
-
-SemFit <- sem(SEM, data = data_num_with_LS, std.lv = TRUE)
-summary(SemFit, fit.measures = TRUE, standardized = TRUE)
-
-## Visualize
-semPaths(SEMsigAgefit, 
-         what = "std",        # standardized estimates
-         layout = "tree2",     # nice clean tree layout
-         edge.label.cex = 1.1, # size of path labels
-         sizeMan = 6,          # observed variable size
-         sizeLat = 8,          # latent variable size
-         nCharNodes = 0,       # show full variable names
-         style = "lisrel",     # classic SEM look
-         residuals = FALSE,    # hide residual arrows
-         intercepts = FALSE)   # hide intercepts
-
-# Saving it
-png("sem_plot.png", width = 1000, height = 800)
-semPaths(SEMsigfit, what = "std", layout = "tree", edge.label.cex = 1.1)
-dev.off()
-
-
-
-############ SEM including Age ############
-###########################################
-'Is this correct?'
-SEMAge <- '
-  # Latent variables
-  WM1 =~ MSK_mean + NDI_mean
-  WM2 =~ MSD_mean + Fiso_mean
-  COG =~ C1.y + C2.y + C3.y + C4.y
-
-  # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML2 + a3*ML3 + a4*ML4 + a5*ML5 + a6*ML6 + age_iv
-  WM2 ~ a7*ML1 + a8*ML2 + a9*ML3 + a10*ML4 + a11*ML5 + a12*ML6 + age_iv
-
-  # Paths to cognition
-  COG ~ b1*WM1 + b2*WM2 +
-         c1*ML1 + c2*ML2 + c3*ML3 + c4*ML4 + c5*ML5 + c6*ML6 +
-         age_iv
-
-  # Indirect effects for each ML through WM1
-  ind_ML1_WM1 := a1 * b1
-  ind_ML2_WM1 := a2 * b1
-  ind_ML3_WM1 := a3 * b1
-  ind_ML4_WM1 := a4 * b1
-  ind_ML5_WM1 := a5 * b1
-  ind_ML6_WM1 := a6 * b1
-
-  # Indirect effects for each ML through WM2
-  ind_ML1_WM2 := a7 * b2
-  ind_ML2_WM2 := a8 * b2
-  ind_ML3_WM2 := a9 * b2
-  ind_ML4_WM2 := a10 * b2
-  ind_ML5_WM2 := a11 * b2
-  ind_ML6_WM2 := a12 * b2
-
-  # Total indirect effects (WM1 + WM2)
-  total_ind_ML1 := ind_ML1_WM1 + ind_ML1_WM2
-  total_ind_ML2 := ind_ML2_WM1 + ind_ML2_WM2
-  total_ind_ML3 := ind_ML3_WM1 + ind_ML3_WM2
-  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
-  total_ind_ML5 := ind_ML5_WM1 + ind_ML5_WM2
-  total_ind_ML6 := ind_ML6_WM1 + ind_ML6_WM2
-
-  # Correlations among lifestyle factors
-  ML1 ~~ ML2 + ML3 + ML4 + ML5 + ML6 
-  ML2 ~~ ML3 + ML4 + ML5 + ML6
-  ML3 ~~ ML4 + ML5 + ML6
-  ML4 ~~ ML5 + ML6
-  ML5 ~~ ML6
-'
-
-
-SemFitage <- sem(SEMAge, data = data_num_with_LS, std.lv = TRUE)
-summary(SemFitage, fit.measures = TRUE, standardized = TRUE)
-
-
-
-### NOT TO BE INTERPRETED
-############ SEM with CFAs LS factors  ############
-###################################################
-'poor metrics and too low power'
-
-sem2_data  <- cbind(wm_data, cog_data, num_data)
-#with Age
-
-SEMcfaAge <- '
-  # Latent variables #only first two factors of Henriques // no factor loadings but rather "replicating them"
-  WM1 =~ MSK_mean + NDI_mean
-  WM2 =~ MSD_mean + Fiso_mean
-  COG =~ C1.y + C2.y + C3.y + C4.y
-
-  # Paths from lifestyle factors (factor scores)
-  WM1 ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  WM2 ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  COG ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-
-  # White matter to cognition
-  COG ~ WM1 + WM2
-
-  # include Age later as a covariate
-  COG  ~ Age
-  WM1  ~ Age
-  WM2  ~ Age
-   
-  
-  #allow for correlation between LS factors
-  Alcohol ~~ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision 
-  BMIf ~~ Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  Depression ~~ Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  Diabetes ~~ Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  Education ~~ Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  Hearing ~~ BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  BP ~~ Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  Cholesterol ~~ PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
-  PhysicalActivity ~~ Smoking  + SocialIsolation + TBI + Vision
-  Smoking  ~~ SocialIsolation + TBI + Vision
-  SocialIsolation ~~ TBI + Vision
-  TBI ~~ Vision
-
-'
-
-SemFitCfaAge <- sem(SEMcfaAge, data = data_num_with_LS_sem, std.lv = TRUE)
-summary(SemFitCfaAge, fit.measures = TRUE, standardized = TRUE)
-
-
-
-######## SOLUTION only with sig. paths #### 
-##########################################
-## Positive paths from cor_p_combined
-
-## LS and WM
-'
-ML1 ~ WM1
-ML3 ~ WM1
-ML6 ~ WM1
-ML3 ~ WM2
-ML4 ~ WM2
-ML6 ~ WM2
-
-'
-
-## LS and COG
-'
-ML1 ~ COG
-ML3 ~ COG
-ML5 ~ COG
-ML6 ~ COG
-'
-
-## WM and COG
-'
-WM1 ~ COG
-WM2 ~ COG
-'
-## LS and LS
-'
-ML5 ~ ML6
-ML6 ~ ML3
-ML6 ~ ML4'
-
-SEMsig <- '
-
-  # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML3 + a3*ML6 
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 
-
-  # Paths to cognition
-  COG ~ b1*WM1 + b2*WM2 +
-         c1*ML1 + c2*ML3 + c3*ML5 + c4*ML6 
-
-  # Indirect effects for each ML through WM1
-  ind_ML1_WM1 := a1 * b1
-  ind_ML3_WM1 := a2 * b1
-  ind_ML6_WM1 := a3 * b1
-
-  # Indirect effects for each ML through WM2
-  ind_ML3_WM2 := a4 * b2
-  ind_ML4_WM2 := a5 * b2
-  ind_ML6_WM2 := a6 * b2
-
-
-  # Total indirect effects (WM1 + WM2)
-  total_ind_ML3 := ind_ML3_WM1 + ind_ML3_WM2
-  total_ind_ML6 := ind_ML6_WM1 + ind_ML6_WM2
-
- 
-'
-
-
-SEMsigfit <- sem(SEMsig, data = cor_data, std.lv = TRUE)
-summary(SEMsigfit, fit.measures = TRUE, standardized = TRUE)
-
-
-########## TAble
-parameterEstimates(SEMsigAgefit, standardized = TRUE) %>% 
-  filter( op %in% c("~", ":=", "~~")) %>%
-  mutate(Significance = case_when(
-    pvalue < 0.001 ~ "***",
-    pvalue < 0.01 ~ "**",
-    pvalue < 0.05 ~ "*",
-    TRUE ~ ""
-  )) %>%
-  select(Predictor = lhs,
-         Relationship = op,
-         Outcome = rhs, 
-         Estimate = est,
-         'Std. Est.' = std.all,
-         SE = se,
-         z = z,
-         'p-value' = pvalue,
-         Significance) %>%
-  kable(format= "html", digits = 3, captio = "SEM Parameter Estimates") %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
-                full_width = FALSE,
-                position = "center")
-
-
-################## SEM Sig with AGE ###############
+############ SEM including Age (and only sig paths from correlation ############
+################################################################################
+#Prep Age
+age <- num_data$age_iv
 data_sem_age <- cbind(cor_data, age)
 
-age <- num_data$age_iv
-
-SEMsigAge <- '
+#Model
+SEM <- '
 
   # Paths from lifestyle factors to WM
   WM1 ~ a1*ML1 + a2*ML3 + a3*ML6 + age
@@ -302,6 +35,45 @@ SEMsigAge <- '
 
  
 '
-colnames(data_sem_age)
-SEMsigAgefit <- sem(SEMsigAge, data = data_sem_age, std.lv = TRUE)
-summary(SEMsigAgefit, fit.measures = TRUE, standardized = TRUE)
+SEMfit <- sem(SEM, data = data_sem_age, std.lv = TRUE)
+summary(SEMfit, fit.measures = TRUE, standardized = TRUE)
+
+
+
+'Include correlation amongst Lifestylefacotrs???
+
+# Correlations among lifestyle factors
+ML1 ~~ ML2 + ML3 + ML4 + ML5 + ML6 
+ML2 ~~ ML3 + ML4 + ML5 + ML6
+ML3 ~~ ML4 + ML5 + ML6
+ML4 ~~ ML5 + ML6
+ML5 ~~ ML6'
+
+
+#################### Table ####################
+################################################
+
+parameterEstimates(SEMfit, standardized = TRUE) %>% 
+  filter( op %in% c("~", ":=", "~~")) %>%
+  mutate(Significance = case_when(
+    pvalue < 0.001 ~ "***",
+    pvalue < 0.01 ~ "**",
+    pvalue < 0.05 ~ "*",
+    TRUE ~ ""
+  )) %>%
+  select(Predictor = lhs,
+         Relationship = op,
+         Outcome = rhs, 
+         Estimate = est,
+         'Std. Est.' = std.all,
+         SE = se,
+         z = z,
+         'p-value' = pvalue,
+         Significance) %>%
+  kable(format= "html", digits = 3, captio = "SEM Parameter Estimates") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE,
+                position = "center")
+
+
+
