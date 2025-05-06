@@ -1,51 +1,46 @@
-
-# Load libraries
-library(psych)
-library(ggplot2)
-library(reshape2)
-
-
 ############# WM correlation ###############
 ############################################
+
+## Test whether my computed WM Factorloadings in '3_EFA' are the same as the ones Petar sent me based on Henriques
 
 WMpetar <- read.csv("Changed Data/RData/DWI_Factor_620People.csv")
 head(WMpetar)
 
+#inspect
 WMpetar$CCID
 
-wm_data_num_with_LS$CCID <- num_data$CCID
-wm_data_num_with_LS$CCID <- as.character(wm_data_num_with_LS$CCID)
-wm_data_num_with_LS$CCID <- paste0("CC", wm_data_num_with_LS$CCID)
+# Currently scaled CCID in data_efa_tot, so return original state to be able to join
+data_efa_tot$CCID <- pca_WM$CCID
+data_efa_tot$CCID <- as.character(data_efa_tot$CCID)
+data_efa_tot$CCID <- paste0("CC", data_efa_tot$CCID)
 
 
-colnames(WMcor)
-WMcor  <- wm_data_num_with_LS %>%
+
+## Merge both datasets
+WMcor  <- data_efa_tot %>%
   full_join(WMpetar, by = "CCID")
 
+colnames(WMcor)
 
 WMcor2 <- WMcor %>%
-  select( ML1, ML2, ML3, Factor1, Factor2, Factor3
+  select( WM1, WM2, WM3, Factor1, Factor2, Factor3
   )
 
 ## Perfect correlation
-cor_matrix_wm <- cor(WMcor2, use = "pairwise.complete.obs", method = "pearson")
+cor_matrix_wm <- cor(WMcor2, use = "pairwise.complete.obs", method = "pearson") 
 corrplot(cor_matrix_wm, method = "color")  
-
-## Rename
-wm_data_num_with_LS$WM1 <- wm_data_num_with_LS$ML1
-wm_data_num_with_LS$WM2 <- wm_data_num_with_LS$ML2
-
-colnames(wm_data_num_with_LS)
-
+# almost perfect correlation = I am fine to proceed with mine
 
 
 ############# COG computation ###############
 #############################################
+num_data <- num_data[!num_data$CCID %in% c("222120", "621199"), ]
 cognition <- num_data %>%
   select( C1.y,C2.y,C3.y,C4.y
   )
+
 ## FA
-# Run factor analysis with 3 factors and varimax rotation
+# Run factor analysis with 1 factor for cognition (IQ) and varimax rotation
 cog_result <- fa(cognition, nfactors = 1, rotate = "varimax", fm = "ml")
 
 # Print factor loadings
@@ -61,12 +56,11 @@ cog_loadings_df$COG <- cog_loadings_df$ML1
 
 #### Dataframes solely, with the factor loadings
 ## WM
-wm_data <- wm_data_num_with_LS %>%
+wm_data <- data_efa_tot %>%
   select(WM1, WM2)
 
 ## Lifestyle
-data_num_with_LS <- as.data.frame(data_num_with_LS)
-ls_data <- data_num_with_LS %>%
+ls_data <- data_efa_tot %>%
   select( ML1, ML2, ML3, ML4, ML5, ML6)
 
 ## Cognition
@@ -75,31 +69,30 @@ cog_data <- cog_loadings_df %>%
 
 ##### Factor Loadings into 1 dataset ####
 cor_data  <- cbind(wm_data, cog_data, ls_data)
-
-
 colnames(cor_data)
 
-# Step 2: Calculate correlations and p-values
+
+## Calculate correlations and p-values
 corr_test_result <- corr.test(cor_data, use = "pairwise")
 
 # Extract matrices
 cor_matrix <- round(corr_test_result$r, 2)
 p_matrix <- round(corr_test_result$p, 4)
 
-# Step 3: Format for nice table output
+# Format for nice table output
 # Combine correlation and p-value
 cor_p_combined <- matrix(paste0(cor_matrix, "\n(p=", p_matrix, ")"), 
                          nrow = nrow(cor_matrix), 
                          dimnames = dimnames(cor_matrix))
 
-# Optional: Print to view
+# Print 
 print(cor_p_combined)
 
-# Step 4: Prepare for heatmap
+# Prepare heatmap
 # Melt the correlation matrix
 cor_melt <- melt(cor_matrix)
 
-# Step 5: Plot the heatmap
+# Plot the heatmap
 ggplot(cor_melt, aes(Var1, Var2, fill = value)) +
   geom_tile(color = "white") +
   scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0,
@@ -109,8 +102,9 @@ ggplot(cor_melt, aes(Var1, Var2, fill = value)) +
   labs(title = "Correlation Heatmap", x = "", y = "") +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 
-## Positive paths from cor_p_combined
 
+
+## Positive paths from cor_p_combined -> Necessary for SEM
 ## LS and WM
 '
 ML1 ~ WM1
