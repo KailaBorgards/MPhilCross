@@ -53,10 +53,6 @@ columns that are characters:
 data_dwi$sex # Print
 data_dwi$sex <- ifelse(data_dwi$sex == "F", 1, 0) # Transform (F = 1; M = 0)
 
-#Eligible for 700
-data_dwi$elig_700 # Print
-data_dwi$elig_700 <- ifelse(data_dwi$elig_700 == "True", 1, 0)
-
 ## Relationship to Household members  
 data_dwi$v14 # Print -> TBD because answers are multiple
 'How are the other people who live with you related to you? (YOU CAN SELECT MORE THAN ONE ANSWER) 	0. Not related
@@ -69,11 +65,11 @@ data_dwi$v14 # Print -> TBD because answers are multiple
 7. Do not know
 8. No answer 
 '
-# EXCLUDE - For now (because uncertain how much incremental validity this question brings to social isolation)
+# EXCLUDE - because uncertain how much incremental validity this question brings to social isolation
 
 ## Which qualification do you have
 data_dwi$v73 # Print -> Multiple answers, replace with "qual"?
-# EXCLUDE - For now (replace with "qual" which is only highest qualification)
+# EXCLUDE - replace with "qual" which is only highest qualification and "Years of education" 
 
 ## Attend any meetings/groups/classes?
 data_dwi$v96 # Print -> TBD, Multiple answers
@@ -120,6 +116,7 @@ data_dwi$v96modified <- sapply(strsplit(data_dwi$v96, ", "), function(x) {
 
 
 ## Any of the following problems with eyes?
+data_dwi$v328 # Print -> Only three participants with multiple answers and one .
 'Has a doctor told you that you have any of the following problems with your eyes? (YOU CAN SELECT MORE THAN ONE ANSWER) 	1. Diabetes related eye disease 
 2. Glaucoma 
 3. Injury OR trauma resulting in loss of vision 
@@ -131,7 +128,6 @@ data_dwi$v96modified <- sapply(strsplit(data_dwi$v96, ", "), function(x) {
 8. No answer
 9. Not asked	If 0 (None) goto IntroHC2/HC11
 '
-data_dwi$v328 # Print -> Only three participants with multiple answers and one .
 # What I did: 0 = No eye problem; 1-6 = 1 meaning yes, there is a problem; 7-9 = NA
 v328_mapping <- c("0" = 0,
                   "1" = 1,
@@ -325,21 +321,21 @@ data_dwi$Fiso_mean # Print -> Technically in numbers, so further inspection
 data_dwi$Fiso_mean[data_dwi$Fiso_mean == "NaN"] <- NA # So that NaN os no longer a string
 data_dwi$Fiso_mean <- as.numeric(data_dwi$Fiso_mean)
 
-data_dwi$CCID <- sub("^CC", "", data_dwi$CCID)
-data_dwi$CCID <- as.numeric(data_dwi$CCID)
+data_dwi$CCIDmodified <- sub("^CC", "", data_dwi$CCID)
+data_dwi$CCIDmodified <- as.numeric(data_dwi$CCIDmodified)
 
 ######### Subset of only numeric variables #########
 ####################################################
 
-ncol(data_dwi) #187
+ncol(data_dwi) #188
 sapply(data_dwi, class) # Returns the class of each column
 # Only non-numeric columns
 sapply(data_dwi, class)[sapply(data_dwi,class)=="character"]
 
 
-## Exclude numeric columns
+## Exclude non numeric columns
 num_data <- data_dwi[, sapply(data_dwi, is.numeric)]
-ncol(num_data) #175 (because we excluded CCID,V14 and V73)
+ncol(num_data) #177 (because we excluded CCID,V14 and V73)
 
 ##Columns that were modified for future reference
 grep("modified", names(num_data), value = TRUE)
@@ -349,9 +345,7 @@ grep("modified", names(num_data), value = TRUE)
 ####################################################
 
 cov_matrix <- cor(num_data, use = "pairwise.complete.obs")
-corrplot(cov_matrix, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7)
-
-colnames(num_data)
+corrplot(cov_matrix, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7) #See if any patterns already visible (not really, lots of seemingly unrelated variables)
 
 
 ######## Computation of new variables for use of CFA###########
@@ -361,17 +355,14 @@ colnames(num_data)
 num_data$BMI <- num_data$weight / ((num_data$height/100)^2) #weight in kg, height in cm
 print(num_data$BMI)
 
-##Blood Pressure
+## Blood Pressure
 #systolic BP
 num_data$bp_sys <- rowMeans(cbind(num_data$bp_sys2, num_data$bp_sys3), na.rm = TRUE) #Averaged because README file of Cardio says so
 
-describe(num_data$bp_sys)
-describe(num_data$BMI)
-
 #Age since hypertension diagnosis
-## How long hypertension has been diagnosed
+# How long hypertension has been diagnosed
 table(num_data$v350)
-## Recode so 9999 are NAs
+# Recode so 9999 are NAs
 num_data$v350m <- num_data$v350
 num_data$v350m[num_data$v350 == 9999] <- NA
 num_data$v350m[num_data$v350 == 790] <- NA
@@ -380,10 +371,10 @@ num_data$v350proxy <- num_data$Age - num_data$v350m
 table(num_data$v350proxy)
 
 
-#Diabetes
-## How long diabetes has been diagnosed
+## Diabetes
+# How long diabetes has been diagnosed
 table(num_data$v378)
-## Recode so 9999 are NAs
+# Recode so 9999 are NAs
 num_data$v378m <- num_data$v378
 num_data$v378m[num_data$v378 == 9999] <- NA
 # compute duration of diabetes diagnosis so that it is Age - Age of diagnosis
@@ -391,9 +382,9 @@ num_data$v378proxy <- num_data$Age - num_data$v378m
 table(num_data$v378proxy)
 
 ## High Cholesterol
-## How long cholesterol has been diagnosed
+# How long cholesterol has been diagnosed
 table(num_data$v356)
-## Recode so 9999 are NAs
+# Recode so 9999 are NAs
 num_data$v356m <- num_data$v356
 num_data$v356m[num_data$v356 == 9999] <- NA
 # compute duration of cholesterol diagnosis so that it is Age - Age of diagnosis
@@ -1535,8 +1526,8 @@ table(num_data$v621m)
 'currently not included'
 
 
-########### COMPUTATION OF LIFESTYLE FACTORS ###########
-########################################################
+########### COMPUTATION OF LIFESTYLE FACTORS (only relevant for supplementary materials) ###########
+##################################################################################################
 'Description: Given the re-coded variables, the factors will be computed for subsequent CFA'
 
 
