@@ -1,49 +1,9 @@
+'Consider taking out TBI entirely'
 
-'To Do'
-## Make sure all variables are coded in the same direction i.e., higher values mean either better or worse habits
-'done'
-## Correct the model and clean included variables 
-'WIP'
+############# New Dataframe with all recoded variables ###########
+##################################################################
 
-
-############# Ideal model with all variables ###########
-#########################################################
-
-
-## CFA Model (21.04.2025)
-
-
-CFA_Model2 <- 
-  'Alcohol =~ alcoholmodified + v290m+v291m+ v293m+ v294m+ v295m+ v296m+ v297m
-  BMIf =~ BMIm
-  Depression =~ HADS_depressionm+ HADSmodified+ v422m+ v639m
-  Diabetes =~ v377m + v378proxym
-  Education =~ qualmodified + yearsedum
-  Hearing =~ v336m+ v337m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
-  BP =~ v349m+ v352m+ v354m+ v629m+ v632m+ v634m + bp_sys + v350proxym
-  Cholesterol =~ v355m + v356proxym
-  PhysicalActivity =~ HOME_PAEE+ LEIS_PAEE+ COMMUTE_PAEE+ WORK_PAEE, PAEE
-  Smoking =~ smokermodified+ v241m+ v242m+ v244m+ v245m+ v247m+ v251m+ v252m+ v253m+ v255m+ v256m+ v259m+ v260m+ v261m
-  SocialIsolation =~ v5m+ v86+ v87m+ v89+ v90m+ v91m+v92m+v93m+v94m+ v95m+ v96modified+ v97m+ v98m
-  TBI =~ v457m+ v459m+ v542m+ v543m+ v545m
-  Vision =~ v328m+ v329m+ v330m+ v333modified+ v334modified+ v335modified+ v621m
-  
-'
-
-## CFA
-fit <- cfa(CFA_Model2, data = num_data) # Error
-lavInspect(fit, "coverage") 
-'
-Error: Some variables have no values or no variance
-Warnings: variance is by factor 1000 different -> scale data
-Warnings: 0% pairwise coverage - some variables never overlap with others -> identify and exclude
-EM algorithm not converging -> increase iterations
-Smallest eigenvalue too small -> tbd'
-
-
-######## Clean Data for Model ###########
-#########################################
-#Dataframe for model 79 variables
+#Dataframe for model 82 variables
 df_cfa <- num_data %>%
   select( CCID, Age, alcoholmodified ,v290m,v291m, v293m, v294m, v295m, v296m, v297m,
           BMIm,
@@ -61,165 +21,197 @@ df_cfa <- num_data %>%
   )
 
 
+######################## Data cleaning  ##########################
+##################################################################
+
 # Check for NAs, percentage
 na_percent <- round(colMeans(is.na(df_cfa)) *100, 2)
 na_percent
-## over 20% NAs
-high_na_cols <- names(na_percent[na_percent > 20])
+## over 25% NAs
+high_na_cols <- names(na_percent[na_percent > 25])
 high_na_cols
 
+## Exclude all the variables with more than 25% NAs
+df_clean <- df_cfa[ , colMeans(is.na(df_cfa)) <= 0.25] #excluded 30 variables
 
 #Check if any column has 0 variance
-which(sapply(df_cfa, function(x) var(x, na.rm = TRUE) == 0)) #"v354m" 
+which(sapply(df_clean, function(x) var(x, na.rm = TRUE) == 0)) #0
+
+## Check if any participants have more than 25% NAs
+nrow(df_clean) #708
+row_na_prop <- rowMeans(is.na(df_clean))
+df_cleanp <- df_clean[row_na_prop <= 0.25, ]
+nrow(df_cleanp) #706, two participants were kicked out
 
 ## Scale data
-my_data_scaled <- scale(df_cfa)
+my_data_scaled <- scale(df_cleanp) # because some variables are by factor 1000 larger
 
 
+############# Model without clean variables/participants >25% NAs ###########
+#############################################################################
 
-############# Adjusted model without variables >50% NAs ###########
-####################################################################
-
-#Adjusted model #  without variables >20% NAs 
-CFA_Model2 <- 
-  'Alcohol =~ alcoholmodified + v290m+ v293m+ v294m+ v295m+ v296m+ v297m
+#Adjusted model #  without variables >25% NAs 
+CFA_Model <- 
+  'Alcohol =~ alcoholmodified + v290m
   BMIf =~ BMIm
   Depression =~ HADS_depressionm+ HADSmodified+ v422m
   Diabetes =~ v377m
-  Education =~ qualmodified
+  Education =~ qualmodified + yearsedum
   Hearing =~ v336m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
   BP =~ v349m+ bp_sys
-  Cholesterol =~ v355m
-  PhysicalActivity =~ PAEE
+  Cholesterol =~ v355m 
+  PhysicalActivity =~ PAEE + HOME_PAEE + LEIS_PAEE + COMMUTE_PAEE + WORK_PAEE
   Smoking =~ smokermodified+ v241m+  v251m+ v259m+ v261m
-  SocialIsolation =~ v5m+ v86+ v87m+ v89+ v90m+ v91m+v92m+v93m+v94m+ v95m+ v96modified+ v97m+ v98m
+  SocialIsolation =~ v5m+ v86+ v89+ v90m+ v91m+v92m+v93m+v94m+ v95m+ v96modified+ v97m+ v98m
   TBI =~ v457m+ v542m+ v543m
   Vision =~ v328m+ v333modified+ v334modified+ v335modified+ v621m'
 
 
 #investigate which variables have low convergence
 ## check covariance
-fit_check <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", do.fit = FALSE, em.h1.iter.max = 10000, verbose = TRUE)
-lavInspect(fit_check, "coverage") 
+fit <- cfa(CFA_Model, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, do.fit = FALSE, optim.method = "BFGS") # Error, and warnign that variance-covariance matrix is not good
+lavInspect(fit, "converged") #False 
+lavInspect(fit, "coverage") 
 
 ## Check how complex the model is
-length(all.vars(parse(text = CFA_Model2))) #64
+length(all.vars(parse(text = CFA_Model))) #63
 
 ### Delete which variables have low coverage
-# Step 2: Extract the coverage matrix
-coverage_matrix <- lavInspect(fit_check, "coverage")
+# Extract the coverage matrix
+coverage_matrix <- lavInspect(fit, "coverage")
 
-# Step 3: Calculate mean pairwise coverage for each variable
+# Calculate mean pairwise coverage for each variable
 coverage_means <- rowMeans(coverage_matrix, na.rm = TRUE)
 
-# Step 4: Set a threshold (e.g., 0.3) and identify low-coverage variables
-threshold <- 0.3
-low_coverage_vars <- names(coverage_means[coverage_means < threshold]) # "v337m" "v352m" "v459m" "v545m" "v329m"
-low_coverage_vars #0, after excluding the above
+# Set a threshold (e.g., 0.8) and identify low-coverage variables
+threshold <- 0.8
+low_coverage_vars <- names(coverage_means[coverage_means < threshold]) 
+low_coverage_vars # "alcoholmodified" "bp_sys" "COMMUTE_PAEE" "v543m" 
+
+## Keep "alcoholmodified" and "bp_sys" because else, factors only have one indicator
+
+############# Adjusted model with variables with high coverage ###########
+##########################################################################
+
+#Adjusted model with removed "COMMUTE_PAEE" "v543m" 
+CFA_Model2 <- 
+  'Alcohol =~ alcoholmodified + v290m
+  BMIf =~ BMIm
+  Depression =~ HADS_depressionm+ HADSmodified+ v422m
+  Diabetes =~ v377m
+  Education =~ qualmodified + yearsedum
+  Hearing =~ v336m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
+  BP =~ v349m + bp_sys
+  Cholesterol =~ v355m 
+  PhysicalActivity =~ PAEE + HOME_PAEE + LEIS_PAEE + WORK_PAEE
+  Smoking =~ smokermodified+ v241m+  v251m+ v259m+ v261m
+  SocialIsolation =~ v5m+ v86+ v89+ v90m+ v91m+v92m+v93m+v94m+ v95m+ v96modified+ v97m+ v98m
+  TBI =~ v457m+ v542m
+  Vision =~ v328m+ v333modified+ v334modified+ v335modified+ v621m'
 
 
-## Model Fit
+fit2 <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE,  optim.method = "BFGS") 
+summary(fit2, fit.measures = T, standardized = T) # Bad metrics
 
-fit <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS")
+## Remove varibales with low Factor loadings (<0.3)
+'
+Physical Activity: HOME_PAEE, LEIS_PAEE, WORK_PAEE
+Smoking: v259m, v261m
+Social Isolation: v5m, v92m, v94m, v95m, v96modified, v97m, v98m
+TBI: v457m and v542m (keep v457m to have at least 1 indicator)
+Vision: v621m
+'
 
-inspect(fit, "gradient") #physical activity had value of greater 0.01 // 0.85 -> so simplified to only include PAEE
-inspect(fit, "converged") #True
-summary(fit, fit.measures = T, standardized = T) #Bad metrics
+############# Adjusted model with variables with llow factor loading ###########
+################################################################################
 
-############ Variables adjustment #############
-###############################################
-# remove because of low factor loadings
-#Alcohol
-'remove v295m, v296m'
-
-# Smoking
-'remove = v259m'
-
-## Social isolation
-'remove: v5m, v92m, v94m, v95m, v96modified, v97m'
-
-#TBI
-'remove: v542m '
-
-#Vision
-'remove: v621m'
-
-
-############# Adjusted model without variables with low factor loadings ###########
-###################################################################################
-
-## Model sent to Petar (14.04.25)
+#Adjusted model with removed low factor loading
 CFA_Model3 <- 
-  'Alcohol =~ alcoholmodified + v290m+ v293m+ v294m
+  'Alcohol =~ alcoholmodified + v290m
   BMIf =~ BMIm
   Depression =~ HADS_depressionm+ HADSmodified+ v422m
   Diabetes =~ v377m
-  Education =~ qualmodified
+  Education =~ qualmodified + yearsedum
   Hearing =~ v336m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
-  BP =~ v349m + v629m+ bp_sys
-  Cholesterol =~ v355m
-  PhysicalActivity =~ PAEE
+  BP =~ v349m + bp_sys
+  Cholesterol =~ v355m 
+  PhysicalActivity =~ PAEE 
   Smoking =~ smokermodified+ v241m+  v251m
-  SocialIsolation =~ v86+ v87m+ v89+ v90m+ v91m+v93m+ v98m
-  TBI =~ v457m + v542m+ v543m
-  Vision =~ v328m+ v333modified+ v334modified+ v335modified'
-
-
-
-
-fit2 <- cfa(CFA_Model3, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS") # updated model
-inspect(fit2, "converged") #True
-summary(fit2, fit.measures = T, standardized = T) #Bad metrics
-
-
-
-############# Adjusted model without variables with low factor loadings ###########
-###################################################################################
-
-############ Variables adjustment #############
-###############################################
-# remove because of low factor loadings
-#Alcohol
-'remove v295m, v296m'
-
-# Smoking
-'remove = v259m, v261'
-
-## Social isolation
-'remove: v5m, v92m, v94m, v95m, v96modified, v97m, v98m, v87m'
-
-#TBI
-'remove: v542m, v543 '
-
-#Vision
-'remove: v621m'
-
-## Model 24.04.25
-CFA_Model4 <- 
-  'Alcohol =~ alcoholmodified + v290m+ v293m+ v294m+ v297m
-  BMIf =~ BMIm
-  Depression =~ HADS_depressionm+ HADSmodified+ v422m
-  Diabetes =~ v377m
-  Education =~ qualmodified
-  Hearing =~ v336m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
-  BP =~ v349m+ bp_sys
-  Cholesterol =~ v355m
-  PhysicalActivity =~ PAEE
-  Smoking =~ smokermodified+ v241m+  v251m
-  SocialIsolation =~ v86+ v89+ v90m+ v91m+v93m
   TBI =~ v457m
+  SocialIsolation =~ v86+ v89+ v90m+ v91m+ v93m
   Vision =~ v328m+ v333modified+ v334modified+ v335modified'
 
 
-fit3 <- cfa(CFA_Model4, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS") # updated model
-inspect(fit3, "converged") #True #with warnings 1) some standard errors could not be computed and 2) some variances are negative
-summary(fit3, fit.measures = T, standardized = T) #Bad metrics
+fit3 <- cfa(CFA_Model3, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE,  optim.method = "BFGS") 
+summary(fit3, fit.measures = T, standardized = T) # Good Metrics
+
+
+########### Covariance matrix ###############
+#############################################
+
+my_data_scaleddf <- as.data.frame(my_data_scaled)
+cor_cfa <- my_data_scaleddf %>%
+  select(alcoholmodified, v290m, 
+         BMIm, 
+         HADS_depressionm, HADSmodified, v422m, 
+         v377m,
+         qualmodified, yearsedum,
+         v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m,
+         v349m, bp_sys,
+         v355m,
+         PAEE,
+         smokermodified, v241m, v251m,
+         v86, v89, v90m, v91m, v93m,
+         v457m,
+         v328m, v333modified, v334modified, v335modified)
+
+cov_matrix_cfa <- cor(cor_cfa, use = "pairwise.complete.obs")
+corrplot(cov_matrix_cfa, method = "color",  tl.col = "black", tl.cex = 0.7) ## Social facot is negatively correlated with all other varaiables
+
+
+#################### inverting Social Isolation ##############
+##############################################################
+
+'v86+ v89+ v90m+ v91m+v93m'
+
+df_cleanp$v86m <- df_cleanp$v86 *-1
+df_cleanp$v89m <- df_cleanp$v89 *-1
+df_cleanp$v90minv <- df_cleanp$v90m *-1
+df_cleanp$v91minv <- df_cleanp$v91m *-1
+df_cleanp$v93minv <- df_cleanp$v93m *-1
+
+my_data_scaled <- scale(df_cleanp)
+
+
+############# Adjusted model with inverted Social Isolation ###########
+#######################################################################
+
+#FINAL Adjusted Model
+CFA_Model4 <- 
+  'Alcohol =~ alcoholmodified + v290m
+  BMIf =~ BMIm
+  Depression =~ HADS_depressionm+ HADSmodified+ v422m
+  Diabetes =~ v377m
+  Education =~ qualmodified + yearsedum
+  Hearing =~ v336m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
+  BP =~ v349m + bp_sys
+  Cholesterol =~ v355m 
+  PhysicalActivity =~ PAEE 
+  Smoking =~ smokermodified+ v241m+  v251m
+  TBI =~ v457m
+  SocialIsolation =~ v86m+ v89m+ v90minv+ v91minv+ v93minv
+  Vision =~ v328m+ v333modified+ v334modified+ v335modified'
+
+
+fit4 <- cfa(CFA_Model4, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE,  optim.method = "BFGS") 
+summary(fit4, fit.measures = T, standardized = T) # Good Metrics
+
 
 ######## Print Output ##########
 ################################
 
 ##  Define variable
-fitStat <- fitMeasures(fite1)
+fitStat <- fitMeasures(fit4)
 # Select and format the ones I want
 fit_table <- data.frame(
   Measure = c("Chi-square", "Degrees of Freedom", "p-value", 
@@ -235,81 +227,6 @@ fit_table <- data.frame(
 
 kable(fit_table, caption = "Model Fit Indices") %>%
   kable_styling(full_width = FALSE, position = "center")
-
-
-
-
-
-
-
-
-############# EXPERIMENTAL ###############
-##########################################
-## 23.04.2025
-## only less than 25% NAs
-# after covariance, I decided to make alcohol and social negative 
-CFA_ModelE1 <- 
-  'Alcohol =~  alcoholmodified + v290m 
-  BMIf =~ BMIm
-  Depression =~ HADS_depressionm+ HADSmodified+ v422m
-  Diabetes =~ v377m 
-  Education =~ qualmodified + yearsedum
-  Hearing =~ v336m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
-  BP =~ v349m+ bp_sys 
-  Cholesterol =~ v355m 
-  PhysicalActivity =~ PAEE
-  Smoking =~ smokermodified+ v241m+ v251m
-  SocialIsolation =~ v86m+ v89m+ v90minv+ v91minv+v93minv
-  TBI =~ v457m
-  Vision =~ v328m+ v333modified+ v334modified+ v335modified
-  
-'
-fite1 <- cfa(CFA_ModelE1, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS")
-fite1 <- cfa(CFA_ModelE1, data = my_data_scaled, em.h1.iter.max = 10000, verbose = TRUE, optim.method = "BFGS", estimator = "WLSMV") # estimator does listwise deletion and only 222 norw are left
-#do.fit = FALSE
-
-parameterEstimates(fite1) %>% 
-  filter(lhs == rhs, op == "~~") %>%
-  filter(lhs == "PhysicalActivity")
-
-
-inspect(fite1, "converged") 
-inspect(fite1, "gradient")
-
-summary(fite1, fit.measures = T, standardized = T) #Bad metrics
-
-########### Covariance matrix ###############
-#############################################
-
-my_data_scaleddf <- as.data.frame(my_data_scaled)
-cor_cfa <- my_data_scaleddf %>%
-  select(alcoholmodified, v290m, v293m, v294m ,
-         BMIm, 
-         HADS_depressionm, HADSmodified, v422m, 
-         v377m,
-         qualmodified, yearsedum,
-         v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m,
-         v349m, bp_sys,
-         v355m,
-         PAEE,
-         smokermodified, v241m, v251m,
-         v86, v89, v90m, v91m, v93m,
-         v457m,
-         v328m, v333modified, v334modified, v335modified)
-
-cov_matrix_cfa <- cor(cor_cfa, use = "pairwise.complete.obs")
-corrplot(cov_matrix_cfa, method = "color", type = "upper", tl.col = "black", tl.cex = 0.7)
-
-#################### inverting Social Isolation ##############
-##############################################################
-
-'v86+ v89+ v90m+ v91m+v93m'
-
-df_cfa$v86m <- df_cfa$v86 *-1
-df_cfa$v89m <- df_cfa$v89 *-1
-df_cfa$v90minv <- df_cfa$v90m *-1
-df_cfa$v91minv <- df_cfa$v91m *-1
-df_cfa$v93minv <- df_cfa$v93m *-1
 
 
 
