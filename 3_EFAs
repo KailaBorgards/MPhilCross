@@ -1,5 +1,171 @@
 ### EFA ###
-table(num_data$v356)
+
+############## prep Lifestyle Factors ##############
+#######################################################
+
+#Define Factor Scores
+factor_scores <- lavPredict(fit4)
+
+#turn into dataframe
+factor_scores_df <- as.data.frame(factor_scores)
+
+
+################# PCA for Lifestyle to determine number of factors ################
+####################################################################################
+
+
+# Inspect NAs because PCA sensitive to it
+sum(is.na(factor_scores_df)) # Count NAs #0
+
+# Perform PCA
+pca_result_ls <- prcomp(factor_scores_df, center = TRUE, scale. = TRUE)
+
+# Variance explained
+explained_ls <- summary(pca_result_ls)$importance[2, ] * 100  # Percent variance
+latent_ls <- pca_result_ls$sdev^2  # Eigenvalues
+
+# Kaiser criterion (eigenvalue > 1)
+nPC_ls <- sum(latent_ls * length(latent_ls) / sum(latent_ls) > 1)
+print(nPC_ls)  # returns 5 - But factor 6 has Eigenvalue of 0.977
+
+# Scree plot
+fviz_eig(pca_result_ls, addlabels = TRUE)
+
+
+################# FA for Lifestyle fyi################
+#######################################################
+'necessary?'
+# Test appropriateness
+KMO(factor_scores_df)           # Kaiser-Meyer-Olkin measure
+cortest.bartlett(cor(factor_scores_df), n = nrow(factor_scores_df))  # Bartlett’s test of sphericity
+
+
+## 5 Factor solution
+# Run factor analysis with 5 factors and varimax rotation
+fa_result_5 <- fa(factor_scores_df, nfactors = 5, rotate = "varimax", fm = "ml")
+
+# Print factor loadings
+print(fa_result_5, cutoff = 0.1)
+
+# Optional: Plot loadings
+fa.diagram(fa_result_5)
+
+##6 Factor solution
+# Run factor analysis with 5 factors and varimax rotation
+fa_result_6 <- fa(factor_scores_df, nfactors = 6, rotate = "varimax", fm = "ml")
+
+# Print factor loadings
+print(fa_result_6, cutoff = 0.1)
+
+# Optional: Plot loadings
+fa.diagram(fa_result_6)
+
+
+################# PCA for White Matter ################
+#######################################################
+
+# Matrix of WM scores
+pca_WM <- num_data[, c( "FA_mean","MSD_mean","MSK_mean","NDI_mean","ODI_mean","Fiso_mean")]
+
+## Remove NA
+sum(is.na(pca_WM_clean))# Count NAs #528
+pca_WM_clean <- pca_WM[complete.cases(pca_WM) & apply(pca_WM, 1, function(x) all(is.finite(x))), ]
+
+nrow(pca_WM_clean) #620 / 88 removed
+
+# Perform PCA
+pca_result <- prcomp(pca_WM_clean, center = TRUE, scale. = TRUE)
+
+# Variance explained
+explained <- summary(pca_result)$importance[2, ] * 100  # Percent variance
+latent <- pca_result$sdev^2  # Eigenvalues
+
+# Kaiser criterion (eigenvalue > 1)
+nPC <- sum(latent * length(latent) / sum(latent) > 1)
+print(nPC)  # Should return 3 but returns 2
+
+# Scree plot
+fviz_eig(pca_result, addlabels = TRUE)
+
+# Or barplot like in the MATLAB code
+barplot(explained, col = "cornflowerblue", main = "Explained Variance", ylab = "% Variance")
+
+## FA
+# Run factor analysis with 3 factors and varimax rotation
+fa_result <- fa(pca_WM, nfactors = 3, rotate = "varimax", fm = "ml")
+
+# Print factor loadings
+print(fa_result$loadings, cutoff = 0.3)
+
+# Optional: Plot loadings
+fa.diagram(fa_result)
+
+
+
+#Export to Table
+wm_loadings_df <- as.data.frame(fa_result$scores)
+
+
+
+# Bind lifestyle factor scores to original data
+wm_data_num_with_LS <- cbind(num_data_scaled, wm_loadings_df)
+
+wm_data_num_with_LS$CCID
+
+
+############## Presentations ##############
+############################################
+
+
+
+fit_table_efa <- data.frame(
+  Measure = c("Chi-square", "Degrees of Freedom", "p-value", "TLI", "RMSEA", "BIC"),
+  Value = round(c(efa_result$STATISTIC,
+                  efa_result$dof,
+                  efa_result$PVAL,
+                  efa_result$TLI,
+                  efa_result$RMSEA[1],   # RMSEA estimate is the first value
+                  efa_result$BIC), 3)
+)
+
+#library(kableExtra)
+kable(fit_table_efa, caption = "EFA Model Fit Indices") %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ############## prep Lifestyle Factors ##############
 #######################################################
