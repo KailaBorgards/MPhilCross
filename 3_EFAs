@@ -4,7 +4,7 @@
 #######################################################
 
 #Define Factor Scores
-factor_scores <- lavPredict(fit4)
+factor_scores <- lavPredict(fit3)
 
 #turn into dataframe
 factor_scores_df <- as.data.frame(factor_scores)
@@ -85,7 +85,7 @@ kable(fit_table_efa, caption = "EFA Model Fit Indices") %>%
 # Matrix of WM scores
 pca_WM <- num_data[, c( "CCID", "FA_mean","MSD_mean","MSK_mean","NDI_mean","ODI_mean","Fiso_mean")]
 pca_WM <- pca_WM[!pca_WM$CCID %in% c("222120", "621199"), ]
-
+fa_wm <- pca_WM %>% select(-CCID)
 ## Remove NA
 pca_WM_clean <- pca_WM[complete.cases(pca_WM) & apply(pca_WM, 1, function(x) all(is.finite(x))), ]
 sum(is.na(pca_WM_clean))# Count NAs #528
@@ -95,7 +95,7 @@ nrow(pca_WM_clean) #620 / 88 removed
 pca_result_wm <- prcomp(pca_WM_clean, center = TRUE, scale. = TRUE)
 
 # Variance explained
-explained <- summary(pca_result_wm)$importance[2, ] * 100  # Percent variance
+explained <- summary(pca_result_wm)$importance[2, ] * 100  # Percent variance #Pretty differnt from Henriques
 latent <- pca_result_wm$sdev^2  # Eigenvalues
 
 # Kaiser criterion (eigenvalue > 1)
@@ -110,7 +110,7 @@ fviz_eig(pca_result_wm, addlabels = TRUE)
 ####################################################
 
 # Run factor analysis with 3 factors and varimax rotation
-fa_result_wm <- fa(pca_WM, nfactors = 3, rotate = "varimax", fm = "ml")
+fa_result_wm <- fa(fa_wm, nfactors = 3, rotate = "varimax", fm = "ml")
 
 # Print factor loadings
 print(fa_result_wm$loadings, cutoff = 0.3)
@@ -124,15 +124,20 @@ fa.diagram(fa_result_wm)
 
 # Bind lifestyle factor scores to original data
 df_cleanp_scaled <- scale(df_cleanp)
-data_efa_ls <- cbind(df_cleanp_scaled, factor_scores)
+ls_loadings_df <- as.data.frame(fa_result_ls$scores)
+data_efa_ls <- cbind(df_cleanp_scaled, ls_loadings_df)
+
 
 #Export WM to Table 
 wm_loadings_df <- as.data.frame(fa_result_wm$scores)
-nrow(wm_loadings_df)
+colnames(wm_loadings_df) # Change names so ML1 etc are no duplicates when binding dfs
+wm_loadings_df$WM1 <- wm_loadings_df$ML1
+wm_loadings_df$WM2 <- wm_loadings_df$ML2
+wm_loadings_df$WM3 <- wm_loadings_df$ML3
+# remove previous columns
+wm_loadings_df <- wm_loadings_df %>% select(-ML1, -ML2, -ML3)
 
 # Bind WM factor scores to original data
 data_efa_tot <- cbind(data_efa_ls, wm_loadings_df)
-
-
 
 
