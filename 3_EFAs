@@ -12,8 +12,6 @@ factor_scores_df <- as.data.frame(factor_scores)
 
 ################# PCA for Lifestyle to determine number of factors ################
 ####################################################################################
-
-
 # Inspect NAs because PCA sensitive to it
 sum(is.na(factor_scores_df)) # Count NAs #0
 
@@ -61,269 +59,80 @@ print(fa_result_6, cutoff = 0.1)
 fa.diagram(fa_result_6)
 
 
+
+############## Presentations ##############
+############################################
+
+### Lifestyle
+fit_table_efa <- data.frame(
+  Measure = c("Chi-square", "Degrees of Freedom", "p-value", "TLI", "RMSEA", "BIC"),
+  Value = round(c(fa_result_6$STATISTIC,
+                  fa_result_6$dof,
+                  fa_result_6$PVAL,
+                  fa_result_6$TLI,
+                  fa_result_6$RMSEA[1],   # RMSEA estimate is the first value
+                  fa_result_6$BIC), 3)
+)
+
+kable(fit_table_efa, caption = "EFA Model Fit Indices") %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+
+
 ################# PCA for White Matter ################
 #######################################################
 
 # Matrix of WM scores
-pca_WM <- num_data[, c( "FA_mean","MSD_mean","MSK_mean","NDI_mean","ODI_mean","Fiso_mean")]
+pca_WM <- num_data[, c( "CCID", "FA_mean","MSD_mean","MSK_mean","NDI_mean","ODI_mean","Fiso_mean")]
+pca_WM <- pca_WM[!pca_WM$CCID %in% c("222120", "621199"), ]
 
 ## Remove NA
+pca_WM_clean <- pca_WM[complete.cases(pca_WM) & apply(pca_WM, 1, function(x) all(is.finite(x))), ]
 sum(is.na(pca_WM_clean))# Count NAs #528
-pca_WM_clean <- pca_WM[complete.cases(pca_WM) & apply(pca_WM, 1, function(x) all(is.finite(x))), ]
-
 nrow(pca_WM_clean) #620 / 88 removed
 
 # Perform PCA
-pca_result <- prcomp(pca_WM_clean, center = TRUE, scale. = TRUE)
+pca_result_wm <- prcomp(pca_WM_clean, center = TRUE, scale. = TRUE)
 
 # Variance explained
-explained <- summary(pca_result)$importance[2, ] * 100  # Percent variance
-latent <- pca_result$sdev^2  # Eigenvalues
+explained <- summary(pca_result_wm)$importance[2, ] * 100  # Percent variance
+latent <- pca_result_wm$sdev^2  # Eigenvalues
 
 # Kaiser criterion (eigenvalue > 1)
-nPC <- sum(latent * length(latent) / sum(latent) > 1)
-print(nPC)  # Should return 3 but returns 2
+nPC_wm <- sum(latent * length(latent) / sum(latent) > 1)
+print(nPC_wm)  # Should return 3 but returns 2
 
 # Scree plot
-fviz_eig(pca_result, addlabels = TRUE)
+fviz_eig(pca_result_wm, addlabels = TRUE)
 
-# Or barplot like in the MATLAB code
-barplot(explained, col = "cornflowerblue", main = "Explained Variance", ylab = "% Variance")
 
-## FA
+################# FA for White Matter ##############
+####################################################
+
 # Run factor analysis with 3 factors and varimax rotation
-fa_result <- fa(pca_WM, nfactors = 3, rotate = "varimax", fm = "ml")
+fa_result_wm <- fa(pca_WM, nfactors = 3, rotate = "varimax", fm = "ml")
 
 # Print factor loadings
-print(fa_result$loadings, cutoff = 0.3)
+print(fa_result_wm$loadings, cutoff = 0.3)
 
 # Optional: Plot loadings
-fa.diagram(fa_result)
+fa.diagram(fa_result_wm)
 
 
-
-#Export to Table
-wm_loadings_df <- as.data.frame(fa_result$scores)
-
-
+################# Combine the factor loadings into the data ##############
+##########################################################################
 
 # Bind lifestyle factor scores to original data
-wm_data_num_with_LS <- cbind(num_data_scaled, wm_loadings_df)
+df_cleanp_scaled <- scale(df_cleanp)
+data_efa_ls <- cbind(df_cleanp_scaled, factor_scores)
 
-wm_data_num_with_LS$CCID
+#Export WM to Table 
+wm_loadings_df <- as.data.frame(fa_result_wm$scores)
+nrow(wm_loadings_df)
 
+# Bind WM factor scores to original data
+data_efa_tot <- cbind(data_efa_ls, wm_loadings_df)
 
-############## Presentations ##############
-############################################
 
 
 
-fit_table_efa <- data.frame(
-  Measure = c("Chi-square", "Degrees of Freedom", "p-value", "TLI", "RMSEA", "BIC"),
-  Value = round(c(efa_result$STATISTIC,
-                  efa_result$dof,
-                  efa_result$PVAL,
-                  efa_result$TLI,
-                  efa_result$RMSEA[1],   # RMSEA estimate is the first value
-                  efa_result$BIC), 3)
-)
-
-#library(kableExtra)
-kable(fit_table_efa, caption = "EFA Model Fit Indices") %>%
-  kable_styling(full_width = FALSE, position = "center")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-############## prep Lifestyle Factors ##############
-#######################################################
-
-#Factor Scores
-factor_scores <- lavPredict(fite1)
-#turn into dataframe
-factor_scores_df <- as.data.frame(factor_scores)
-
-# Bind lifestyle factor scores to original data
-num_data_scaled <- scale(num_data)
-data_num_with_LS <- cbind(num_data_scaled, factor_scores)
-
-### Adding CFA factor scores to data frame
-data_num_with_LS_sem <- cbind(data_num_with_LS, factor_scores_df)
-
-
-################# PCA for Lifestyle fyi################
-#######################################################
-
-
-# Matrix of LS scores
-factor_scores_df
-
-sum(is.na(factor_scores_df))      # Count NAs #0
-
-# Perform PCA
-pca_result_ls <- prcomp(factor_scores_df, center = TRUE, scale. = TRUE)
-
-# Variance explained
-explained_ls <- summary(pca_result_ls)$importance[2, ] * 100  # Percent variance
-latent_ls <- pca_result_ls$sdev^2  # Eigenvalues
-
-# Kaiser criterion (eigenvalue > 1)
-nPC_ls <- sum(latent_ls * length(latent_ls) / sum(latent_ls) > 1)
-print(nPC_ls)  # returns 5- consider using 6
-
-# Scree plot
-fviz_eig(pca_result_ls, addlabels = TRUE)
-
-# Or barplot like in the MATLAB code
-barplot(explained_ls, col = "cornflowerblue", main = "Explained Variance", ylab = "% Variance")
-
-## FA
-# Run factor analysis with 3 factors and varimax rotation
-fa_result_ls <- fa(factor_scores_df, nfactors = 6, rotate = "varimax", fm = "ml")
-
-# Print factor loadings
-print(fa_result_ls, cutoff = 0.1)
-
-# Optional: Plot loadings
-fa.diagram(fa_result_ls)
-
-
-#################### EFA # #######################
-#################################################
-
-
-#Rename
-efa_data <- factor_scores_df
-
-'necessary?'
-# Test appropriateness
-KMO(efa_data)           # Kaiser-Meyer-Olkin measure
-cortest.bartlett(cor(efa_data), n = nrow(efa_data))  # Bartlett’s test of sphericity
-
-## Determine number of Factors
-fa.parallel(efa_data, fa = "fa", n.iter = 100) #3 but only 1 with Eigenvalue >1
-
-# running the EFA
-## Different rotations or fm = pa does not make a difference
-efa_result <- fa(efa_data, nfactors = 6, rotate = "varimax", fm = "ml")
-print(efa_result, cutoff = 0.2)  # Loadings above 0.3
-## Best Metrics with 6 factors 
-factor_scores <- as.data.frame(efa_result$scores)
-head(factor_scores)
-
-#visualize
-fa.diagram(efa_result)
-
-
-#Export to Table
-loadings_df <- as.data.frame(efa_result$loadings[1:ncol(efa_data), ])
-write.csv(loadings_df, "efa_loadings.csv")
-
-
-# Bind lifestyle factor scores to original data
-num_data_scaled <- scale(num_data)
-data_num_with_LS <- cbind(num_data_scaled, factor_scores)
-
-################# PCA for White Matter ################
-#######################################################
-
-
-# Matrix of WM scores
-pca_WM <- num_data[, c( "FA_mean","MSD_mean","MSK_mean","NDI_mean","ODI_mean","Fiso_mean")]
-
-sum(is.na(pca_WM_clean))      # Count NAs #528
-
-pca_WM_clean <- pca_WM[complete.cases(pca_WM) & apply(pca_WM, 1, function(x) all(is.finite(x))), ]
-
-nrow(pca_WM_clean) #620 / 88 removed
-
-# Perform PCA
-pca_result <- prcomp(pca_WM_clean, center = TRUE, scale. = TRUE)
-
-# Variance explained
-explained <- summary(pca_result)$importance[2, ] * 100  # Percent variance
-latent <- pca_result$sdev^2  # Eigenvalues
-
-# Kaiser criterion (eigenvalue > 1)
-nPC <- sum(latent * length(latent) / sum(latent) > 1)
-print(nPC)  # Should return 3 but returns 2
-
-# Scree plot
-fviz_eig(pca_result, addlabels = TRUE)
-
-# Or barplot like in the MATLAB code
-barplot(explained, col = "cornflowerblue", main = "Explained Variance", ylab = "% Variance")
-
-## FA
-# Run factor analysis with 3 factors and varimax rotation
-fa_result <- fa(pca_WM, nfactors = 3, rotate = "varimax", fm = "ml")
-
-# Print factor loadings
-print(fa_result$loadings, cutoff = 0.3)
-
-# Optional: Plot loadings
-fa.diagram(fa_result)
-
-
-
-#Export to Table
-wm_loadings_df <- as.data.frame(fa_result$scores)
-
-
-
-# Bind lifestyle factor scores to original data
-wm_data_num_with_LS <- cbind(num_data_scaled, wm_loadings_df)
-
-wm_data_num_with_LS$CCID
-
-
-############## Presentations ##############
-############################################
-
-
-
-fit_table_efa <- data.frame(
-  Measure = c("Chi-square", "Degrees of Freedom", "p-value", "TLI", "RMSEA", "BIC"),
-  Value = round(c(efa_result$STATISTIC,
-                  efa_result$dof,
-                  efa_result$PVAL,
-                  efa_result$TLI,
-                  efa_result$RMSEA[1],   # RMSEA estimate is the first value
-                  efa_result$BIC), 3)
-)
-
-#library(kableExtra)
-kable(fit_table_efa, caption = "EFA Model Fit Indices") %>%
-  kable_styling(full_width = FALSE, position = "center")
