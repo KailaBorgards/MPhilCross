@@ -41,6 +41,7 @@ which(sapply(df_clean, function(x) var(x, na.rm = TRUE) == 0)) #0
 nrow(df_clean) #708
 row_na_prop <- rowMeans(is.na(df_clean))
 df_cleanp <- df_clean[row_na_prop <= 0.25, ]
+setdiff(df_clean$CCID, df_cleanp$CCID)
 nrow(df_cleanp) #706, two participants were kicked out
 
 ## Scale data
@@ -182,7 +183,6 @@ df_cleanp$v93minv <- df_cleanp$v93m *-1
 
 my_data_scaled <- scale(df_cleanp)
 
-
 ############# Adjusted model with inverted Social Isolation ###########
 #######################################################################
 
@@ -227,6 +227,9 @@ fit_table <- data.frame(
 
 kable(fit_table, caption = "Model Fit Indices") %>%
   kable_styling(full_width = FALSE, position = "center")
+
+
+
 
 
 
