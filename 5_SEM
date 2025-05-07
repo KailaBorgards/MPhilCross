@@ -2,22 +2,30 @@
 
 ############ SEM including Age (and only sig paths from correlation ############
 ################################################################################
+ 'include sex'
 
 #Prep Age
+poly(age,2)
 age <- num_data$age_iv
-data_sem_age <- cbind(cor_data, age)
+age2 <- poly(age,2)
+age2 <- as.data.frame(age2)
+age2$agelin <- age2[, "1"]
+age2$agequad <- age2[, "2"]
+colnames(age2)
+## 
+data_sem_age <- cbind(cor_data, age2)
 
 #Model
 SEM <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + age
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + age
+  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad 
+  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
-         c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + 
-         age
+         c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + c6 *ML3 + 
+         agelin + agequad
 
   # Indirect effects for each ML through WM1
   ind_ML1_WM1 := a1 * b1
@@ -110,7 +118,7 @@ age_group <- cut(age,
 
 # Combine into a dataframe to view
 age_thirds <- data.frame(age = age, group = age_group)
-data_sem_age_thirds <- cbind(cor_data, age_thirds)
+data_sem_age_thirds <- cbind(cor_data, age_thirds, age2)
 
 ## subset into different dataframes
 df_lower  <- subset(data_sem_age_thirds, group == "Lower third")
@@ -122,13 +130,13 @@ df_upper  <- subset(data_sem_age_thirds, group == "Upper third")
 SEMsub45 <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + age
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + age
+  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad
+  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
          c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + 
-         age
+         agelin + agequad
 
   # Indirect effects for each ML through WM1
   ind_ML1_WM1 := a1 * b1
@@ -155,13 +163,13 @@ summary(SEMsub45fit, fit.measures = TRUE, standardized = TRUE)
 SEMsub66 <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + age
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + age
+  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad
+  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
          c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + 
-         age
+         agelin + agequad
 
   # Indirect effects for each ML through WM1
   ind_ML1_WM1 := a1 * b1
@@ -188,13 +196,13 @@ summary(SEMsub66fit, fit.measures = TRUE, standardized = TRUE)
 SEMsub88 <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + age
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + age
+  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad
+  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
          c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + 
-         age
+         agelin + agequad
 
   # Indirect effects for each ML through WM1
   ind_ML1_WM1 := a1 * b1
@@ -224,10 +232,10 @@ summary(SEMsub88fit, fit.measures = TRUE, standardized = TRUE)
 SEMWM1LS1 <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + age
+  WM1 ~ a1*ML1 + agelin + agequad
 
   # Paths to cognition
-  COG ~ b1*WM1 + c1*ML1 + age
+  COG ~ b1*WM1 + c1*ML1 + agelin + agequad
   
   # indirect  effects 
   ind_ML1 := a1*b1
@@ -245,10 +253,10 @@ summary(SEMWM1LS1fit, fit.measures = TRUE, standardized = TRUE)
 SEMWM1LS4 <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML4 + age
+  WM1 ~ a1*ML4 + agelin + agequad
 
   # Paths to cognition
-  COG ~ b1*WM1 + c1*ML4 + age
+  COG ~ b1*WM1 + c1*ML4 + agelin + agequad
   
   # indirect  effects 
   ind_ML4 := a1*b1
@@ -266,10 +274,10 @@ summary(SEMWM1LS4fit, fit.measures = TRUE, standardized = TRUE)
 SEMWM1LS6 <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML6 + age
+  WM1 ~ a1*ML6 + agelin + agequad
 
   # Paths to cognition
-  COG ~ b1*WM1 + c1*ML6 + age
+  COG ~ b1*WM1 + c1*ML6 + agelin + agequad
   
   # indirect  effects 
   ind_ML6 := a1*b1
@@ -288,10 +296,10 @@ summary(SEMWM1LS6fit, fit.measures = TRUE, standardized = TRUE)
 SEMWM2LS3 <- '
 
   # Paths from lifestyle factors to WM
-  WM2 ~ a1*ML3 + age
+  WM2 ~ a1*ML3 + agelin + agequad
 
   # Paths to cognition
-  COG ~ b1*WM2 + c1*ML3 + age
+  COG ~ b1*WM2 + c1*ML3 + agelin + agequad
   
   # indirect  effects 
   ind_ML3 := a1*b1
@@ -309,10 +317,10 @@ summary(SEMWM2LS3fit, fit.measures = TRUE, standardized = TRUE)
 SEMWM2LS4 <- '
 
   # Paths from lifestyle factors to WM
-  WM2 ~ a1*ML4 + age
+  WM2 ~ a1*ML4 + agelin + agequad
 
   # Paths to cognition
-  COG ~ b1*WM2 + c1*ML4 + age
+  COG ~ b1*WM2 + c1*ML4 + agelin + agequad
   
   # indirect  effects 
   ind_ML4 := a1*b1
@@ -330,10 +338,10 @@ summary(SEMWM2LS4fit, fit.measures = TRUE, standardized = TRUE)
 SEMWM2LS6 <- '
 
   # Paths from lifestyle factors to WM
-  WM2 ~ a1*ML6 + age
+  WM2 ~ a1*ML6 + agelin + agequad
 
   # Paths to cognition
-  COG ~ b1*WM2 + c1*ML6 + age
+  COG ~ b1*WM2 + c1*ML6 + agelin + agequad
   
   # indirect  effects 
   ind_ML6 := a1*b1
