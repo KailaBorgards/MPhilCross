@@ -20,6 +20,7 @@ pca_result_ls <- prcomp(factor_scores_df, center = TRUE, scale. = TRUE)
 
 # Variance explained
 explained_ls <- summary(pca_result_ls)$importance[2, ] * 100  # Percent variance
+cumulative_explained_ls <- summary(pca_result_ls)$importance[3, ] * 100 # cumulative
 latent_ls <- pca_result_ls$sdev^2  # Eigenvalues
 
 # Kaiser criterion (eigenvalue > 1)
@@ -124,7 +125,7 @@ fa.diagram(fa_result_wm)
 
 # Bind lifestyle factor scores to original data
 df_cleanp_scaled <- scale(df_cleanp)
-ls_loadings_df <- as.data.frame(fa_result_ls$scores)
+ls_loadings_df <- as.data.frame(fa_result_6$scores)
 data_efa_ls <- cbind(df_cleanp_scaled, ls_loadings_df)
 
 
@@ -139,5 +140,8 @@ wm_loadings_df <- wm_loadings_df %>% select(-ML1, -ML2, -ML3)
 
 # Bind WM factor scores to original data
 data_efa_tot <- cbind(data_efa_ls, wm_loadings_df)
+
+
+
 
 
