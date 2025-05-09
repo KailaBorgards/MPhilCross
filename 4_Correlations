@@ -71,6 +71,13 @@ cog_data <- cog_loadings_df %>%
 cor_data  <- cbind(wm_data, cog_data, ls_data)
 colnames(cor_data)
 
+## Calculate correlations and p-values
+corr_test_result <- corr.test(cor_data, use = "pairwise")
+
+# Extract matrices
+cor_matrix <- round(corr_test_result$r, 2)
+p_matrix <- round(corr_test_result$p, 4)
+
 
 # Select the variables
 ML_vars <- c("ML1", "ML2", "ML3", "ML4", "ML5", "ML6")
@@ -170,12 +177,6 @@ ML6 ~ ML4'
 ########################## OLD ########################
 #######################################################
 
-## Calculate correlations and p-values
-corr_test_result <- corr.test(cor_data, use = "pairwise")
-
-# Extract matrices
-cor_matrix <- round(corr_test_result$r, 2)
-p_matrix <- round(corr_test_result$p, 4)
 
 # Format for nice table output
 # Combine correlation and p-value
