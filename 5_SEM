@@ -1,5 +1,6 @@
 'currently not including any covariates besides age, maybe also Sex?'
 
+
 ############ SEM including Age (and only sig paths from correlation ############
 ################################################################################
  'include sex'
@@ -24,7 +25,7 @@ SEM <- '
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
-         c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + c6 *ML3 + 
+         c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + c6 *ML3 +  
          agelin + agequad
 
   # Indirect effects for each ML through WM1
