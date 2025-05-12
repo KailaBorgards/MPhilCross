@@ -10,7 +10,7 @@ head(WMpetar)
 WMpetar$CCID
 
 # Currently scaled CCID in data_efa_tot, so return original state to be able to join
-data_efa_tot$CCID <- pca_WM$CCID
+data_efa_tot$CCID <- pca_WM$CCIDmodified
 data_efa_tot$CCID <- as.character(data_efa_tot$CCID)
 data_efa_tot$CCID <- paste0("CC", data_efa_tot$CCID)
 
@@ -34,7 +34,7 @@ corrplot(cor_matrix_wm, method = "color")
 
 ############# COG computation ###############
 #############################################
-num_data <- num_data[!num_data$CCID %in% c("222120", "621199"), ]
+num_data <- num_data[!num_data$CCIDmodified %in% c("222120", "621199"), ]
 cognition <- num_data %>%
   select( C1.y,C2.y,C3.y,C4.y
   )
@@ -200,5 +200,3 @@ ggplot(cor_melt, aes(Var1, Var2, fill = value)) +
   coord_fixed() +
   labs(title = "Correlation Heatmap", x = "", y = "") +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
-
-
