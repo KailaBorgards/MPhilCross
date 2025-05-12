@@ -16,7 +16,7 @@ install.packages("GPArotation", type ="binary", dependency = TRUE)
 install.packages("factoextra", type ="binary", dependency = TRUE)
 install.packages("semPlot", type ="binary", dependency = TRUE)
 install.packages("reshape2", type ="binary", dependency = TRUE)
-
+install.packages("Hmisc", type ="binary", dependency = TRUE)
 
 ## Import packages
 library(readxl)
@@ -34,6 +34,7 @@ library(GPArotation)
 library(factoextra)
 library(semPlot)
 library(reshape2)
+library(Hmisc)
 
 
 
