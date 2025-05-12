@@ -1,3 +1,4 @@
+
 ######## INSPECT DATA ###########
 #################################
 
@@ -15,7 +16,7 @@ sapply(data_dwi, class)[sapply(data_dwi,class)=="character"]
 
 '
 columns that are characters:
-  CCID # okay will not be used             
+  CCID            
   sex  # needs to be transformed        
   v14       # Relationship to Houselhold members    
   v73       # Which qualification do you have    
