@@ -3,16 +3,15 @@
 
 ############ SEM including Age (and only sig paths from correlation ############
 ################################################################################
- 'include sex'
-
+'without sex'
 #Prep Age
-poly(age,2)
-age <- num_data$age_iv
-age2 <- poly(age,2)
+age <- num_data$Age
+age2 <- poly(age, 2)
 age2 <- as.data.frame(age2)
 age2$agelin <- age2[, "1"]
 age2$agequad <- age2[, "2"]
 colnames(age2)
+
 ## 
 data_sem_age <- cbind(cor_data, age2)
 
@@ -20,8 +19,8 @@ data_sem_age <- cbind(cor_data, age2)
 SEM <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad 
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad
+  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad
+  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad 
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
@@ -92,14 +91,37 @@ parameterEstimates(SEMfit, standardized = TRUE) %>%
                 full_width = FALSE,
                 position = "center")
 
+
+############## Presentations ##############
+############################################
+
+fit_table_sem <- data.frame(
+  Measure = c("Chi-square", "Degrees of Freedom", "p-value", "CFI", "TLI", "SRMR", "RMSEA",  "BIC"),
+  Value = round(c(
+    fitMeasures(SEM_sexfit, "chisq"),
+    fitMeasures(SEM_sexfit, "df"),
+    fitMeasures(SEM_sexfit, "pvalue"),
+    fitMeasures(SEM_sexfit, "CFI"),
+    fitMeasures(SEM_sexfit, "TLI"),
+    fitMeasures(SEM_sexfit, "SRMR"),
+    fitMeasures(SEM_sexfit, "rmsea"),
+    fitMeasures(SEM_sexfit, "bic")
+  ), 3)
+)
+
+kable(fit_table_sem, caption = "SEM Model Fit Indices") %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+
+
 ############ SEM including Age and Sex (and only sig paths from correlation ############
 ################################################################################
 
 #Prep Sex
 sex <- num_data %>%
-  select( sex, CCID)
-sexc <- sex[!num_data$CCID %in% c("222120", "621199"), ]
-sexc <- sexc[, !(names(sexc) %in% "CCID")]
+  select( sex, CCIDmodified)
+sexc <- sex[!num_data$CCIDmodified %in% c("222120", "621199"), ]
+sexc <- sexc[, !(names(sexc) %in% "CCIDmodified")]
 
 ## 
 data_sem_sex <- cbind(cor_data, age2, sex)
@@ -198,25 +220,25 @@ age_group <- cut(age,
 
 # Combine into a dataframe to view
 age_thirds <- data.frame(age = age, group = age_group)
-data_sem_age_thirds <- cbind(cor_data, age_thirds, age2)
+data_sem_age_thirds <- cbind(cor_data, age_thirds, age2, sex)
 
 ## subset into different dataframes
-df_lower  <- subset(data_sem_age_thirds, group == "Lower third")
-df_middle <- subset(data_sem_age_thirds, group == "Middle third")
-df_upper  <- subset(data_sem_age_thirds, group == "Upper third")
+df_lower  <- subset(data_sem_age_thirds, group == "Lower third") # 245
+df_middle <- subset(data_sem_age_thirds, group == "Middle third") # 235
+df_upper  <- subset(data_sem_age_thirds, group == "Upper third") # 226
 
 ### Group 18- 45
 #Model
 SEMsub45 <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad
+  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad + sex
+  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad + sex
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
          c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + 
-         agelin + agequad
+         agelin + agequad + sex
 
   # Indirect effects for each ML through WM1
   ind_ML1_WM1 := a1 * b1
@@ -243,13 +265,13 @@ summary(SEMsub45fit, fit.measures = TRUE, standardized = TRUE)
 SEMsub66 <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad
+  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad + sex
+  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad + sex
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
          c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + 
-         agelin + agequad
+         agelin + agequad + sex
 
   # Indirect effects for each ML through WM1
   ind_ML1_WM1 := a1 * b1
@@ -276,13 +298,13 @@ summary(SEMsub66fit, fit.measures = TRUE, standardized = TRUE)
 SEMsub88 <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad
+  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad + sex
+  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad + sex
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
          c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + 
-         agelin + agequad
+         agelin + agequad + sex
 
   # Indirect effects for each ML through WM1
   ind_ML1_WM1 := a1 * b1
@@ -312,10 +334,10 @@ summary(SEMsub88fit, fit.measures = TRUE, standardized = TRUE)
 SEMWM1LS1 <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + agelin + agequad
+  WM1 ~ a1*ML1 + agelin + agequad + sex
 
   # Paths to cognition
-  COG ~ b1*WM1 + c1*ML1 + agelin + agequad
+  COG ~ b1*WM1 + c1*ML1 + agelin + agequad + sex
   
   # indirect  effects 
   ind_ML1 := a1*b1
@@ -324,8 +346,9 @@ SEMWM1LS1 <- '
   total_ind_ML1 := c1 + (a1*b1)
  
 '
-SEMWM1LS1fit <- sem(SEMWM1LS1, data = data_sem_age, se = "bootstrap",  verbose = TRUE)
+SEMWM1LS1fit <- sem(SEMWM1LS1, data = data_sem_sex, se = "bootstrap",  verbose = TRUE)
 summary(SEMWM1LS1fit, fit.measures = TRUE, standardized = TRUE)
+
 # Not sig
 
 # WM 1 (Differences in microscopic property differences)
@@ -333,10 +356,10 @@ summary(SEMWM1LS1fit, fit.measures = TRUE, standardized = TRUE)
 SEMWM1LS4 <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML4 + agelin + agequad
+  WM1 ~ a1*ML4 + agelin + agequad + sex
 
   # Paths to cognition
-  COG ~ b1*WM1 + c1*ML4 + agelin + agequad
+  COG ~ b1*WM1 + c1*ML4 + agelin + agequad + sex
   
   # indirect  effects 
   ind_ML4 := a1*b1
@@ -345,7 +368,7 @@ SEMWM1LS4 <- '
   total_ind_ML4 := c1 + (a1*b1)
  
 '
-SEMWM1LS4fit <- sem(SEMWM1LS4, data = data_sem_age, se = "bootstrap", verbose = TRUE)
+SEMWM1LS4fit <- sem(SEMWM1LS4, data = data_sem_sex, se = "bootstrap", verbose = TRUE)
 summary(SEMWM1LS4fit, fit.measures = TRUE, standardized = TRUE)
 # Significant
 
@@ -354,10 +377,10 @@ summary(SEMWM1LS4fit, fit.measures = TRUE, standardized = TRUE)
 SEMWM1LS6 <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML6 + agelin + agequad
+  WM1 ~ a1*ML6 + agelin + agequad + sex
 
   # Paths to cognition
-  COG ~ b1*WM1 + c1*ML6 + agelin + agequad
+  COG ~ b1*WM1 + c1*ML6 + agelin + agequad + sex
   
   # indirect  effects 
   ind_ML6 := a1*b1
@@ -366,7 +389,7 @@ SEMWM1LS6 <- '
   total_ind_ML6 := c1 + (a1*b1)
  
 '
-SEMWM1LS6fit <- sem(SEMWM1LS6, data = data_sem_age, se = "bootstrap",  verbose = TRUE)
+SEMWM1LS6fit <- sem(SEMWM1LS6, data = data_sem_sex, se = "bootstrap",  verbose = TRUE)
 summary(SEMWM1LS6fit, fit.measures = TRUE, standardized = TRUE)
 # Not sig
 
@@ -376,10 +399,10 @@ summary(SEMWM1LS6fit, fit.measures = TRUE, standardized = TRUE)
 SEMWM2LS3 <- '
 
   # Paths from lifestyle factors to WM
-  WM2 ~ a1*ML3 + agelin + agequad
+  WM2 ~ a1*ML3 + agelin + agequad + sex
 
   # Paths to cognition
-  COG ~ b1*WM2 + c1*ML3 + agelin + agequad
+  COG ~ b1*WM2 + c1*ML3 + agelin + agequad + sex
   
   # indirect  effects 
   ind_ML3 := a1*b1
@@ -388,7 +411,7 @@ SEMWM2LS3 <- '
   total_ind_ML3 := c1 + (a1*b1)
  
 '
-SEMWM2LS3fit <- sem(SEMWM2LS3, data = data_sem_age, se = "bootstrap", verbose = TRUE)
+SEMWM2LS3fit <- sem(SEMWM2LS3, data = data_sem_sex, se = "bootstrap", verbose = TRUE)
 summary(SEMWM2LS3fit, fit.measures = TRUE, standardized = TRUE)
 #Not sig
 
@@ -397,10 +420,10 @@ summary(SEMWM2LS3fit, fit.measures = TRUE, standardized = TRUE)
 SEMWM2LS4 <- '
 
   # Paths from lifestyle factors to WM
-  WM2 ~ a1*ML4 + agelin + agequad
+  WM2 ~ a1*ML4 + agelin + agequad + sex
 
   # Paths to cognition
-  COG ~ b1*WM2 + c1*ML4 + agelin + agequad
+  COG ~ b1*WM2 + c1*ML4 + agelin + agequad + sex
   
   # indirect  effects 
   ind_ML4 := a1*b1
@@ -409,7 +432,7 @@ SEMWM2LS4 <- '
   total_ind_ML4 := c1 + (a1*b1)
  
 '
-SEMWM2LS4fit <- sem(SEMWM2LS4, data = data_sem_age, se = "bootstrap", verbose = TRUE)
+SEMWM2LS4fit <- sem(SEMWM2LS4, data = data_sem_sex, se = "bootstrap", verbose = TRUE)
 summary(SEMWM2LS4fit, fit.measures = TRUE, standardized = TRUE)
 # Not Sig
 
@@ -418,10 +441,10 @@ summary(SEMWM2LS4fit, fit.measures = TRUE, standardized = TRUE)
 SEMWM2LS6 <- '
 
   # Paths from lifestyle factors to WM
-  WM2 ~ a1*ML6 + agelin + agequad
+  WM2 ~ a1*ML6 + agelin + agequad + sex
 
   # Paths to cognition
-  COG ~ b1*WM2 + c1*ML6 + agelin + agequad
+  COG ~ b1*WM2 + c1*ML6 + agelin + agequad + sex
   
   # indirect  effects 
   ind_ML6 := a1*b1
@@ -430,6 +453,27 @@ SEMWM2LS6 <- '
   total_ind_ML6 := c1 + (a1*b1)
  
 '
-SEMWM2LS6fit <- sem(SEMWM2LS6, data = data_sem_age, se = "bootstrap", verbose = TRUE)
+SEMWM2LS6fit <- sem(SEMWM2LS6, data = data_sem_sex, se = "bootstrap", verbose = TRUE)
 summary(SEMWM2LS6fit, fit.measures = TRUE, standardized = TRUE)
+## Not sig
+
+# WM 2 (Free Water contribution)
+# Factor: 4 - BP / HEaring / Vision / PA
+SEMWM2LS4 <- '
+
+  # Paths from lifestyle factors to WM
+  WM2 ~ a1*ML4 + agelin + agequad + sex
+
+  # Paths to cognition
+  COG ~ b1*WM2 + c1*ML4 + agelin + agequad + sex
+  
+  # indirect  effects 
+  ind_ML4 := a1*b1
+
+  # Total  effects 
+  total_ind_ML4 := c1 + (a1*b1)
+ 
+'
+SEMWM2LS4fit <- sem(SEMWM2LS4, data = data_sem_sex, se = "bootstrap", verbose = TRUE)
+summary(SEMWM2LS4fit, fit.measures = TRUE, standardized = TRUE)
 ## Not sig
