@@ -67,12 +67,12 @@ fa.diagram(fa_result_6)
 ### Lifestyle
 fit_table_efa <- data.frame(
   Measure = c("Chi-square", "Degrees of Freedom", "p-value", "TLI", "RMSEA", "BIC"),
-  Value = round(c(fa_result_6$STATISTIC,
-                  fa_result_6$dof,
-                  fa_result_6$PVAL,
-                  fa_result_6$TLI,
-                  fa_result_6$RMSEA[1],   # RMSEA estimate is the first value
-                  fa_result_6$BIC), 3)
+  Value = round(c(fa_result_5$STATISTIC,
+                  fa_result_5$dof,
+                  fa_result_5$PVAL,
+                  fa_result_5$TLI,
+                  fa_result_5$RMSEA[1],   # RMSEA estimate is the first value
+                  fa_result_5$BIC), 3)
 )
 
 kable(fit_table_efa, caption = "EFA Model Fit Indices") %>%
@@ -84,13 +84,14 @@ kable(fit_table_efa, caption = "EFA Model Fit Indices") %>%
 #######################################################
 
 # Matrix of WM scores
-pca_WM <- num_data[, c( "CCID", "FA_mean","MSD_mean","MSK_mean","NDI_mean","ODI_mean","Fiso_mean")]
-pca_WM <- pca_WM[!pca_WM$CCID %in% c("222120", "621199"), ]
-fa_wm <- pca_WM %>% select(-CCID)
+pca_WM <- num_data[, c( "CCIDmodified", "FA_mean","MSD_mean","MSK_mean","NDI_mean","ODI_mean","Fiso_mean")]
+pca_WM <- pca_WM[!pca_WM$CCIDmodified %in% c("222120", "621199"), ]
+pca_WMm <- pca_WM %>% select(-CCIDmodified)
+fa_wm <- pca_WM %>% select(-CCIDmodified)
 ## Remove NA
-pca_WM_clean <- pca_WM[complete.cases(pca_WM) & apply(pca_WM, 1, function(x) all(is.finite(x))), ]
+pca_WM_clean <- pca_WMm[complete.cases(pca_WMm) & apply(pca_WMm, 1, function(x) all(is.finite(x))), ]
 sum(is.na(pca_WM_clean))# Count NAs #528
-nrow(pca_WM_clean) #620 / 88 removed
+nrow(pca_WM_clean) #618 / 90 removed
 
 # Perform PCA
 pca_result_wm <- prcomp(pca_WM_clean, center = TRUE, scale. = TRUE)
@@ -116,7 +117,7 @@ fa_result_wm <- fa(fa_wm, nfactors = 3, rotate = "varimax", fm = "ml")
 # Print factor loadings
 print(fa_result_wm$loadings, cutoff = 0.3)
 
-# Optional: Plot loadings
+#Plot loadings
 fa.diagram(fa_result_wm)
 
 
@@ -140,8 +141,3 @@ wm_loadings_df <- wm_loadings_df %>% select(-ML1, -ML2, -ML3)
 
 # Bind WM factor scores to original data
 data_efa_tot <- cbind(data_efa_ls, wm_loadings_df)
-
-
-
-
-
