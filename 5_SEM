@@ -1,8 +1,31 @@
+'
+ML1 ~ WM1
+ML4 ~ WM1
+ML6 ~ WM1
+ML3 ~ WM2
+ML4 ~ WM2
+ML6 ~ WM2
+ML2 ~ WM2
+'
+
+## LS and COG
+'
+ML1 ~ COG
+ML3 ~ COG
+ML4 ~ COG
+ML5 ~ COG
+ML6 ~ COG
+'
+
+## WM and COG
+'
+WM1 ~ COG
+WM2 ~ COG
+'
 
 
-############ SEM including Age (and only sig paths from correlation ############
+############ SEM including Age and Sex (and only sig paths from correlation ############
 ################################################################################
-'without sex'
 #Prep Age
 age <- num_data$Age
 age2 <- poly(age, 2)
@@ -11,45 +34,93 @@ age2$agelin <- age2[, "1"]
 age2$agequad <- age2[, "2"]
 colnames(age2)
 
+#Prep Sex
+sex <- num_data %>%
+  select( sex, CCIDmodified)
+sexc <- sex[!num_data$CCIDmodified %in% c("222120", "621199"), ]
+sexc <- sexc[, !(names(sexc) %in% "CCIDmodified")]
+
 ## 
-data_sem_age <- cbind(cor_data, age2)
+data_sem_sex <- cbind(cor_data, age2, sex)
 
 #Model
-SEM <- '
+SEM_sex <- '
 
   # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad 
+  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad + sex
+  WM2 ~ a4*ML2 + a5*ML3 + a6*ML4 + a7*ML6+ agelin + agequad + sex
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
-         c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + c6 *ML3 +  
-         agelin + agequad
+         c1*ML1 + c2*ML2 + c3*ML3+ c4*ML4 + c5*ML5 + c6 *ML6 + 
+         agelin + agequad + sex
 
   # Indirect effects for each ML through WM1
   ind_ML1_WM1 := a1 * b1
   ind_ML4_WM1 := a2 * b1
   ind_ML6_WM1 := a3 * b1
+  
+  #Total effect for each ML through WM1
+  Total_ML1_WM1 := a1 * b1 + c1
+  Total_ML4_WM1 := a2 * b1 + c4
+  Total_ML6_WM1 := a3 * b1 + c6
+  
 
   # Indirect effects for each ML through WM2
-  ind_ML3_WM2 := a4 * b2
-  ind_ML4_WM2 := a5 * b2
-  ind_ML6_WM2 := a6 * b2
+  ind_ML2_WM2 := a4 * b2
+  ind_ML3_WM2 := a5 * b2
+  ind_ML4_WM2 := a6 * b2
+  ind_ML6_WM2 := a7 * b2
 
+  #Total effect for each ML through WM2
+  Total_ML2_WM2 := a4 * b2 + c2
+  Total_ML3_WM2 := a5 * b2 + c3
+  Total_ML4_WM2 := a6 * b2 + c4
+  Total_ML6_WM2 := a7 * b2 + c6
 
   # Total indirect effects (WM1 + WM2)
   total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
   total_ind_ML6 := ind_ML6_WM1 + ind_ML6_WM2
  
+  # Total effects for each ML through both WMs
+  TotalWM_ML4 := total_ind_ML4 + c4
+  TotalWM_ML6 := total_ind_ML6 + c6
+  
+  # Proportion mediation
+  proportion_mediatedML1WM1 := ind_ML1_WM1 / Total_ML1_WM1
+  proportion_mediatedML4WM1 := ind_ML4_WM1 / Total_ML4_WM1
+  proportion_mediatedML6WM1 := ind_ML6_WM1 / Total_ML6_WM1
+  proportion_mediatedML2WM2 := ind_ML2_WM2 / Total_ML2_WM2
+  proportion_mediatedML3WM2 := ind_ML3_WM2 / Total_ML3_WM2
+  proportion_mediatedML4WM2 := ind_ML4_WM2 / Total_ML4_WM2
+  proportion_mediatedML6WM2 := ind_ML6_WM2 / Total_ML6_WM2
+  proportion_mediatedML4WM12 := total_ind_ML4 / TotalWM_ML4
+  proportion_mediatedML6WM12 := total_ind_ML6 / TotalWM_ML6
+  
+ 
 '
-SEMfit <- sem(SEM, data = data_sem_age, std.lv = TRUE)
-summary(SEMfit, fit.measures = TRUE, standardized = TRUE)
+SEM_sexfit <- sem(SEM_sex, data = data_sem_sex, std.lv = TRUE)
+summary(SEM_sexfit, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
 
+
+
+#############################
+###### Inspect missings #####
+colSums(is.na(data_sem_sex))
+sum(!complete.cases(data_sem_sex))
+sum(complete.cases(data_sem_sex))
+
+'
+Total= 12 * 706 = 8472
+Missings (only of 34 included variables): 88+88+48
+Sum= 224
+Potion of total= 224 / 8472 = 0.0264 = 2.6%
+'
 
 
 #################### Paths #####################
 ################################################
-semPaths(SEMfit, 
+semPaths(SEM_sexfit, 
          what = "std",        # standardized estimates
          layout = "tree2",     # nice clean tree layout
          edge.label.cex = 1.1, # size of path labels
@@ -62,13 +133,13 @@ semPaths(SEMfit,
 
 # Saving it
 png("sem_plot.png", width = 1000, height = 800)
-semPaths(SEMfit, what = "std", layout = "tree", edge.label.cex = 1.1)
+semPaths(SEM_sexfit, what = "std", layout = "tree", edge.label.cex = 1.1)
 dev.off()
 
 #################### Table ####################
 ################################################
 
-parameterEstimates(SEMfit, standardized = TRUE) %>% 
+parameterEstimates(SEM_sexfit, standardized = TRUE) %>% 
   filter( op %in% c("~", ":=", "~~")) %>%
   mutate(Significance = case_when(
     pvalue < 0.001 ~ "***",
@@ -89,7 +160,6 @@ parameterEstimates(SEMfit, standardized = TRUE) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
                 full_width = FALSE,
                 position = "center")
-
 
 ############## Presentations ##############
 ############################################
@@ -111,95 +181,8 @@ fit_table_sem <- data.frame(
 kable(fit_table_sem, caption = "SEM Model Fit Indices") %>%
   kable_styling(full_width = FALSE, position = "center")
 
-
-
-############ SEM including Age and Sex (and only sig paths from correlation ############
-################################################################################
-
-#Prep Sex
-sex <- num_data %>%
-  select( sex, CCIDmodified)
-sexc <- sex[!num_data$CCIDmodified %in% c("222120", "621199"), ]
-sexc <- sexc[, !(names(sexc) %in% "CCIDmodified")]
-
-## 
-data_sem_sex <- cbind(cor_data, age2, sex)
-
-#Model
-SEM_sex <- '
-
-  # Paths from lifestyle factors to WM
-  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad + sex
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad + sex
-
-  # Paths to cognition
-  COG ~ b1*WM1 + b2*WM2 +
-         c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + c6 *ML3 + 
-         agelin + agequad + sex
-
-  # Indirect effects for each ML through WM1
-  ind_ML1_WM1 := a1 * b1
-  ind_ML4_WM1 := a2 * b1
-  ind_ML6_WM1 := a3 * b1
-
-  # Indirect effects for each ML through WM2
-  ind_ML3_WM2 := a4 * b2
-  ind_ML4_WM2 := a5 * b2
-  ind_ML6_WM2 := a6 * b2
-
-
-  # Total indirect effects (WM1 + WM2)
-  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
-  total_ind_ML6 := ind_ML6_WM1 + ind_ML6_WM2
- 
-'
-SEM_sexfit <- sem(SEM_sex, data = data_sem_sex, std.lv = TRUE)
-summary(SEM_sexfit, fit.measures = TRUE, standardized = TRUE)
-
-
-
-#################### Paths #####################
-################################################
-semPaths(SEMfit, 
-         what = "std",        # standardized estimates
-         layout = "tree2",     # nice clean tree layout
-         edge.label.cex = 1.1, # size of path labels
-         sizeMan = 6,          # observed variable size
-         sizeLat = 8,          # latent variable size
-         nCharNodes = 0,       # show full variable names
-         style = "lisrel",     # classic SEM look
-         residuals = FALSE,    # hide residual arrows
-         intercepts = FALSE)   # hide intercepts
-
-# Saving it
-png("sem_plot.png", width = 1000, height = 800)
-semPaths(SEMfit, what = "std", layout = "tree", edge.label.cex = 1.1)
-dev.off()
-
-#################### Table ####################
-################################################
-
-parameterEstimates(SEMfit, standardized = TRUE) %>% 
-  filter( op %in% c("~", ":=", "~~")) %>%
-  mutate(Significance = case_when(
-    pvalue < 0.001 ~ "***",
-    pvalue < 0.01 ~ "**",
-    pvalue < 0.05 ~ "*",
-    TRUE ~ ""
-  )) %>%
-  select(Predictor = lhs,
-         Relationship = op,
-         Outcome = rhs, 
-         Estimate = est,
-         'Std. Est.' = std.all,
-         SE = se,
-         z = z,
-         'p-value' = pvalue,
-         Significance) %>%
-  kable(format= "html", digits = 3, captio = "SEM Parameter Estimates") %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
-                full_width = FALSE,
-                position = "center")
+standardizedSolution(SEM_sexfit)  # or
+parameterEstimates(SEM_sexfit, standardized = TRUE)
 
 
 
@@ -219,24 +202,41 @@ age_group <- cut(age,
 
 # Combine into a dataframe to view
 age_thirds <- data.frame(age = age, group = age_group)
-data_sem_age_thirds <- cbind(cor_data, age_thirds, age2, sex)
+data_sem_age_thirds <- cbind(cor_data, age_thirds, age2, sex
+
 
 ## subset into different dataframes
 df_lower  <- subset(data_sem_age_thirds, group == "Lower third") # 245
 df_middle <- subset(data_sem_age_thirds, group == "Middle third") # 235
 df_upper  <- subset(data_sem_age_thirds, group == "Upper third") # 226
 
+## Multigroup SEM
+SEM_sexfitthirds <- sem(SEM_sex, data = data_sem_age_thirds, std.lv = TRUE, group = "group")
+summary(SEM_sexfitthirds, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### Group 18- 45
 #Model
-SEMsub45 <- '
+SEMsub45  <- '
 
   # Paths from lifestyle factors to WM
   WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad + sex
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad + sex
+  WM2 ~ a4*ML2 + a5*ML3 + a6*ML4 + a7*ML6+ agelin + agequad + sex
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
-         c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + 
+         c1*ML1 + c2*ML2 + c3*ML3+ c4*ML4 + c5*ML5 + c6 *ML6 + 
          agelin + agequad + sex
 
   # Indirect effects for each ML through WM1
@@ -245,9 +245,10 @@ SEMsub45 <- '
   ind_ML6_WM1 := a3 * b1
 
   # Indirect effects for each ML through WM2
-  ind_ML3_WM2 := a4 * b2
-  ind_ML4_WM2 := a5 * b2
-  ind_ML6_WM2 := a6 * b2
+  ind_ML2_WM2 := a4 * b2
+  ind_ML3_WM2 := a5 * b2
+  ind_ML4_WM2 := a6 * b2
+  ind_ML6_WM2 := a7 * b2
 
 
   # Total indirect effects (WM1 + WM2)
@@ -261,15 +262,15 @@ summary(SEMsub45fit, fit.measures = TRUE, standardized = TRUE)
 #Not sig
 
 ### Group 46 - 66
-SEMsub66 <- '
+SEMsub66  <- '
 
   # Paths from lifestyle factors to WM
   WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad + sex
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad + sex
+  WM2 ~ a4*ML2 + a5*ML3 + a6*ML4 + a7*ML6+ agelin + agequad + sex
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
-         c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + 
+         c1*ML1 + c2*ML2 + c3*ML3+ c4*ML4 + c5*ML5 + c6 *ML6 + 
          agelin + agequad + sex
 
   # Indirect effects for each ML through WM1
@@ -278,9 +279,10 @@ SEMsub66 <- '
   ind_ML6_WM1 := a3 * b1
 
   # Indirect effects for each ML through WM2
-  ind_ML3_WM2 := a4 * b2
-  ind_ML4_WM2 := a5 * b2
-  ind_ML6_WM2 := a6 * b2
+  ind_ML2_WM2 := a4 * b2
+  ind_ML3_WM2 := a5 * b2
+  ind_ML4_WM2 := a6 * b2
+  ind_ML6_WM2 := a7 * b2
 
 
   # Total indirect effects (WM1 + WM2)
@@ -294,15 +296,15 @@ summary(SEMsub66fit, fit.measures = TRUE, standardized = TRUE)
 # Not Sig
 
 ### Group 66 - 88
-SEMsub88 <- '
+SEMsub88  <- '
 
   # Paths from lifestyle factors to WM
   WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad + sex
-  WM2 ~ a4*ML3 + a5*ML4 + a6*ML6 + agelin + agequad + sex
+  WM2 ~ a4*ML2 + a5*ML3 + a6*ML4 + a7*ML6+ agelin + agequad + sex
 
   # Paths to cognition
   COG ~ b1*WM1 + b2*WM2 +
-         c1*ML1 + c3*ML4+ c4*ML5 + c5*ML6 + 
+         c1*ML1 + c2*ML2 + c3*ML3+ c4*ML4 + c5*ML5 + c6 *ML6 + 
          agelin + agequad + sex
 
   # Indirect effects for each ML through WM1
@@ -311,9 +313,10 @@ SEMsub88 <- '
   ind_ML6_WM1 := a3 * b1
 
   # Indirect effects for each ML through WM2
-  ind_ML3_WM2 := a4 * b2
-  ind_ML4_WM2 := a5 * b2
-  ind_ML6_WM2 := a6 * b2
+  ind_ML2_WM2 := a4 * b2
+  ind_ML3_WM2 := a5 * b2
+  ind_ML4_WM2 := a6 * b2
+  ind_ML6_WM2 := a7 * b2
 
 
   # Total indirect effects (WM1 + WM2)
@@ -325,6 +328,8 @@ SEMsub88fit <- sem(SEMsub88, data = df_upper, std.lv = TRUE)
 summary(SEMsub88fit, fit.measures = TRUE, standardized = TRUE)
 
 #Not Sig
+
+
 
 ######################### Mediation By Latent Factors #########################
 ###############################################################################
