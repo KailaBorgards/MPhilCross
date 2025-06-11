@@ -1,0 +1,243 @@
+Exploratory Analyses
+
+####### Latent Lifestyle factors as Sum score #####
+###################################################
+
+
+LSsum_result <- fa(ls_data, nfactors = 1, rotate = "varimax", fm = "ml")
+
+#Export to Table
+lssum_loadings_df <- as.data.frame(LSsum_result$scores)
+lssum_loadings_df$LSsum <- lssum_loadings_df$ML1
+
+
+data_LS <- cbind(lssum_loadings_df, data_sem_sex)
+SEM_LS <- '
+
+  # Paths from lifestyle factors to WM
+  WM1 ~ a1*LSsum + agelin + agequad + sex
+  WM2 ~ a2*LSsum + agelin + agequad + sex
+
+  # Paths to cognition
+  COG ~ b1*WM1 + b2*WM2 +
+         c1*LSsum + 
+         agelin + agequad + sex
+
+  # Indirect effects for each ML through WM1
+  ind_LS_WM1 := a1 * b1
+  ind_LS_WM2 := a2 * b2
+  tot_LS_WM := ind_LS_WM1 + ind_LS_WM2
+
+  # Proportion
+  Proportion_WM1 := (a1*b1) / (a1*b1) + c1
+  Proportion_WM2 := (a2*b2) / (a2*b2) + c1
+  Proportion total := (ind_LS_WM1 + ind_LS_WM2) / (ind_LS_WM1 + ind_LS_WM2) + c1
+
+ 
+'
+SEM_LSfit <- sem(SEM_LS, data = data_LS, std.lv = TRUE)
+summary(SEM_LSfit, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
+
+
+############### Just Cognition ###############
+##############################################
+
+SEM_experi_2  <- '
+
+
+# Paths to cognition
+COG ~  c1*ML1  + c3*ML3+ c4*ML4 + c5*ML5 + c6 *ML6 + 
+  agelin + agequad + sex
+'
+
+SEM_experi_2 <- sem(SEM_experi_2, data = data_sem_sex, std.lv = TRUE)
+summary(SEM_experi_2, fit.measures = TRUE, standardized = TRUE)
+
+
+
+
+############### EFA with 34 factors rather than 13 ##############
+#################################################################
+
+data_efa_34<- df_cleanp %>%
+  select(alcoholmodified, v290m, BMIm, HADS_depressionm, HADSmodified, v422m, v377m, qualmodified, yearsedum,
+  v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m, v349m, bp_sys, v355m, 
+  PAEE, smokermodified, v241m,  v251m, v457m, v86, v89, v90m, v91m, v93m, v328m, v333modified, v334modified, v335modified)
+
+
+################# PCA for Lifestyle to determine number of factors ################
+####################################################################################
+# Inspect NAs because PCA sensitive to it
+sum(is.na(data_efa_34)) # Count NAs #0
+
+## Remove NA
+dat34_clean <- data_efa_34[complete.cases(data_efa_34) & apply(data_efa_34, 1, function(x) all(is.finite(x))), ]
+sum(is.na(dat34_clean))# Count NAs #528
+nrow(dat34_clean) #618 / 88 removed
+
+# Perform PCA
+pca_result_34 <- prcomp(dat34_clean, center = TRUE, scale. = TRUE)
+
+# Variance explained
+explained_34 <- summary(pca_result_ls)$importance[2, ] * 100  # Percent variance
+cumulative_explained_34 <- summary(pca_result_ls)$importance[3, ] * 100 # cumulative
+latent_34 <- pca_result_ls$sdev^2  # Eigenvalues
+
+# Kaiser criterion (eigenvalue > 1)
+nPC_34 <- sum(latent_34 * length(latent_34) / sum(latent_34) > 1)
+print(nPC_34)  # returns 5 - But factor 6 has Eigenvalue of 0.977
+
+# Scree plot
+fviz_eig(pca_result_34, addlabels = TRUE)
+
+
+################# FA for Lifestyle fyi################
+#######################################################
+
+## 6 Factor solution
+# Run factor analysis with 5 factors and varimax rotation
+fa_result_34 <- fa(data_efa_34, nfactors = 6, rotate = "varimax", fm = "fiml")
+
+# Print factor loadings
+print(fa_result_34, cutoff = 0.1)
+
+# Optional: Plot loadings
+fa.diagram(fa_result_34)
+
+
+################# SEM for Lifestyle 34 variables ###############
+################################################################
+
+# Bind lifestyle factor scores to original data
+ls_loadings_34 <- as.data.frame(fa_result_34$scores)
+data_efa_34_new <- cbind(df_cleanp_scaled, ls_loadings_34, wm_data, cog_data)
+
+
+##### Factor Loadings into 1 dataset ####
+cor_data_34 <-   data_efa_34_new %>%
+  select(WM1, WM2, COG, MR1, MR2, MR3, MR4, MR5, MR6)
+
+
+############### Correlations ###############
+############################################
+
+vars34 <- colnames(cor_data_34)
+n34 <- length(vars34)
+
+# Empty matrices to store results
+cor_mat34 <- matrix(NA, n34, n34, dimnames = list(vars34, vars34))
+p_mat34 <- matrix(NA, n34, n34, dimnames = list(vars34, vars34))
+
+# Loop through variable pairs
+for (i in 1:n) {
+  for (j in i:n) {
+    test <- cor.test(cor_data_34[[i]], cor_data_34[[j]], method = "pearson")
+    cor_mat34[i, j] <- test$estimate
+    cor_mat34[j, i] <- test$estimate
+    p_mat34[i, j] <- test$p.value
+    p_mat34[j, i] <- test$p.value
+  }
+}
+## Double check symmetry
+all.equal(p_mat34, t(p_mat34))
+
+
+#############################
+######### Viszualize ########
+#############################
+
+#Create a matrix of significance stars
+stars_matrix34 <- ifelse(p_mat34 < 0.001, "***",
+                       ifelse(p_mat34 < 0.01, "**",
+                              ifelse(p_mat34 < 0.05, "*", "")))
+
+# Melt matrices to long format
+corr_melt34 <- melt(cor_mat34)
+stars_melt34 <- melt(stars_matrix34)
+
+# Combine into one dataframe
+corr_plot_data34 <- merge(corr_melt34, stars_melt34, by = c("Var1", "Var2"))
+colnames(corr_plot_data34) <- c("Var1", "Var2", "Correlation", "Significance")
+
+# reorder
+desired_order34 <- c( "MR6", "MR5", "MR4","MR3","MR2","MR1","WM2","WM1", "COG")
+corr_plot_data34$Var1 <- factor(corr_plot_data34$Var1, levels = desired_order34)
+corr_plot_data34$Var2 <- factor(corr_plot_data34$Var2, levels = desired_order34)
+
+# Plot using ggplot2
+ggplot(corr_plot_data34, aes(x = Var1, y = Var2, fill = Correlation)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0,
+                       limits = c(-1, 1), name = "r") +
+  geom_text(aes(label = paste0(round(Correlation, 2), Significance)), size = 4) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid = element_blank()) +
+  labs(title = "Correlation Matrix with Significance", x = "", y = "")
+
+
+
+####################### SEM #####################
+################################################
+data_sem_34 <- cbind(cor_data_34, age2, sex)
+
+#Model
+SEM_34 <- '
+
+  # Paths from lifestyle factors to WM
+  WM1 ~ a1*MR1 + a2*MR4 + a3*MR5 + agelin + agequad + sex
+  WM2 ~ a4*MR1 + a5*MR4 + a6*MR5 + agelin + agequad + sex
+
+  # Paths to cognition
+  COG ~ b1*WM1 + b2*WM2 +
+         c1*MR1 + c2*MR2 + c3*MR3+ c4*MR4 + c5*MR5 +  
+         agelin + agequad + sex
+
+  # Indirect effects for each ML through WM1
+  ind_ML1_WM1 := a1 * b1
+  ind_ML4_WM1 := a2 * b1
+  ind_ML5_WM1 := a3 * b1
+  
+  #Total effect for each ML through WM1
+  Total_ML1_WM1 := a1 * b1 + c1
+  Total_ML4_WM1 := a2 * b1 + c2
+  Total_ML5_WM1 := a3 * b1 + c5
+  
+
+  # Indirect effects for each ML through WM2
+  ind_ML1_WM2 := a4 * b2
+  ind_ML4_WM2 := a5 * b2
+  ind_ML5_WM2 := a6 * b2
+
+
+  #Total effect for each ML through WM2
+  Total_ML1_WM2 := a4 * b2 + c1
+  Total_ML4_WM2 := a5 * b2 + c4
+  Total_ML5_WM2 := a6 * b2 + c5
+
+
+  # Total indirect effects (WM1 + WM2)
+  total_ind_ML1 := ind_ML1_WM1 + ind_ML1_WM2
+  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
+  total_ind_ML5 := ind_ML5_WM1 + ind_ML5_WM2
+ 
+  # Total effects for each ML through both WMs
+  TotalWM_ML1 := total_ind_ML1 + c1
+  TotalWM_ML4 := total_ind_ML4 + c4
+  TotalWM_ML5 := total_ind_ML5 + c5
+  
+  # Proportion mediation
+  proportion_mediatedML1WM1 := ind_ML1_WM1 / Total_ML1_WM1
+  proportion_mediatedML4WM1 := ind_ML4_WM1 / Total_ML4_WM1
+  proportion_mediatedML5WM1 := ind_ML5_WM1 / Total_ML5_WM1
+  proportion_mediatedML1WM2 := ind_ML1_WM2 / Total_ML1_WM2
+  proportion_mediatedML4WM2 := ind_ML4_WM2 / Total_ML4_WM2
+  proportion_mediatedML5WM2 := ind_ML5_WM2 / Total_ML5_WM2
+  proportion_mediatedML1WM12 := total_ind_ML1 / TotalWM_ML1
+  proportion_mediatedML4WM12 := total_ind_ML4 / TotalWM_ML4
+  proportion_mediatedML5WM12 := total_ind_ML5 / TotalWM_ML5
+  
+ 
+'
+SEM_34fit <- sem(SEM_34, data = data_sem_34, std.lv = TRUE)
+summary(SEM_34fit, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
