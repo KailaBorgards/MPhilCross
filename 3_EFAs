@@ -59,8 +59,6 @@ print(fa_result_6, cutoff = 0.1)
 # Optional: Plot loadings
 fa.diagram(fa_result_6)
 
-
-
 ############## Presentations ##############
 ############################################
 
@@ -91,7 +89,7 @@ fa_wm <- pca_WM %>% select(-CCIDmodified)
 ## Remove NA
 pca_WM_clean <- pca_WMm[complete.cases(pca_WMm) & apply(pca_WMm, 1, function(x) all(is.finite(x))), ]
 sum(is.na(pca_WM_clean))# Count NAs #528
-nrow(pca_WM_clean) #618 / 90 removed
+nrow(pca_WM) #618 / 88 removed
 
 # Perform PCA
 pca_result_wm <- prcomp(pca_WM_clean, center = TRUE, scale. = TRUE)
@@ -107,6 +105,19 @@ print(nPC_wm)  # Should return 3 but returns 2
 # Scree plot
 fviz_eig(pca_result_wm, addlabels = TRUE)
 
+#############################
+###### Inspect missings #####
+colSums(is.na(my_data_scaled))
+sum(!complete.cases(my_data_scaled))
+sum(complete.cases(my_data_scaled))
+
+'
+Total= 34 * 706 = 24004
+Missings (only of 34 included variables): 160+122+2+2+4+6+1+1+3+4+2+3+4+1+4+4+128+5+83+2+57+0+0+0+10+10+5+0
+Sum= 623
+Potion of total= 623 / 24004 = 0.0259 = 2.6%
+'
+
 
 ################# FA for White Matter ##############
 ####################################################
@@ -121,6 +132,7 @@ print(fa_result_wm$loadings, cutoff = 0.3)
 fa.diagram(fa_result_wm)
 
 
+mean(fa_result_wm$communality)
 ################# Combine the factor loadings into the data ##############
 ##########################################################################
 
@@ -141,3 +153,24 @@ wm_loadings_df <- wm_loadings_df %>% select(-ML1, -ML2, -ML3)
 
 # Bind WM factor scores to original data
 data_efa_tot <- cbind(data_efa_ls, wm_loadings_df)
+
+
+############# COG computation ###############
+#############################################
+num_data <- num_data[!num_data$CCIDmodified %in% c("222120", "621199"), ]
+cognition <- num_data %>%
+  select( C1.y,C2.y,C3.y,C4.y
+  )
+
+## FA
+# Run factor analysis with 1 factor for cognition (IQ) and varimax rotation
+cog_result <- fa(cognition, nfactors = 1, rotate = "varimax", fm = "ml")
+
+# Print factor loadings
+print(cog_result$loadings, cutoff = 0.3)
+mean(cog_result$communality)
+
+#Export to Table
+cog_loadings_df <- as.data.frame(cog_result$scores)
+cog_loadings_df$COG <- cog_loadings_df$ML1
+
