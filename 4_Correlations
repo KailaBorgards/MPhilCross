@@ -1,5 +1,7 @@
-############# WM correlation ###############
-############################################
+### New Correlation
+
+############# Snaity check WM correlation ###############
+#########################################################
 
 ## Test whether my computed WM Factorloadings in '3_EFA' are the same as the ones Petar sent me based on Henriques
 
@@ -32,27 +34,10 @@ corrplot(cor_matrix_wm, method = "color")
 # almost perfect correlation = I am fine to proceed with mine
 
 
-############# COG computation ###############
-#############################################
-num_data <- num_data[!num_data$CCIDmodified %in% c("222120", "621199"), ]
-cognition <- num_data %>%
-  select( C1.y,C2.y,C3.y,C4.y
-  )
-
-## FA
-# Run factor analysis with 1 factor for cognition (IQ) and varimax rotation
-cog_result <- fa(cognition, nfactors = 1, rotate = "varimax", fm = "ml")
-
-# Print factor loadings
-print(cog_result$loadings, cutoff = 0.3)
-
-#Export to Table
-cog_loadings_df <- as.data.frame(cog_result$scores)
-cog_loadings_df$COG <- cog_loadings_df$ML1
 
 
-############# Path correlations ###############
-###############################################
+############# Create Dataframe for Correlations ###############
+###############################################################
 
 #### Dataframes solely, with the factor loadings
 ## WM
@@ -71,50 +56,67 @@ cog_data <- cog_loadings_df %>%
 cor_data  <- cbind(wm_data, cog_data, ls_data)
 colnames(cor_data)
 
-## Calculate correlations and p-values
-corr_test_result <- corr.test(cor_data, use = "pairwise")
+sapply(cor_data, class) 
 
-# Extract matrices
-cor_matrix <- round(corr_test_result$r, 2)
-p_matrix <- round(corr_test_result$p, 4)
+############### Correlations ###############
+############################################
 
+vars <- colnames(cor_data)
+n <- length(vars)
 
-# Select the variables
-ML_vars <- c("ML1", "ML2", "ML3", "ML4", "ML5", "ML6")
-WM_vars <- c("WM1", "WM2")
-COG_vars <- c("COG")
+# Empty matrices to store results
+cor_mat <- matrix(NA, n, n, dimnames = list(vars, vars))
+p_mat <- matrix(NA, n, n, dimnames = list(vars, vars))
 
-# correlation and p-value submatrices for desired paths
-cor_ml_wm <- cor_matrix[WM_vars, ML_vars]
-p_ml_wm <- p_matrix[WM_vars, ML_vars]
-
-cor_ml_cog <- cor_matrix[COG_vars, ML_vars, drop = FALSE]
-p_ml_cog <- p_matrix[COG_vars, ML_vars, drop = FALSE]
-
-cor_wm_cog <- cor_matrix[COG_vars, WM_vars, drop = FALSE]
-p_wm_cog <- p_matrix[COG_vars, WM_vars, drop = FALSE]
-
-
-# Combining correlation and p-value into formatted matrices
-combine_corr_p <- function(cor, p) {
-  matrix(paste0(cor, "\n(p=", p, ")"),
-         nrow = nrow(cor),
-         dimnames = dimnames(cor))
+# Loop through variable pairs
+for (i in 1:n) {
+  for (j in i:n) {
+    test <- cor.test(cor_data[[i]], cor_data[[j]], method = "pearson")
+    cor_mat[i, j] <- test$estimate
+    cor_mat[j, i] <- test$estimate
+    p_mat[i, j] <- test$p.value
+    p_mat[j, i] <- test$p.value
+  }
 }
+## Double check symmetry
+all.equal(p_mat, t(p_mat))
 
-cor_p_ml_wm <- combine_corr_p(cor_ml_wm, p_ml_wm)
-cor_p_ml_cog <- combine_corr_p(cor_ml_cog, p_ml_cog)
-cor_p_wm_cog <- combine_corr_p(cor_wm_cog, p_wm_cog)
 
-# Print results
-cat("\nML → WM:\n")
-print(cor_p_ml_wm)
+#############################
+######### Viszualize ########
+#############################
 
-cat("\nML → COG:\n")
-print(cor_p_ml_cog)
+#Create a matrix of significance stars
+stars_matrix <- ifelse(p_mat < 0.001, "***",
+                       ifelse(p_mat < 0.01, "**",
+                              ifelse(p_mat < 0.05, "*", "")))
 
-cat("\nWM → COG:\n")
-print(cor_p_wm_cog)
+# Melt matrices to long format
+corr_melt <- melt(cor_mat)
+stars_melt <- melt(stars_matrix)
+
+# Combine into one dataframe
+corr_plot_data <- merge(corr_melt, stars_melt, by = c("Var1", "Var2"))
+colnames(corr_plot_data) <- c("Var1", "Var2", "Correlation", "Significance")
+
+# reorder
+desired_order <- c("ML6", "ML5", "ML4","ML3","ML2","ML1","WM2","WM1", "COG")
+corr_plot_data$Var1 <- factor(corr_plot_data$Var1, levels = desired_order)
+corr_plot_data$Var2 <- factor(corr_plot_data$Var2, levels = desired_order)
+
+# Plot using ggplot2
+ggplot(corr_plot_data, aes(x = Var1, y = Var2, fill = Correlation)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0,
+                       limits = c(-1, 1), name = "r") +
+  geom_text(aes(label = paste0(round(Correlation, 2), Significance)), size = 4) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid = element_blank()) +
+  labs(title = "Correlation Matrix with Significance", x = "", y = "")
+
+
+
 
 ## Positive paths from cor_p_combined -> Necessary for SEM
 ## LS and WM
@@ -152,51 +154,3 @@ ML6 ~ ML4'
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-########################## OLD ########################
-#######################################################
-
-
-# Format for nice table output
-# Combine correlation and p-value
-cor_p_combined <- matrix(paste0(cor_matrix, "\n(p=", p_matrix, ")"), 
-                         nrow = nrow(cor_matrix), 
-                         dimnames = dimnames(cor_matrix))
-
-# Print 
-print(cor_p_combined)
-
-# Prepare heatmap
-# Melt the correlation matrix
-cor_melt <- melt(cor_matrix)
-
-# Plot the heatmap
-ggplot(cor_melt, aes(Var1, Var2, fill = value)) +
-  geom_tile(color = "white") +
-  scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0,
-                       limit = c(-1, 1), space = "Lab", name = "Correlation") +
-  theme_minimal() +
-  coord_fixed() +
-  labs(title = "Correlation Heatmap", x = "", y = "") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
