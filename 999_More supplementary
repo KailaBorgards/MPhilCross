@@ -354,7 +354,7 @@ ggplot(corr_plot_data13, aes(x = Var1, y = Var2, fill = Correlation)) +
 
 
 
-SEMcfa_data <- cbind(data_sem_13, sex, age2)
+SEMcfa_data <- cbind(data_sem_13, sex, age2, age_thirds)
 
 
 #with Age
@@ -362,45 +362,49 @@ SEMcfa_data <- cbind(data_sem_13, sex, age2)
 SEMcfaAge <- '
   # Lifestyle to WM paths (labelled)
   WM1 ~ 
-   a2*BMIf +   a4*Diabetes + a5*Education +
+   a2*BMIf+ a4*Diabetes + a5*Education +
         a6*Hearing + a7*BP + a8*Cholesterol + a9*PhysicalActivity +
          a12*SocialIsolation + a13*Vision + agelin + agequad + sex
 
   WM2 ~ a14*Alcohol + a15*BMIf +  a16*Depression + a17*Diabetes + a18*Education +
-        a19*Hearing + a20*BP + a21*Cholesterol + a22*PhysicalActivity  
+        a19*Hearing + a20*BP + a21*Cholesterol + a22*PhysicalActivity  +
          a25*SocialIsolation + a26*Vision + agelin + agequad + sex
 
   # WM to cognition (labelled)
   COG ~ b1*WM1 + b2*WM2 +
       c1*Alcohol + c2*BMIf +  c3*Depression + c4*Diabetes + c5*Education +
-        c6*Hearing + c7*BP + c8*Cholesterol + c9*PhysicalActivity + c10*Smoking + c11*TBI
+        c6*Hearing + c7*BP + c8*Cholesterol + c9*PhysicalActivity + c10*Smoking+
          c12*SocialIsolation + c13*Vision + agelin + agequad + sex
          
          
   # INDIRECT EFFECTS: through WM1
-  ind_BMIf_WM1 := a1 * b1
-  ind_Diabetes_WM1 := a2 * b1
-  ind_Education_WM1 := a3 * b1
-  ind_Hearing_WM1 := a4 * b1
-  ind_BP_WM1 := a5 * b1
-  ind_Cholesterol_WM1 := a6 * b1
-  ind_PhysicalActivity_WM1 := a7 * b1
-  ind_SocialIsolation_WM1 := a8 * b1
-  ind_Vision_WM1 := a9 * b1
+  ind_BMIf_WM1 := a2 * b1
+  ind_Diabetes_WM1 := a4 * b1
+  ind_Education_WM1 := a5 * b1
+  ind_Hearing_WM1 := a6 * b1
+  ind_BP_WM1 := a7 * b1
+  ind_Cholesterol_WM1 := a8 * b1
+  ind_PhysicalActivity_WM1 := a9 * b1
+  ind_SocialIsolation_WM1 := a12 * b1
+  ind_Vision_WM1 := a13 * b1
 
   # INDIRECT EFFECTS: through WM2
-  ind_BMIf_WM2 := a11 * b2
-  ind_Diabetes_WM2 := a12 * b2
-  ind_Hearing_WM2 := a13 * b2
-  ind_BP_WM2 := a14 * b2
-  ind_Cholesterol_WM2 := a15 * b2
-  ind_PhysicalActivity_WM2 := a16 * b2
-  ind_SocialIsolation_WM2 := a17 * b2
-  ind_Vision_WM2 := a18 * b2
+  ind_Alcohol_WM2 := a14 * b2
+  ind_BMIf_WM2 := a15 * b2
+  ind_Depression_WM2 := a16 * b2
+  ind_Diabetes_WM2 := a17 * b2
+  ind_Education_WM2 := 18 * b2
+  ind_Hearing_WM2 := a19 * b2
+  ind_BP_WM2 := a20 * b2
+  ind_Cholesterol_WM2 := a21 * b2
+  ind_PhysicalActivity_WM2 := a22 * b2
+  ind_SocialIsolation_WM2 := a25 * b2
+  ind_Vision_WM2 := a26 * b2
 
   # TOTAL INDIRECT EFFECTS (WM1 + WM2)
   total_ind_BMIf := ind_BMIf_WM1 + ind_BMIf_WM2
   total_ind_Diabetes := ind_Diabetes_WM1 + ind_Diabetes_WM2
+  total_ind_Education := ind_Education_WM1 + ind_Education_WM2
   total_ind_Hearing := ind_Hearing_WM1 + ind_Hearing_WM2
   total_ind_BP := ind_BP_WM1 + ind_BP_WM2
   total_ind_Cholesterol := ind_Cholesterol_WM1 + ind_Cholesterol_WM2
@@ -408,8 +412,34 @@ SEMcfaAge <- '
   total_ind_SocialIsolation := ind_SocialIsolation_WM1 + ind_SocialIsolation_WM2
   total_ind_Vision := ind_Vision_WM1 + ind_Vision_WM2'
 
-SEMcfaAgefit <- sem(SEMcfaAge, data = sem2_data_age, std.lv = TRUE)
+SEMcfaAgefit <- sem(SEMcfaAge, data = SEMcfa_data, std.lv = TRUE)
 summary(SEMcfaAgefit, fit.measures = TRUE, standardized = TRUE)
+
+SEMcfaAgegroup <- '
+# Bottom third
+ 
+  # Lifestyle to WM paths (labelled)
+  WM1 ~ 
+   BMIf+ Diabetes + Education +
+        Hearing + BP + Cholesterol + PhysicalActivity +
+         SocialIsolation + Vision + agelin + agequad + sex
+
+  WM2 ~ Alcohol + BMIf +  Depression + Diabetes +Education +
+        Hearing + BP + Cholesterol + PhysicalActivity  +
+         SocialIsolation + Vision + agelin + agequad + sex
+
+  # WM to cognition (labelled)
+  COG ~ WM1 + WM2 +
+      Alcohol + BMIf +  Depression + Diabetes + Education +
+        Hearing + BP + Cholesterol + PhysicalActivity + Smoking+
+         SocialIsolation + Vision + agelin + agequad + sex
+
+
+         
+'
+
+SEMcfaAgefitgroup <- sem(SEMcfaAgegroup, data = SEMcfa_data, std.lv = TRUE, group = "group")
+summary(SEMcfaAgefitgroup, fit.measures = TRUE, standardized = TRUE)
 
 
 
