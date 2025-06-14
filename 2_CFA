@@ -1,4 +1,4 @@
-'Consider taking out TBI entirely'
+
 
 ############# New Dataframe with all recoded variables ###########
 ##################################################################
@@ -32,7 +32,8 @@ high_na_cols <- names(na_percent[na_percent > 25])
 high_na_cols
 
 ## Exclude all the variables with more than 25% NAs
-df_clean <- df_cfa[ , colMeans(is.'Consider taking out TBI entirely'
+df_clean <- df_cfa[ , colMeans(is.na(df_cfa)) <= 0.25]
+                               
                                
  ############# New Dataframe with all recoded variables ###########
  ##################################################################
