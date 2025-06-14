@@ -21,40 +21,6 @@ df_cfa <- num_data %>%
   )
 
 
-######################## Data cleaning  ##########################
-##################################################################
-
-# Check for NAs, percentage
-na_percent <- round(colMeans(is.na(df_cfa)) *100, 2)
-na_percent
-## over 25% NAs
-high_na_cols <- names(na_percent[na_percent > 25])
-high_na_cols
-
-## Exclude all the variables with more than 25% NAs
-df_clean <- df_cfa[ , colMeans(is.na(df_cfa)) <= 0.25]
-                               
-                               
- ############# New Dataframe with all recoded variables ###########
- ##################################################################
- 
- #Dataframe for model 82 variables
- df_cfa <- num_data %>%
-   select( CCIDmodified, Age, alcoholmodified ,v290m,v291m, v293m, v294m, v295m, v296m, v297m,
-           BMIm,
-           HADS_depressionm, HADSmodified, v422m, v639m,
-           v377m , v378proxym,
-           qualmodified , yearsedum,
-           v336m, v337m, v338m, v339m, v344m, v345m, v346m, v347m, v620m,
-           v349m, v352m, v354m, v629m, v632m, v634m , bp_sys , v350proxym,
-           v355m , v356proxym,
-           HOME_PAEE, LEIS_PAEE, COMMUTE_PAEE, WORK_PAEE,PAEE,
-           smokermodified, v241m, v242m, v244m, v245m, v247m, v251m, v252m, v253m, v255m, v256m, v259m, v260m, v261m,
-           v5m, v86, v87m, v89, v90m, v91m,v92m,v93m,v94m, v95m, v96modified, v97m, v98m,
-           v457m, v459m, v542m, v543m, v545m,
-           v328m, v329m, v330m, v333modified, v334modified, v335modified, v621m,
-   )
- 
  
  ######################## Data cleaning  ##########################
  ##################################################################
