@@ -185,6 +185,70 @@ standardizedSolution(SEM_sexfit)  # or
 parameterEstimates(SEM_sexfit, standardized = TRUE)
 
 
+######################### SEM by without Covariates #########################
+#############################################################################
+
+
+#Model
+SEM_nocov <- '
+
+  # Paths from lifestyle factors to WM
+  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 
+  WM2 ~ a4*ML2 + a5*ML3 + a6*ML4 + a7*ML6
+
+  # Paths to cognition
+  COG ~ b1*WM1 + b2*WM2 +
+         c1*ML1 + c2*ML2 + c3*ML3+ c4*ML4 + c5*ML5 + c6 *ML6 
+
+  # Indirect effects for each ML through WM1
+  ind_ML1_WM1 := a1 * b1
+  ind_ML4_WM1 := a2 * b1
+  ind_ML6_WM1 := a3 * b1
+  
+  #Total effect for each ML through WM1
+  Total_ML1_WM1 := a1 * b1 + c1
+  Total_ML4_WM1 := a2 * b1 + c4
+  Total_ML6_WM1 := a3 * b1 + c6
+  
+
+  # Indirect effects for each ML through WM2
+  ind_ML2_WM2 := a4 * b2
+  ind_ML3_WM2 := a5 * b2
+  ind_ML4_WM2 := a6 * b2
+  ind_ML6_WM2 := a7 * b2
+
+  #Total effect for each ML through WM2
+  Total_ML2_WM2 := a4 * b2 + c2
+  Total_ML3_WM2 := a5 * b2 + c3
+  Total_ML4_WM2 := a6 * b2 + c4
+  Total_ML6_WM2 := a7 * b2 + c6
+
+  # Total indirect effects (WM1 + WM2)
+  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
+  total_ind_ML6 := ind_ML6_WM1 + ind_ML6_WM2
+ 
+  # Total effects for each ML through both WMs
+  TotalWM_ML4 := total_ind_ML4 + c4
+  TotalWM_ML6 := total_ind_ML6 + c6
+  
+  # Proportion mediation
+  proportion_mediatedML1WM1 := ind_ML1_WM1 / Total_ML1_WM1
+  proportion_mediatedML4WM1 := ind_ML4_WM1 / Total_ML4_WM1
+  proportion_mediatedML6WM1 := ind_ML6_WM1 / Total_ML6_WM1
+  proportion_mediatedML2WM2 := ind_ML2_WM2 / Total_ML2_WM2
+  proportion_mediatedML3WM2 := ind_ML3_WM2 / Total_ML3_WM2
+  proportion_mediatedML4WM2 := ind_ML4_WM2 / Total_ML4_WM2
+  proportion_mediatedML6WM2 := ind_ML6_WM2 / Total_ML6_WM2
+  proportion_mediatedML4WM12 := total_ind_ML4 / TotalWM_ML4
+  proportion_mediatedML6WM12 := total_ind_ML6 / TotalWM_ML6
+  
+ 
+'
+SEM_nocovfit <- sem(SEM_nocov, data = data_sem_sex, std.lv = TRUE)
+summary(SEM_nocovfit, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
+
+
+
 
 ######################### SEM by different Age Group #########################
 ##############################################################################
@@ -202,7 +266,7 @@ age_group <- cut(age,
 
 # Combine into a dataframe to view
 age_thirds <- data.frame(age = age, group = age_group)
-data_sem_age_thirds <- cbind(cor_data, age_thirds, age2, sex
+data_sem_age_thirds <- cbind(cor_data, age_thirds, age2, sex)
 
 
 ## subset into different dataframes
@@ -210,25 +274,16 @@ df_lower  <- subset(data_sem_age_thirds, group == "Lower third") # 245
 df_middle <- subset(data_sem_age_thirds, group == "Middle third") # 235
 df_upper  <- subset(data_sem_age_thirds, group == "Upper third") # 226
 
-## Multigroup SEM
+
+## Multigroup SEM for direct effects
 SEM_sexfitthirds <- sem(SEM_sex, data = data_sem_age_thirds, std.lv = TRUE, group = "group")
 summary(SEM_sexfitthirds, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
 
-
-
-
-
-
-
-
-
-
-
-
-
-### Group 18- 45
-#Model
-SEMsub45  <- '
+ 
+#### multigroup analysis to caputre mediation effects
+ ### Group 18- 45
+ #Model
+ SEMsub45  <- '
 
   # Paths from lifestyle factors to WM
   WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad + sex
@@ -328,6 +383,20 @@ SEMsub88fit <- sem(SEMsub88, data = df_upper, std.lv = TRUE)
 summary(SEMsub88fit, fit.measures = TRUE, standardized = TRUE)
 
 #Not Sig
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
