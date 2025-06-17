@@ -33,11 +33,6 @@ fviz_eig(pca_result_ls, addlabels = TRUE)
 
 ################# FA for Lifestyle fyi################
 #######################################################
-'necessary?'
-# Test appropriateness
-KMO(factor_scores_df)           # Kaiser-Meyer-Olkin measure
-cortest.bartlett(cor(factor_scores_df), n = nrow(factor_scores_df))  # Bartlett’s test of sphericity
-
 
 ## 5 Factor solution
 # Run factor analysis with 5 factors and varimax rotation
@@ -65,12 +60,12 @@ fa.diagram(fa_result_6)
 ### Lifestyle
 fit_table_efa <- data.frame(
   Measure = c("Chi-square", "Degrees of Freedom", "p-value", "TLI", "RMSEA", "BIC"),
-  Value = round(c(fa_result_5$STATISTIC,
-                  fa_result_5$dof,
-                  fa_result_5$PVAL,
-                  fa_result_5$TLI,
-                  fa_result_5$RMSEA[1],   # RMSEA estimate is the first value
-                  fa_result_5$BIC), 3)
+  Value = round(c(fa_result_6$STATISTIC,
+                  fa_result_6$dof,
+                  fa_result_6$PVAL,
+                  fa_result_6$TLI,
+                  fa_result_6$RMSEA[1],   # RMSEA estimate is the first value
+                  fa_result_6$BIC), 3)
 )
 
 kable(fit_table_efa, caption = "EFA Model Fit Indices") %>%
@@ -173,4 +168,3 @@ mean(cog_result$communality)
 #Export to Table
 cog_loadings_df <- as.data.frame(cog_result$scores)
 cog_loadings_df$COG <- cog_loadings_df$ML1
-
