@@ -1,57 +1,5 @@
 Exploratory Analyses
 
-####### Latent Lifestyle factors as Sum score #####
-###################################################
-
-
-LSsum_result <- fa(ls_data, nfactors = 1, rotate = "varimax", fm = "ml")
-
-#Export to Table
-lssum_loadings_df <- as.data.frame(LSsum_result$scores)
-lssum_loadings_df$LSsum <- lssum_loadings_df$ML1
-
-
-data_LS <- cbind(lssum_loadings_df, data_sem_sex)
-SEM_LS <- '
-
-  # Paths from lifestyle factors to WM
-  WM1 ~ a1*LSsum + agelin + agequad + sex
-  WM2 ~ a2*LSsum + agelin + agequad + sex
-
-  # Paths to cognition
-  COG ~ b1*WM1 + b2*WM2 +
-         c1*LSsum + 
-         agelin + agequad + sex
-
-  # Indirect effects for each ML through WM1
-  ind_LS_WM1 := a1 * b1
-  ind_LS_WM2 := a2 * b2
-  tot_LS_WM := ind_LS_WM1 + ind_LS_WM2
-
-  # Proportion
-  Proportion_WM1 := (a1*b1) / (a1*b1) + c1
-  Proportion_WM2 := (a2*b2) / (a2*b2) + c1
-  Proportion total := (ind_LS_WM1 + ind_LS_WM2) / (ind_LS_WM1 + ind_LS_WM2) + c1
-
- 
-'
-SEM_LSfit <- sem(SEM_LS, data = data_LS, std.lv = TRUE)
-summary(SEM_LSfit, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
-
-
-############### Just Cognition ###############
-##############################################
-
-SEM_experi_2  <- '
-
-
-# Paths to cognition
-COG ~  c1*ML1  + c3*ML3+ c4*ML4 + c5*ML5 + c6 *ML6 + 
-  agelin + agequad + sex
-'
-
-SEM_experi_2 <- sem(SEM_experi_2, data = data_sem_sex, std.lv = TRUE)
-summary(SEM_experi_2, fit.measures = TRUE, standardized = TRUE)
 
 
 
@@ -61,8 +9,8 @@ summary(SEM_experi_2, fit.measures = TRUE, standardized = TRUE)
 
 data_efa_34<- df_cleanp %>%
   select(alcoholmodified, v290m, BMIm, HADS_depressionm, HADSmodified, v422m, v377m, qualmodified, yearsedum,
-  v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m, v349m, bp_sys, v355m, 
-  PAEE, smokermodified, v241m,  v251m, v457m, v86, v89, v90m, v91m, v93m, v328m, v333modified, v334modified, v335modified)
+         v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m, v349m, bp_sys, v355m, 
+         PAEE, smokermodified, v241m,  v251m, v457m, v86, v89, v90m, v91m, v93m, v328m, v333modified, v334modified, v335modified)
 
 
 ################# PCA for Lifestyle to determine number of factors ################
@@ -148,8 +96,8 @@ all.equal(p_mat34, t(p_mat34))
 
 #Create a matrix of significance stars
 stars_matrix34 <- ifelse(p_mat34 < 0.001, "***",
-                       ifelse(p_mat34 < 0.01, "**",
-                              ifelse(p_mat34 < 0.05, "*", "")))
+                         ifelse(p_mat34 < 0.01, "**",
+                                ifelse(p_mat34 < 0.05, "*", "")))
 
 # Melt matrices to long format
 corr_melt34 <- melt(cor_mat34)
@@ -359,7 +307,7 @@ SEMcfa_data <- cbind(data_sem_13, sex, age2, age_thirds)
 
 #with Age
 
-SEMcfaAge <- '
+SEMcfaAge13 <- '
   # Lifestyle to WM paths (labelled)
   WM1 ~ 
    a2*BMIf+ a4*Diabetes + a5*Education +
@@ -412,8 +360,13 @@ SEMcfaAge <- '
   total_ind_SocialIsolation := ind_SocialIsolation_WM1 + ind_SocialIsolation_WM2
   total_ind_Vision := ind_Vision_WM1 + ind_Vision_WM2'
 
-SEMcfaAgefit <- sem(SEMcfaAge, data = SEMcfa_data, std.lv = TRUE)
-summary(SEMcfaAgefit, fit.measures = TRUE, standardized = TRUE)
+SEMcfaAgefit13 <- sem(SEMcfaAge13, data = SEMcfa_data, std.lv = TRUE)
+summary(SEMcfaAgefit13, fit.measures = TRUE, standardized = TRUE)
+
+
+
+###### Ages stratified 13 factor
+
 
 SEMcfaAgegroup <- '
 # Bottom third
@@ -443,6 +396,101 @@ summary(SEMcfaAgefitgroup, fit.measures = TRUE, standardized = TRUE)
 
 
 
+#### stratification for mediation effects
+
+df_lower13  <- subset(SEMcfa_data, group == "Lower third") # 245
+df_middle13 <- subset(SEMcfa_data, group == "Middle third") # 235
+df_upper13  <- subset(SEMcfa_data, group == "Upper third") # 226
+
+
+#with Age
+
+SEM13Agethirds <- '
+  # Lifestyle to WM paths (labelled)
+  WM1 ~ 
+   a2*BMIf+ a4*Diabetes + a5*Education +
+        a6*Hearing + a7*BP + a8*Cholesterol + a9*PhysicalActivity +
+         a12*SocialIsolation + a13*Vision + agelin + agequad + sex
+
+  WM2 ~ a14*Alcohol + a15*BMIf +  a16*Depression + a17*Diabetes + a18*Education +
+        a19*Hearing + a20*BP + a21*Cholesterol + a22*PhysicalActivity  +
+         a25*SocialIsolation + a26*Vision + agelin + agequad + sex
+
+  # WM to cognition (labelled)
+  COG ~ b1*WM1 + b2*WM2 +
+      c1*Alcohol + c2*BMIf +  c3*Depression + c4*Diabetes + c5*Education +
+        c6*Hearing + c7*BP + c8*Cholesterol + c9*PhysicalActivity + c10*Smoking+
+         c12*SocialIsolation + c13*Vision + agelin + agequad + sex
+         
+         
+  # INDIRECT EFFECTS: through WM1
+  ind_BMIf_WM1 := a2 * b1
+  ind_Diabetes_WM1 := a4 * b1
+  ind_Education_WM1 := a5 * b1
+  ind_Hearing_WM1 := a6 * b1
+  ind_BP_WM1 := a7 * b1
+  ind_Cholesterol_WM1 := a8 * b1
+  ind_PhysicalActivity_WM1 := a9 * b1
+  ind_SocialIsolation_WM1 := a12 * b1
+  ind_Vision_WM1 := a13 * b1
+
+  # INDIRECT EFFECTS: through WM2
+  ind_Alcohol_WM2 := a14 * b2
+  ind_BMIf_WM2 := a15 * b2
+  ind_Depression_WM2 := a16 * b2
+  ind_Diabetes_WM2 := a17 * b2
+  ind_Education_WM2 := 18 * b2
+  ind_Hearing_WM2 := a19 * b2
+  ind_BP_WM2 := a20 * b2
+  ind_Cholesterol_WM2 := a21 * b2
+  ind_PhysicalActivity_WM2 := a22 * b2
+  ind_SocialIsolation_WM2 := a25 * b2
+  ind_Vision_WM2 := a26 * b2
+
+  # TOTAL INDIRECT EFFECTS (WM1 + WM2)
+  total_ind_BMIf := ind_BMIf_WM1 + ind_BMIf_WM2
+  total_ind_Diabetes := ind_Diabetes_WM1 + ind_Diabetes_WM2
+  total_ind_Education := ind_Education_WM1 + ind_Education_WM2
+  total_ind_Hearing := ind_Hearing_WM1 + ind_Hearing_WM2
+  total_ind_BP := ind_BP_WM1 + ind_BP_WM2
+  total_ind_Cholesterol := ind_Cholesterol_WM1 + ind_Cholesterol_WM2
+  total_ind_PhysicalActivity := ind_PhysicalActivity_WM1 + ind_PhysicalActivity_WM2
+  total_ind_SocialIsolation := ind_SocialIsolation_WM1 + ind_SocialIsolation_WM2
+  total_ind_Vision := ind_Vision_WM1 + ind_Vision_WM2'
+
+SEM13sub45 <- sem(SEM13Agethirds, data = df_lower13, std.lv = TRUE)
+summary(SEM13sub45, fit.measures = TRUE, standardized = TRUE)
+
+SEM13sub66 <- sem(SEM13Agethirds, data = df_middle13, std.lv = TRUE)
+summary(SEM13sub66, fit.measures = TRUE, standardized = TRUE)
+
+SEM13sub88 <- sem(SEM13Agethirds, data = df_upper13, std.lv = TRUE)
+summary(SEM13sub88, fit.measures = TRUE, standardized = TRUE)
 
 
 
+############# Table for 13 factor SEM supplementary mterial #############
+#################### Table ####################
+################################################
+
+parameterEstimates(SEMcfaAgefit13, standardized = TRUE) %>% 
+  filter( op %in% c("~", ":=", "~~")) %>%
+  mutate(Significance = case_when(
+    pvalue < 0.001 ~ "***",
+    pvalue < 0.01 ~ "**",
+    pvalue < 0.05 ~ "*",
+    TRUE ~ ""
+  )) %>%
+  select(Predictor = lhs,
+         Relationship = op,
+         Outcome = rhs, 
+         Estimate = est,
+         'Std. Est.' = std.all,
+         SE = se,
+         z = z,
+         'p-value' = pvalue,
+         Significance) %>%
+  kable(format= "html", digits = 3, captio = "SEM Parameter Estimates") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE,
+                position = "center")
