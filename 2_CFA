@@ -1,5 +1,6 @@
 
 
+
 ############# New Dataframe with all recoded variables ###########
 ##################################################################
 
@@ -21,40 +22,40 @@ df_cfa <- num_data %>%
   )
 
 
- 
- ######################## Data cleaning  ##########################
- ##################################################################
- 
- # Check for NAs, percentage
- na_percent <- round(colMeans(is.na(df_cfa)) *100, 2)
- na_percent
- ## over 25% NAs
- high_na_cols <- names(na_percent[na_percent > 25])
- high_na_cols
- 
- ## Exclude all the variables with more than 25% NAs
- df_clean <- df_cfa[ , colMeans(is.na(df_cfa)) <= 0.25] #excluded 30 variables
- 
- #Check if any column has 0 variance
- which(sapply(df_clean, function(x) var(x, na.rm = TRUE) == 0)) #0
- 
- ## Check if any participants have more than 25% NAs
- nrow(df_clean) #708
- row_na_prop <- rowMeans(is.na(df_clean))
- df_cleanp <- df_clean[row_na_prop <= 0.25, ]
- setdiff(df_clean$CCID, df_cleanp$CCID)
- nrow(df_cleanp) #706, two participants were kicked out
- 
- ## Scale data
- my_data_scaled <- scale(df_cleanp) # because some variables are by factor 1000 larger
- 
- 
- ############# Model without clean variables/participants >25% NAs ###########
- #############################################################################
- 
- #Adjusted model #  without variables >25% NAs 
- CFA_Model <- 
-   'Alcohol =~ alcoholmodified + v290m
+
+######################## Data cleaning  ##########################
+##################################################################
+
+# Check for NAs, percentage
+na_percent <- round(colMeans(is.na(df_cfa)) *100, 2)
+na_percent
+## over 25% NAs
+high_na_cols <- names(na_percent[na_percent > 25])
+high_na_cols
+
+## Exclude all the variables with more than 25% NAs
+df_clean <- df_cfa[ , colMeans(is.na(df_cfa)) <= 0.25] #excluded 30 variables
+
+#Check if any column has 0 variance
+which(sapply(df_clean, function(x) var(x, na.rm = TRUE) == 0)) #0
+
+## Check if any participants have more than 25% NAs
+nrow(df_clean) #708
+row_na_prop <- rowMeans(is.na(df_clean))
+df_cleanp <- df_clean[row_na_prop <= 0.25, ]
+setdiff(df_clean$CCID, df_cleanp$CCID)
+nrow(df_cleanp) #706, two participants were kicked out
+
+## Scale data
+my_data_scaled <- scale(df_cleanp) # because some variables are by factor 1000 larger
+
+
+############# Model without clean variables/participants >25% NAs ###########
+#############################################################################
+
+#Adjusted model #  without variables >25% NAs 
+CFA_Model <- 
+  'Alcohol =~ alcoholmodified + v290m
   BMIf =~ BMIm
   Depression =~ HADS_depressionm+ HADSmodified+ v422m
   Diabetes =~ v377m
@@ -67,37 +68,37 @@ df_cfa <- num_data %>%
   SocialIsolation =~ v5m+ v86+ v89+ v90m+ v91m+v92m+v93m+v94m+ v95m+ v96modified+ v97m+ v98m
   TBI =~ v457m+ v542m+ v543m
   Vision =~ v328m+ v333modified+ v334modified+ v335modified+ v621m'
- 
- 
- #investigate which variables have low convergence
- ## check covariance
- fit <- cfa(CFA_Model, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, do.fit = FALSE, optim.method = "BFGS") # Error, and warnign that variance-covariance matrix is not good
- lavInspect(fit, "converged") #False 
- lavInspect(fit, "coverage") 
- 
- ## Check how complex the model is
- length(all.vars(parse(text = CFA_Model))) #63
- 
- ### Delete which variables have low coverage
- # Extract the coverage matrix
- coverage_matrix <- lavInspect(fit, "coverage")
- 
- # Calculate mean pairwise coverage for each variable
- coverage_means <- rowMeans(coverage_matrix, na.rm = TRUE)
- 
- # Set a threshold (e.g., 0.8) and identify low-coverage variables
- threshold <- 0.8
- low_coverage_vars <- names(coverage_means[coverage_means < threshold]) 
- low_coverage_vars # "alcoholmodified" "bp_sys" "COMMUTE_PAEE" "v543m" 
- 
- ## Keep "alcoholmodified" and "bp_sys" because else, factors only have one indicator
- 
- ############# Adjusted model with variables with high coverage ###########
- ##########################################################################
- 
- #Adjusted model with removed "COMMUTE_PAEE" "v543m" 
- CFA_Model2 <- 
-   'Alcohol =~ alcoholmodified + v290m
+
+
+#investigate which variables have low convergence
+## check covariance
+fit <- cfa(CFA_Model, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE, do.fit = FALSE, optim.method = "BFGS") # Error, and warnign that variance-covariance matrix is not good
+lavInspect(fit, "converged") #False 
+lavInspect(fit, "coverage") 
+
+## Check how complex the model is
+length(all.vars(parse(text = CFA_Model))) #63
+
+### Delete which variables have low coverage
+# Extract the coverage matrix
+coverage_matrix <- lavInspect(fit, "coverage")
+
+# Calculate mean pairwise coverage for each variable
+coverage_means <- rowMeans(coverage_matrix, na.rm = TRUE)
+
+# Set a threshold (e.g., 0.8) and identify low-coverage variables
+threshold <- 0.8
+low_coverage_vars <- names(coverage_means[coverage_means < threshold]) 
+low_coverage_vars # "alcoholmodified" "bp_sys" "COMMUTE_PAEE" "v543m" 
+
+## Keep "alcoholmodified" and "bp_sys" because else, factors only have one indicator
+
+############# Adjusted model with variables with high coverage ###########
+##########################################################################
+
+#Adjusted model with removed "COMMUTE_PAEE" "v543m" 
+CFA_Model2 <- 
+  'Alcohol =~ alcoholmodified + v290m
   BMIf =~ BMIm
   Depression =~ HADS_depressionm+ HADSmodified+ v422m
   Diabetes =~ v377m
@@ -110,26 +111,26 @@ df_cfa <- num_data %>%
   SocialIsolation =~ v5m+ v86+ v89+ v90m+ v91m+v92m+v93m+v94m+ v95m+ v96modified+ v97m+ v98m
   TBI =~ v457m+ v542m
   Vision =~ v328m+ v333modified+ v334modified+ v335modified+ v621m'
- 
- 
- fit2 <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE,  optim.method = "BFGS") 
- summary(fit2, fit.measures = T, standardized = T) # Bad metrics
- 
- ## Remove varibales with low Factor loadings (<0.3)
-                               '
+
+
+fit2 <- cfa(CFA_Model2, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE,  optim.method = "BFGS") 
+summary(fit2, fit.measures = T, standardized = T) # Bad metrics
+
+## Remove varibales with low Factor loadings (<0.3)
+'
 Physical Activity: HOME_PAEE, LEIS_PAEE, WORK_PAEE
 Smoking: v259m, v261m
 Social Isolation: v5m, v92m, v94m, v95m, v96modified, v97m, v98m
 TBI: v457m and v542m (keep v457m to have at least 1 indicator)
 Vision: v621m
 '
- 
- ############# Adjusted model with variables with llow factor loading ###########
- ################################################################################
- 
- #Adjusted model with removed low factor loading
- CFA_Model3 <- 
-   'Alcohol =~ alcoholmodified + v290m
+
+############# Adjusted model with variables with llow factor loading ###########
+################################################################################
+
+#Adjusted model with removed low factor loading
+CFA_Model3 <- 
+  'Alcohol =~ alcoholmodified + v290m
   BMIf =~ BMIm
   Depression =~ HADS_depressionm+ HADSmodified+ v422m
   Diabetes =~ v377m
@@ -142,54 +143,54 @@ Vision: v621m
   TBI =~ v457m
   SocialIsolation =~ v86+ v89+ v90m+ v91m+ v93m
   Vision =~ v328m+ v333modified+ v334modified+ v335modified'
- 
- 
- fit3 <- cfa(CFA_Model3, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE,  optim.method = "BFGS") 
- summary(fit3, fit.measures = T, standardized = T) # Good Metrics
- 
- 
- ########### Covariance matrix ###############
- #############################################
- 
- my_data_scaleddf <- as.data.frame(my_data_scaled)
- cor_cfa <- my_data_scaleddf %>%
-   select(alcoholmodified, v290m, 
-          BMIm, 
-          HADS_depressionm, HADSmodified, v422m, 
-          v377m,
-          qualmodified, yearsedum,
-          v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m,
-          v349m, bp_sys,
-          v355m,
-          PAEE,
-          smokermodified, v241m, v251m,
-          v86, v89, v90m, v91m, v93m,
-          v457m,
-          v328m, v333modified, v334modified, v335modified)
- 
- cov_matrix_cfa <- cor(cor_cfa, use = "pairwise.complete.obs")
- corrplot(cov_matrix_cfa, method = "color",  tl.col = "black", tl.cex = 0.7) ## Social facot is negatively correlated with all other varaiables
- 
- 
- #################### inverting Social Isolation ##############
- ##############################################################
- 
- 'v86+ v89+ v90m+ v91m+v93m'
- 
- df_cleanp$v86m <- df_cleanp$v86 *-1
- df_cleanp$v89m <- df_cleanp$v89 *-1
- df_cleanp$v90minv <- df_cleanp$v90m *-1
- df_cleanp$v91minv <- df_cleanp$v91m *-1
- df_cleanp$v93minv <- df_cleanp$v93m *-1
- 
- my_data_scaled <- scale(df_cleanp)
- 
- ############# Adjusted model with inverted Social Isolation ###########
- #######################################################################
- 
- #FINAL Adjusted Model
- CFA_Model4 <- 
-   'Alcohol =~ alcoholmodified + v290m
+
+
+fit3 <- cfa(CFA_Model3, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE,  optim.method = "BFGS") 
+summary(fit3, fit.measures = T, standardized = T) # Good Metrics
+
+
+########### Covariance matrix ###############
+#############################################
+
+my_data_scaleddf <- as.data.frame(my_data_scaled)
+cor_cfa <- my_data_scaleddf %>%
+  select(alcoholmodified, v290m, 
+         BMIm, 
+         HADS_depressionm, HADSmodified, v422m, 
+         v377m,
+         qualmodified, yearsedum,
+         v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m,
+         v349m, bp_sys,
+         v355m,
+         PAEE,
+         smokermodified, v241m, v251m,
+         v86, v89, v90m, v91m, v93m,
+         v457m,
+         v328m, v333modified, v334modified, v335modified)
+
+cov_matrix_cfa <- cor(cor_cfa, use = "pairwise.complete.obs")
+corrplot(cov_matrix_cfa, method = "color",  tl.col = "black", tl.cex = 0.7) ## Social facot is negatively correlated with all other varaiables
+
+
+#################### inverting Social Isolation ##############
+##############################################################
+
+'v86+ v89+ v90m+ v91m+v93m'
+
+df_cleanp$v86m <- df_cleanp$v86 *-1
+df_cleanp$v89m <- df_cleanp$v89 *-1
+df_cleanp$v90minv <- df_cleanp$v90m *-1
+df_cleanp$v91minv <- df_cleanp$v91m *-1
+df_cleanp$v93minv <- df_cleanp$v93m *-1
+
+my_data_scaled <- scale(df_cleanp)
+
+############# Adjusted model with inverted Social Isolation ###########
+#######################################################################
+
+#FINAL Adjusted Model
+CFA_Model4 <- 
+  'Alcohol =~ alcoholmodified + v290m
   BMIf =~ BMIm
   Depression =~ HADS_depressionm+ HADSmodified+ v422m
   Diabetes =~ v377m
@@ -202,99 +203,99 @@ Vision: v621m
   TBI =~ v457m
   SocialIsolation =~ v86m+ v89m+ v90minv+ v91minv+ v93minv
   Vision =~ v328m+ v333modified+ v334modified+ v335modified'
-                               
-  
-  fit4 <- cfa(CFA_Model4, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE,  optim.method = "BFGS") 
-  summary(fit4, fit.measures = T, standardized = T) # Good Metrics
-  
-  
-  ######## Print Output ##########
-  ################################
-  
-  ##  Define variable
-  fitStat <- fitMeasures(fit3)
-  # Select and format the ones I want
-  fit_table <- data.frame(
-    Measure = c("Chi-square", "Degrees of Freedom", "p-value", 
-                "CFI", "TLI", 
-                "RMSEA", "RMSEA 90% CI (lower)", "RMSEA 90% CI (upper)",
-                "SRMR"),
-    Value = round(fitStat[c("chisq", "df", "pvalue", 
-                            "cfi", "tli", 
-                            "rmsea", "rmsea.ci.lower", "rmsea.ci.upper", 
-                            "srmr")], 3)
-  )
-  
-  
-  kable(fit_table, caption = "Model Fit Indices") %>%
-    kable_styling(full_width = FALSE, position = "center")
-  
-  
-  
-  ########### Significant Covariance matrix ###############
-  #############################################
-  # alcohol
-  cor_alc <- my_data_scaleddf %>%
-    select(alcoholmodified, v290m)
-  
-  rcorr(as.matrix(cor_alc), type = "pearson")
-  
-  # depression
-  cor_dep <- my_data_scaleddf %>%
-    select(HADS_depressionm, HADSmodified, v422m)
-  
-  rcorr(as.matrix(cor_dep), type = "pearson")
-  
-  # Eductaion
-  cor_edu <- my_data_scaleddf %>%
-    select(qualmodified, yearsedum)
-  rcorr(as.matrix(cor_edu), type = "pearson")
-  
-  # Hearing
-  cor_hear <- my_data_scaleddf %>%
-    select(v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m)
-  
-  rcorr(as.matrix(cor_hear), type = "pearson")
-  
-  # Blood Pressure
-  cor_bp <- my_data_scaleddf %>%
-    select(v349m, bp_sys)
-  
-  rcorr(as.matrix(cor_bp), type = "pearson")
-  
-  # Smoking
-  cor_smok <- my_data_scaleddf %>%
-    select(smokermodified, v241m, v251m)
-  
-  rcorr(as.matrix(cor_smok), type = "pearson")
-  
-  ## Socail
-  cor_soc <- my_data_scaleddf %>%
-    select(v86, v89, v90m, v91m, v93m)
-  
-  rcorr(as.matrix(cor_soc), type = "pearson")
-  
-  # Vision
-  cor_vis <- my_data_scaleddf %>%
-    select(v328m, v333modified, v334modified, v335modified)
-  
-  rcorr(as.matrix(cor_vis), type = "pearson")
-  
-  
-  #Compute correlation and p-values
-  cor_results_sig <- rcorr(as.matrix(cor_cfa), type = "pearson")  # or "spearman"
-  
-  cor_matrix_sig <- cor_results_sig$r      # correlation matrix
-  p_matrix_sig <- cor_results_sig$P        # p-values
-  
-  
-  
-  # Plot only significant correlations
-  corrplot(cor_matrix_sig,
-           method = "color",
-           type = "upper",
-           tl.col = "black",
-           tl.cex = 0.7,
-           p.mat = p_matrix_sig,
-           sig.level = 0.05,        # threshold for significance
-           insig = "blank") 
+
+
+fit4 <- cfa(CFA_Model4, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE,  optim.method = "BFGS") 
+summary(fit4, fit.measures = T, standardized = T) # Good Metrics
+
+
+######## Print Output ##########
+################################
+
+##  Define variable
+fitStat <- fitMeasures(fit3)
+# Select and format the ones I want
+fit_table <- data.frame(
+  Measure = c("Chi-square", "Degrees of Freedom", "p-value", 
+              "CFI", "TLI", 
+              "RMSEA", "RMSEA 90% CI (lower)", "RMSEA 90% CI (upper)",
+              "SRMR"),
+  Value = round(fitStat[c("chisq", "df", "pvalue", 
+                          "cfi", "tli", 
+                          "rmsea", "rmsea.ci.lower", "rmsea.ci.upper", 
+                          "srmr")], 3)
+)
+
+
+kable(fit_table, caption = "Model Fit Indices") %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+
+
+########### Significant Covariance matrix ###############
+#############################################
+# alcohol
+cor_alc <- my_data_scaleddf %>%
+  select(alcoholmodified, v290m)
+
+rcorr(as.matrix(cor_alc), type = "pearson")
+
+# depression
+cor_dep <- my_data_scaleddf %>%
+  select(HADS_depressionm, HADSmodified, v422m)
+
+rcorr(as.matrix(cor_dep), type = "pearson")
+
+# Eductaion
+cor_edu <- my_data_scaleddf %>%
+  select(qualmodified, yearsedum)
+rcorr(as.matrix(cor_edu), type = "pearson")
+
+# Hearing
+cor_hear <- my_data_scaleddf %>%
+  select(v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m)
+
+rcorr(as.matrix(cor_hear), type = "pearson")
+
+# Blood Pressure
+cor_bp <- my_data_scaleddf %>%
+  select(v349m, bp_sys)
+
+rcorr(as.matrix(cor_bp), type = "pearson")
+
+# Smoking
+cor_smok <- my_data_scaleddf %>%
+  select(smokermodified, v241m, v251m)
+
+rcorr(as.matrix(cor_smok), type = "pearson")
+
+## Socail
+cor_soc <- my_data_scaleddf %>%
+  select(v86, v89, v90m, v91m, v93m)
+
+rcorr(as.matrix(cor_soc), type = "pearson")
+
+# Vision
+cor_vis <- my_data_scaleddf %>%
+  select(v328m, v333modified, v334modified, v335modified)
+
+rcorr(as.matrix(cor_vis), type = "pearson")
+
+
+#Compute correlation and p-values
+cor_results_sig <- rcorr(as.matrix(cor_cfa), type = "pearson")  # or "spearman"
+
+cor_matrix_sig <- cor_results_sig$r      # correlation matrix
+p_matrix_sig <- cor_results_sig$P        # p-values
+
+
+
+# Plot only significant correlations
+corrplot(cor_matrix_sig,
+         method = "color",
+         type = "upper",
+         tl.col = "black",
+         tl.cex = 0.7,
+         p.mat = p_matrix_sig,
+         sig.level = 0.05,        # threshold for significance
+         insig = "blank") 
