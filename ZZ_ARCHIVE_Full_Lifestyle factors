@@ -1,3 +1,192 @@
+########################## OLD VERIONS ##########################
+################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+############ Exploratory SEM with CFAs LS factors  ############
+##############################################################
+
+
+## Calculate correlations and p-values
+corr_test2 <- corr.test(sem2_data_age, use = "pairwise")
+
+# Extract matrices
+cor_matrix2 <- round(corr_test2$r, 2)
+
+p_matrix2 <- round(corr_test2$p, 4)
+
+# Format for nice table output
+# Combine correlation and p-value
+cor_p_combined2 <- matrix(paste0(cor_matrix2, "\n(p=", p_matrix2, ")"), 
+                         nrow = nrow(cor_matrix2), 
+                         dimnames = dimnames(cor_matrix2))
+
+# Print 
+print(cor_p_combined2)
+
+
+
+##Significant Paths
+'
+WM1 - COG
+WM2 - COG
+
+WM1 - BMIF
+WM1 - Diabetes
+WM1 - Education
+WM1 - Hearing 
+WM1 - BP
+WM1 - Cholesterol
+WM1 - PA
+WM1 - Social
+WM1 - Vision
+WM1 - Age
+
+WM2 - BMIF
+WM2 - Diabetes
+WM2 - Hearing 
+WM2 - BP
+WM2 - Cholesterol
+WM2 - PA
+WM2 - Social
+WM2 - Vision
+WM2 - Age
+
+COG - BMIF
+COG - Depression
+COG - Diabetes
+COG - Education
+COG - Hearing 
+COG - BP
+COG - Cholesterol
+COG - PA
+COG - Social
+COG - Vision
+COG - Age
+
+'
+
+
+sem2_data  <- cbind(wm_data, cog_data, factor_scores)
+age <- num_data$age_iv
+sem2_data_age <- cbind(sem2_data, age)
+
+#with Age
+
+SEMcfaAge <- '
+  # Lifestyle to WM paths (labelled)
+  WM1 ~ a1*BMIf +  a2*Diabetes + a3*Education +
+        a4*Hearing + a5*BP + a6*Cholesterol + a7*PhysicalActivity +
+         a8*SocialIsolation + a9*Vision + a10*age
+
+  WM2 ~ a11*BMIf + a12*Diabetes + 
+        a13*Hearing + a14*BP + a15*Cholesterol + a16*PhysicalActivity +
+        a17*SocialIsolation +  a18*Vision + a19*age
+
+  # WM to cognition (labelled)
+  COG ~ b1*WM1 + b2*WM2 +
+
+         c1*BMIf + c2*Depression + c3*Diabetes + c4*Education +
+        c5*Hearing + c6*BP + c7*Cholesterol + c8*PhysicalActivity +
+         c9*SocialIsolation + c10*Vision + c11*age
+
+  # INDIRECT EFFECTS: through WM1
+  ind_BMIf_WM1 := a1 * b1
+  ind_Diabetes_WM1 := a2 * b1
+  ind_Education_WM1 := a3 * b1
+  ind_Hearing_WM1 := a4 * b1
+  ind_BP_WM1 := a5 * b1
+  ind_Cholesterol_WM1 := a6 * b1
+  ind_PhysicalActivity_WM1 := a7 * b1
+  ind_SocialIsolation_WM1 := a8 * b1
+  ind_Vision_WM1 := a9 * b1
+
+  # INDIRECT EFFECTS: through WM2
+  ind_BMIf_WM2 := a11 * b2
+  ind_Diabetes_WM2 := a12 * b2
+  ind_Hearing_WM2 := a13 * b2
+  ind_BP_WM2 := a14 * b2
+  ind_Cholesterol_WM2 := a15 * b2
+  ind_PhysicalActivity_WM2 := a16 * b2
+  ind_SocialIsolation_WM2 := a17 * b2
+  ind_Vision_WM2 := a18 * b2
+
+  # TOTAL INDIRECT EFFECTS (WM1 + WM2)
+  total_ind_BMIf := ind_BMIf_WM1 + ind_BMIf_WM2
+  total_ind_Diabetes := ind_Diabetes_WM1 + ind_Diabetes_WM2
+  total_ind_Hearing := ind_Hearing_WM1 + ind_Hearing_WM2
+  total_ind_BP := ind_BP_WM1 + ind_BP_WM2
+  total_ind_Cholesterol := ind_Cholesterol_WM1 + ind_Cholesterol_WM2
+  total_ind_PhysicalActivity := ind_PhysicalActivity_WM1 + ind_PhysicalActivity_WM2
+  total_ind_SocialIsolation := ind_SocialIsolation_WM1 + ind_SocialIsolation_WM2
+  total_ind_Vision := ind_Vision_WM1 + ind_Vision_WM2'
+
+SEMcfaAgefit <- sem(SEMcfaAge, data = sem2_data_age, std.lv = TRUE)
+summary(SEMcfaAgefit, fit.measures = TRUE, standardized = TRUE)
+
+
+
+
+
+
+
+
+
+##Other Model without path specification
+
+ModelNoPaths <- '
+
+
+  # Paths from lifestyle factors (factor scores)
+  WM1 ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision + age
+  WM2 ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision + age
+  COG ~ Alcohol+ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision + age
+
+  # White matter to cognition
+  COG ~ WM1 + WM2
+
+  # include Age later as a covariate
+  COG  ~ Age
+  WM1  ~ Age
+  WM2  ~ Age
+   
+  
+  #allow for correlation between LS factors
+  Alcohol ~~ BMIf + Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision 
+  BMIf ~~ Depression + Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Depression ~~ Diabetes + Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Diabetes ~~ Education + Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Education ~~ Hearing + BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Hearing ~~ BP + Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  BP ~~ Cholesterol + PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  Cholesterol ~~ PhysicalActivity + Smoking  + SocialIsolation + TBI + Vision
+  PhysicalActivity ~~ Smoking  + SocialIsolation + TBI + Vision
+  Smoking  ~~ SocialIsolation + TBI + Vision
+  SocialIsolation ~~ TBI + Vision
+  TBI ~~ Vision
+
+'
+
+ModelNoPaths <- sem(ModelNoPaths, data = data_num_with_LS_sem, std.lv = TRUE)
+summary(ModelNoPaths, fit.measures = TRUE, standardized = TRUE)
+
+
+
+
+
 ### OLD SEMSs
 
 ############ SEM excluding Age ############
