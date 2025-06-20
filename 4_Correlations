@@ -98,11 +98,58 @@ stars_melt <- melt(stars_matrix)
 # Combine into one dataframe
 corr_plot_data <- merge(corr_melt, stars_melt, by = c("Var1", "Var2"))
 colnames(corr_plot_data) <- c("Var1", "Var2", "Correlation", "Significance")
+corr_plot_data <- corr_plot_data[corr_plot_data$Var1 != corr_plot_data$Var2, ]
+
+# Remove selected pairs
+excluded_pairs <- list(
+  c("ML1", "ML2"),
+  c("ML1", "ML3"),
+  c("ML1", "ML4"),
+  c("ML1", "ML5"),
+  c("ML1", "ML6"),
+  c("ML2", "ML3"),
+  c("ML2", "ML4"),
+  c("ML2", "ML5"),
+  c("ML2", "ML6"),
+  c("ML3", "ML4"),
+  c("ML3", "ML5"),
+  c("ML3", "ML6"),
+  c("ML4", "ML5"),
+  c("ML4", "ML6"),
+  c("ML5", "ML6"),
+  c("WM2", "WM1"),
+  c("ML6", "ML5"),
+  c("ML6", "ML4"),
+  c("ML6", "ML3"),
+  c("ML6", "ML2"),
+  c("ML6", "ML1"),
+  c("ML5", "ML4"),
+  c("ML5", "ML3"),
+  c("ML5", "ML2"),
+  c("ML5", "ML1"),
+  c("ML4", "ML3"),
+  c("ML4", "ML2"),
+  c("ML4", "ML1"),
+  c("ML3", "ML2"),
+  c("ML3", "ML1"),
+  c("ML2", "ML1"),
+  c("WM1", "WM2")
+)
+corr_plot_data <- corr_plot_data[!mapply(function(v1, v2) {
+  any(mapply(function(pair) all(c(v1, v2) == pair), excluded_pairs))
+}, corr_plot_data$Var1, corr_plot_data$Var2), ]
 
 # reorder
 desired_order <- c("ML6", "ML5", "ML4","ML3","ML2","ML1","WM2","WM1", "COG")
 corr_plot_data$Var1 <- factor(corr_plot_data$Var1, levels = desired_order)
 corr_plot_data$Var2 <- factor(corr_plot_data$Var2, levels = desired_order)
+# Remove diagonal
+corr_plot_data <- corr_plot_data[corr_plot_data$Var1 != corr_plot_data$Var2, ]
+
+# Remove lower triangle (keep only upper triangle)
+corr_plot_data <- corr_plot_data[
+  match(corr_plot_data$Var1, desired_order) <
+    match(corr_plot_data$Var2, desired_order), ]
 
 # Plot using ggplot2
 ggplot(corr_plot_data, aes(x = Var1, y = Var2, fill = Correlation)) +
@@ -148,3 +195,68 @@ WM2 ~ COG
 ML5 ~ ML6
 ML6 ~ ML3
 ML6 ~ ML4'
+
+
+
+
+#################### Network visualization ############
+########################################################
+install.packages("circlize", type ="binary", dependency = TRUE)
+library(circlize)
+
+# Assumes you already have: cor_mat and p_mat
+
+# Filter: remove weak or nonsignificant correlations
+cor_filtered <- cor_mat
+cor_filtered[p_mat > 0.05] <- 0  # threshold example
+
+# Remove self-correlations (diagonal)
+diag(cor_filtered) <- 0
+
+# Optional: remove specific variable pairs
+cor_filtered["ML1", "ML2"] <- 0
+cor_filtered["ML1", "ML3"] <- 0
+cor_filtered["ML1", "ML4"] <- 0
+cor_filtered["ML1", "ML5"] <- 0
+cor_filtered["ML1", "ML6"] <- 0
+cor_filtered["ML2", "ML3"] <- 0
+cor_filtered["ML2", "ML4"] <- 0
+cor_filtered["ML2", "ML5"] <- 0
+cor_filtered["ML2", "ML6"] <- 0
+cor_filtered["ML3", "ML4"] <- 0
+cor_filtered["ML3", "ML5"] <- 0
+cor_filtered["ML3", "ML6"] <- 0
+cor_filtered["ML4", "ML5"] <- 0
+cor_filtered["ML4", "ML6"] <- 0
+cor_filtered["ML5", "ML6"] <- 0
+cor_filtered["WM2", "WM1"] <- 0
+cor_filtered["ML6", "ML5"] <- 0
+cor_filtered["ML6", "ML4"] <- 0
+cor_filtered["ML6", "ML3"] <- 0
+cor_filtered["ML6", "ML2"] <- 0
+cor_filtered["ML6", "ML1"] <- 0
+cor_filtered["ML5", "ML4"] <- 0
+cor_filtered["ML5", "ML3"] <- 0
+cor_filtered["ML5", "ML2"] <- 0
+cor_filtered["ML5", "ML1"] <- 0
+cor_filtered["ML4", "ML3"] <- 0
+cor_filtered["ML4", "ML2"] <- 0
+cor_filtered["ML4", "ML1"] <- 0
+cor_filtered["ML3", "ML2"] <- 0
+cor_filtered["ML3", "ML1"] <- 0
+cor_filtered["ML2", "ML1"] <- 0
+cor_filtered["WM1", "WM2"] <- 0
+
+col_fun = colorRamp2(range(cor_filtered), c("skyblue", "hotpink"), transparency = 0.3)
+
+# Create the chord diagram
+chordDiagram(
+  cor_filtered,
+  symmetric = TRUE,
+  grid.col = "darkgray", 
+  col = col_fun,
+  annotationTrack = c("name", "grid")
+)
+
+# Optional: add title
+title("CSignificant correlations across Lifestye, White Matter, anc Cognition Latent factors")
