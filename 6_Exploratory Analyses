@@ -21,19 +21,19 @@ sum(is.na(data_efa_34)) # Count NAs #0
 ## Remove NA
 dat34_clean <- data_efa_34[complete.cases(data_efa_34) & apply(data_efa_34, 1, function(x) all(is.finite(x))), ]
 sum(is.na(dat34_clean))# Count NAs #528
-nrow(dat34_clean) #618 / 88 removed
+nrow(dat34_clean) #349 / 35 removed because PCA needs complete cases 
 
 # Perform PCA
 pca_result_34 <- prcomp(dat34_clean, center = TRUE, scale. = TRUE)
 
 # Variance explained
-explained_34 <- summary(pca_result_ls)$importance[2, ] * 100  # Percent variance
-cumulative_explained_34 <- summary(pca_result_ls)$importance[3, ] * 100 # cumulative
-latent_34 <- pca_result_ls$sdev^2  # Eigenvalues
+explained_34 <- summary(pca_result_34)$importance[2, ] * 100  # Percent variance
+cumulative_explained_34 <- summary(pca_result_34)$importance[3, ] * 100 # cumulative
+latent_34 <- pca_result_34$sdev^2  # Eigenvalues
 
 # Kaiser criterion (eigenvalue > 1)
 nPC_34 <- sum(latent_34 * length(latent_34) / sum(latent_34) > 1)
-print(nPC_34)  # returns 5 - But factor 6 has Eigenvalue of 0.977
+print(nPC_34)  # returns 12
 
 # Scree plot
 fviz_eig(pca_result_34, addlabels = TRUE)
