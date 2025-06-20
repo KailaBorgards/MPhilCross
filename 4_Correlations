@@ -1,6 +1,6 @@
 ### New Correlation
 
-############# Snaity check WM correlation ###############
+############# Sanity check WM correlation ###############
 #########################################################
 
 ## Test whether my computed WM Factorloadings in '3_EFA' are the same as the ones Petar sent me based on Henriques
@@ -154,7 +154,7 @@ corr_plot_data <- corr_plot_data[
 # Plot using ggplot2
 ggplot(corr_plot_data, aes(x = Var1, y = Var2, fill = Correlation)) +
   geom_tile(color = "white") +
-  scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0,
+  scale_fill_gradient2(low = "skyblue", mid = "white", high = "hotpink", midpoint = 0,
                        limits = c(-1, 1), name = "r") +
   geom_text(aes(label = paste0(round(Correlation, 2), Significance)), size = 4) +
   theme_minimal() +
