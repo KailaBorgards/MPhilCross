@@ -1,0 +1,394 @@
+########################################################### PEXPLORATORY ANALYSES ####################################################
+######################################################################################################################################
+
+############################ SEM with 34 variables  #################################
+#####################################################################################
+
+### Create Dataframe
+
+data_efa_34<- df_cleanp %>%
+  select(alcoholmodified, v290m, BMIm, HADS_depressionm, HADSmodified, v422m, v377m, qualmodified, yearsedum,
+         v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m, v349m, bp_sys, v355m, 
+         PAEE, smokermodified, v241m,  v251m, v457m, v86, v89, v90m, v91m, v93m, v328m, v333modified, v334modified, v335modified)
+
+
+###### PCA for Lifestyle to determine number of factors ###########
+###################################################################
+
+# Inspect NAs because PCA sensitive to it
+sum(is.na(data_efa_34)) # Count NAs #0
+
+## Remove NA
+dat34_clean <- data_efa_34[complete.cases(data_efa_34) & apply(data_efa_34, 1, function(x) all(is.finite(x))), ]
+sum(is.na(dat34_clean))# Count NAs #528
+nrow(dat34_clean) #349 / 35 removed because PCA needs complete cases 
+
+# Perform PCA
+pca_result_34 <- prcomp(dat34_clean, center = TRUE, scale. = TRUE)
+
+# Variance explained
+explained_34 <- summary(pca_result_34)$importance[2, ] * 100  # Percent variance
+cumulative_explained_34 <- summary(pca_result_34)$importance[3, ] * 100 # cumulative
+latent_34 <- pca_result_34$sdev^2  # Eigenvalues
+
+# Kaiser criterion (eigenvalue > 1)
+nPC_34 <- sum(latent_34 * length(latent_34) / sum(latent_34) > 1)
+print(nPC_34)  # returns 12
+
+# Scree plot
+fviz_eig(pca_result_34, addlabels = TRUE)
+
+
+######################### FA for Lifestyle #####################
+####################### BASIS FOR APPENDIX I ###################
+################################################################
+
+## 6 Factor solution
+# Run factor analysis with 5 factors and varimax rotation
+fa_result_34 <- fa(data_efa_34, nfactors = 6, rotate = "varimax", fm = "fiml")
+
+# Print factor loadings
+print(fa_result_34, cutoff = 0.1)
+
+### APPENDIX IA
+# Plot loadings
+fa.diagram(fa_result_34)
+
+
+##################### PREP FOR 34 Variable SEM #################
+################################################################
+
+# Bind lifestyle factor scores to original data
+ls_loadings_34 <- as.data.frame(fa_result_34$scores)
+data_efa_34_new <- cbind(df_cleanp_scaled, ls_loadings_34, wm_data, cog_data)
+
+
+##### Factor Loadings into 1 dataset ####
+cor_data_34 <-   data_efa_34_new %>%
+  select(WM1, WM2, COG, MR1, MR2, MR3, MR4, MR5, MR6)
+
+
+###################### Correlations ###########################
+###############################################################
+
+vars34 <- colnames(cor_data_34)
+n34 <- length(vars34)
+
+# Empty matrices to store results
+cor_mat34 <- matrix(NA, n34, n34, dimnames = list(vars34, vars34))
+p_mat34 <- matrix(NA, n34, n34, dimnames = list(vars34, vars34))
+
+# Loop through variable pairs
+for (i in 1:n) {
+  for (j in i:n) {
+    test <- cor.test(cor_data_34[[i]], cor_data_34[[j]], method = "pearson")
+    cor_mat34[i, j] <- test$estimate
+    cor_mat34[j, i] <- test$estimate
+    p_mat34[i, j] <- test$p.value
+    p_mat34[j, i] <- test$p.value
+  }
+}
+## Double check symmetry
+all.equal(p_mat34, t(p_mat34))
+
+
+############################ Viszualize ##################
+##########################################################
+
+#Create a matrix of significance stars
+stars_matrix34 <- ifelse(p_mat34 < 0.001, "***",
+                         ifelse(p_mat34 < 0.01, "**",
+                                ifelse(p_mat34 < 0.05, "*", "")))
+
+# Melt matrices to long format
+corr_melt34 <- melt(cor_mat34)
+stars_melt34 <- melt(stars_matrix34)
+
+# Combine into one dataframe
+corr_plot_data34 <- merge(corr_melt34, stars_melt34, by = c("Var1", "Var2"))
+colnames(corr_plot_data34) <- c("Var1", "Var2", "Correlation", "Significance")
+
+# reorder
+desired_order34 <- c( "MR6", "MR5", "MR4","MR3","MR2","MR1","WM2","WM1", "COG")
+corr_plot_data34$Var1 <- factor(corr_plot_data34$Var1, levels = desired_order34)
+corr_plot_data34$Var2 <- factor(corr_plot_data34$Var2, levels = desired_order34)
+
+# Plot using ggplot2
+ggplot(corr_plot_data34, aes(x = Var1, y = Var2, fill = Correlation)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0,
+                       limits = c(-1, 1), name = "r") +
+  geom_text(aes(label = paste0(round(Correlation, 2), Significance)), size = 4) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid = element_blank()) +
+  labs(title = "Correlation Matrix with Significance", x = "", y = "")
+
+
+
+################################ SEM #############################
+#################### BASIS FOR APPENDIX II #######################
+##################################################################
+
+data_sem_34 <- cbind(cor_data_34, age2, sex)
+
+#Model
+SEM_34 <- '
+
+  # Paths from lifestyle factors to WM
+  WM1 ~ a1*MR1 + a2*MR4 + a3*MR5 + agelin + agequad + sex
+  WM2 ~ a4*MR1 + a5*MR4 + a6*MR5 + agelin + agequad + sex
+
+  # Paths to cognition
+  COG ~ b1*WM1 + b2*WM2 +
+         c1*MR1 + c2*MR2 + c3*MR3+ c4*MR4 + c5*MR5 +  
+         agelin + agequad + sex
+
+  # Indirect effects for each ML through WM1
+  ind_ML1_WM1 := a1 * b1
+  ind_ML4_WM1 := a2 * b1
+  ind_ML5_WM1 := a3 * b1
+  
+  #Total effect for each ML through WM1
+  Total_ML1_WM1 := a1 * b1 + c1
+  Total_ML4_WM1 := a2 * b1 + c2
+  Total_ML5_WM1 := a3 * b1 + c5
+  
+
+  # Indirect effects for each ML through WM2
+  ind_ML1_WM2 := a4 * b2
+  ind_ML4_WM2 := a5 * b2
+  ind_ML5_WM2 := a6 * b2
+
+
+  #Total effect for each ML through WM2
+  Total_ML1_WM2 := a4 * b2 + c1
+  Total_ML4_WM2 := a5 * b2 + c4
+  Total_ML5_WM2 := a6 * b2 + c5
+
+
+  # Total indirect effects (WM1 + WM2)
+  total_ind_ML1 := ind_ML1_WM1 + ind_ML1_WM2
+  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
+  total_ind_ML5 := ind_ML5_WM1 + ind_ML5_WM2
+ 
+  # Total effects for each ML through both WMs
+  TotalWM_ML1 := total_ind_ML1 + c1
+  TotalWM_ML4 := total_ind_ML4 + c4
+  TotalWM_ML5 := total_ind_ML5 + c5
+  
+  # Proportion mediation
+  proportion_mediatedML1WM1 := ind_ML1_WM1 / Total_ML1_WM1
+  proportion_mediatedML4WM1 := ind_ML4_WM1 / Total_ML4_WM1
+  proportion_mediatedML5WM1 := ind_ML5_WM1 / Total_ML5_WM1
+  proportion_mediatedML1WM2 := ind_ML1_WM2 / Total_ML1_WM2
+  proportion_mediatedML4WM2 := ind_ML4_WM2 / Total_ML4_WM2
+  proportion_mediatedML5WM2 := ind_ML5_WM2 / Total_ML5_WM2
+  proportion_mediatedML1WM12 := total_ind_ML1 / TotalWM_ML1
+  proportion_mediatedML4WM12 := total_ind_ML4 / TotalWM_ML4
+  proportion_mediatedML5WM12 := total_ind_ML5 / TotalWM_ML5
+  
+ 
+'
+SEM_34fit <- sem(SEM_34, data = data_sem_34, std.lv = TRUE)
+summary(SEM_34fit, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
+
+
+
+
+######################################## SEM with 13 FACTORS #################################
+##############################################################################################
+
+#Define data
+Alcohol <- data_efa_34 %>%
+  select(alcoholmodified, v290m)
+
+BMI <- data_efa_34 %>%
+  select(BMIm)
+
+Depression <- data_efa_34 %>%
+  select(HADS_depressionm, HADSmodified, v422m)
+
+
+Diabetes <- data_efa_34 %>%
+  select(v377m)
+
+
+Education <- data_efa_34 %>%
+  select(qualmodified,yearsedum)
+
+
+Hearing <- data_efa_34 %>%
+  select(v336m, v338m, v339m, v344m, v345m, v346m, v347m, v620m)
+
+BP <- data_efa_34 %>%
+  select(v349m, bp_sys)
+
+Cholesterol <- data_efa_34 %>%
+  select(v355m)
+
+PhysicalActivity <- data_efa_34 %>%
+  select( PAEE)
+
+Smoking <- data_efa_34 %>%
+  select(smokermodified, v241m, v251m)
+
+
+SocialIsolation <- data_efa_34 %>%
+  select( v86, v89, v90m, v91m,v93m)
+
+
+TBI <- data_efa_34 %>%
+  select( v457m)
+
+
+Vision <- data_efa_34 %>%
+  select(v328m, v333modified, v334modified, v335modified)
+
+
+# Bind lifestyle factor scores to original data
+data_sem_13 <- cbind(factor_scores_df, wm_data, cog_data)
+colnames(data_sem_13)
+
+
+########################### Correlations #####################
+##############################################################
+
+vars13 <- colnames(data_sem_13)
+n13 <- length(vars13)
+
+# Empty matrices to store results
+cor_mat13 <- matrix(NA, n13, n13, dimnames = list(vars13, vars13))
+p_mat13 <- matrix(NA, n13, n13, dimnames = list(vars13, vars13))
+
+# Loop through variable pairs
+for (i in 1:n13) {
+  for (j in i:n13) {
+    test <- cor.test(data_sem_13[[i]], data_sem_13[[j]], method = "pearson")
+    cor_mat13[i, j] <- test$estimate
+    cor_mat13[j, i] <- test$estimate
+    p_mat13[i, j] <- test$p.value
+    p_mat13[j, i] <- test$p.value
+  }
+}
+## Double check symmetry
+all.equal(p_mat13, t(p_mat13))
+
+
+
+############################### Viszualize #####################
+################################################################
+
+#Create a matrix of significance stars
+stars_matrix13 <- ifelse(p_mat13 < 0.001, "***",
+                         ifelse(p_mat13 < 0.01, "**",
+                                ifelse(p_mat13 < 0.05, "*", "")))
+
+# Melt matrices to long format
+corr_melt13 <- melt(cor_mat13)
+stars_melt13 <- melt(stars_matrix13)
+
+# Combine into one dataframe
+corr_plot_data13 <- merge(corr_melt13, stars_melt13, by = c("Var1", "Var2"))
+colnames(corr_plot_data13) <- c("Var1", "Var2", "Correlation", "Significance")
+
+# Plot using ggplot2
+ggplot(corr_plot_data13, aes(x = Var1, y = Var2, fill = Correlation)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0,
+                       limits = c(-1, 1), name = "r") +
+  geom_text(aes(label = paste0(round(Correlation, 2), Significance)), size = 4) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid = element_blank()) +
+  labs(title = "Correlation Matrix with Significance", x = "", y = "")
+
+
+SEMcfa_data <- cbind(data_sem_13, sex, age2, age_thirds)
+
+
+#with Age
+
+SEMcfaAge13 <- '
+  # Lifestyle to WM paths (labelled)
+  WM1 ~ 
+   a2*BMIf+ a4*Diabetes + a5*Education +
+        a6*Hearing + a7*BP + a8*Cholesterol + a9*PhysicalActivity +
+         a12*SocialIsolation + a13*Vision + agelin + agequad + sex
+
+  WM2 ~ a14*Alcohol + a15*BMIf +  a16*Depression + a17*Diabetes + a18*Education +
+        a19*Hearing + a20*BP + a21*Cholesterol + a22*PhysicalActivity  +
+         a25*SocialIsolation + a26*Vision + agelin + agequad + sex
+
+  # WM to cognition (labelled)
+  COG ~ b1*WM1 + b2*WM2 +
+      c1*Alcohol + c2*BMIf +  c3*Depression + c4*Diabetes + c5*Education +
+        c6*Hearing + c7*BP + c8*Cholesterol + c9*PhysicalActivity + c10*Smoking+
+         c12*SocialIsolation + c13*Vision + agelin + agequad + sex
+         
+         
+  # INDIRECT EFFECTS: through WM1
+  ind_BMIf_WM1 := a2 * b1
+  ind_Diabetes_WM1 := a4 * b1
+  ind_Education_WM1 := a5 * b1
+  ind_Hearing_WM1 := a6 * b1
+  ind_BP_WM1 := a7 * b1
+  ind_Cholesterol_WM1 := a8 * b1
+  ind_PhysicalActivity_WM1 := a9 * b1
+  ind_SocialIsolation_WM1 := a12 * b1
+  ind_Vision_WM1 := a13 * b1
+
+  # INDIRECT EFFECTS: through WM2
+  ind_Alcohol_WM2 := a14 * b2
+  ind_BMIf_WM2 := a15 * b2
+  ind_Depression_WM2 := a16 * b2
+  ind_Diabetes_WM2 := a17 * b2
+  ind_Education_WM2 := 18 * b2
+  ind_Hearing_WM2 := a19 * b2
+  ind_BP_WM2 := a20 * b2
+  ind_Cholesterol_WM2 := a21 * b2
+  ind_PhysicalActivity_WM2 := a22 * b2
+  ind_SocialIsolation_WM2 := a25 * b2
+  ind_Vision_WM2 := a26 * b2
+
+  # TOTAL INDIRECT EFFECTS (WM1 + WM2)
+  total_ind_BMIf := ind_BMIf_WM1 + ind_BMIf_WM2
+  total_ind_Diabetes := ind_Diabetes_WM1 + ind_Diabetes_WM2
+  total_ind_Education := ind_Education_WM1 + ind_Education_WM2
+  total_ind_Hearing := ind_Hearing_WM1 + ind_Hearing_WM2
+  total_ind_BP := ind_BP_WM1 + ind_BP_WM2
+  total_ind_Cholesterol := ind_Cholesterol_WM1 + ind_Cholesterol_WM2
+  total_ind_PhysicalActivity := ind_PhysicalActivity_WM1 + ind_PhysicalActivity_WM2
+  total_ind_SocialIsolation := ind_SocialIsolation_WM1 + ind_SocialIsolation_WM2
+  total_ind_Vision := ind_Vision_WM1 + ind_Vision_WM2'
+
+SEMcfaAgefit13 <- sem(SEMcfaAge13, data = SEMcfa_data, std.lv = TRUE)
+summary(SEMcfaAgefit13, fit.measures = TRUE, standardized = TRUE)
+
+
+
+############# Table for 13 factor SEM supplementary mterial #############
+######################### BASIS FOR APPENDIX III ########################
+########################################################################
+
+parameterEstimates(SEMcfaAgefit13, standardized = TRUE) %>% 
+  filter( op %in% c("~", ":=", "~~")) %>%
+  mutate(Significance = case_when(
+    pvalue < 0.001 ~ "***",
+    pvalue < 0.01 ~ "**",
+    pvalue < 0.05 ~ "*",
+    TRUE ~ ""
+  )) %>%
+  select(Predictor = lhs,
+         Relationship = op,
+         Outcome = rhs, 
+         Estimate = est,
+         'Std. Est.' = std.all,
+         SE = se,
+         z = z,
+         'p-value' = pvalue,
+         Significance) %>%
+  kable(format= "html", digits = 3, captio = "SEM Parameter Estimates") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE,
+                position = "center")
