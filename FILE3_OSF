@@ -1,214 +1,10 @@
-########################################################################## CORRELATIONS FOR SEM ################################################################
+########################################################################## Structural Equation Model  ##########################################################
 ################################################################################################################################################################
 
-############# Create Dataframe for Correlations ###############
-###############################################################
+### Read Data
+#includes all latent factor scores and covariates
+data_sem_sex <- read_excel("data_sem_sex.xlsx") 
 
-#### Dataframes solely, with the factor loadings
-## WM
-wm_data <- data_efa_tot %>%
-  select(WM1, WM2)
-
-## Lifestyle
-ls_data <- data_efa_tot %>%
-  select( ML1, ML2, ML3, ML4, ML5, ML6)
-
-## Cognition
-cog_data <- cog_loadings_df %>%
-  select(COG)
-
-##### Factor Loadings into 1 dataset ####
-cor_data  <- cbind(wm_data, cog_data, ls_data)
-colnames(cor_data)
-
-sapply(cor_data, class) 
-
-######################## Correlations #########################
-###############################################################
-
-vars <- colnames(cor_data)
-n <- length(vars)
-
-# Empty matrices to store results
-cor_mat <- matrix(NA, n, n, dimnames = list(vars, vars))
-p_mat <- matrix(NA, n, n, dimnames = list(vars, vars))
-
-# Loop through variable pairs
-for (i in 1:n) {
-  for (j in i:n) {
-    test <- cor.test(cor_data[[i]], cor_data[[j]], method = "pearson")
-    cor_mat[i, j] <- test$estimate
-    cor_mat[j, i] <- test$estimate
-    p_mat[i, j] <- test$p.value
-    p_mat[j, i] <- test$p.value
-  }
-}
-## Double check symmetry
-all.equal(p_mat, t(p_mat))
-
-
-############################# Viszualize #######################
-####################### BASIS FOR FIGURE 3 #####################
-################################################################
-
-#Create a matrix of significance stars
-stars_matrix <- ifelse(p_mat < 0.001, "***",
-                       ifelse(p_mat < 0.01, "**",
-                              ifelse(p_mat < 0.05, "*", "")))
-
-# Melt matrices to long format
-corr_melt <- melt(cor_mat)
-stars_melt <- melt(stars_matrix)
-
-# Combine into one dataframe
-corr_plot_data <- merge(corr_melt, stars_melt, by = c("Var1", "Var2"))
-colnames(corr_plot_data) <- c("Var1", "Var2", "Correlation", "Significance")
-corr_plot_data <- corr_plot_data[corr_plot_data$Var1 != corr_plot_data$Var2, ]
-
-# Remove selected pairs
-excluded_pairs <- list(
-  c("ML1", "ML2"),
-  c("ML1", "ML3"),
-  c("ML1", "ML4"),
-  c("ML1", "ML5"),
-  c("ML1", "ML6"),
-  c("ML2", "ML3"),
-  c("ML2", "ML4"),
-  c("ML2", "ML5"),
-  c("ML2", "ML6"),
-  c("ML3", "ML4"),
-  c("ML3", "ML5"),
-  c("ML3", "ML6"),
-  c("ML4", "ML5"),
-  c("ML4", "ML6"),
-  c("ML5", "ML6"),
-  c("WM2", "WM1"),
-  c("ML6", "ML5"),
-  c("ML6", "ML4"),
-  c("ML6", "ML3"),
-  c("ML6", "ML2"),
-  c("ML6", "ML1"),
-  c("ML5", "ML4"),
-  c("ML5", "ML3"),
-  c("ML5", "ML2"),
-  c("ML5", "ML1"),
-  c("ML4", "ML3"),
-  c("ML4", "ML2"),
-  c("ML4", "ML1"),
-  c("ML3", "ML2"),
-  c("ML3", "ML1"),
-  c("ML2", "ML1"),
-  c("WM1", "WM2")
-)
-corr_plot_data <- corr_plot_data[!mapply(function(v1, v2) {
-  any(mapply(function(pair) all(c(v1, v2) == pair), excluded_pairs))
-}, corr_plot_data$Var1, corr_plot_data$Var2), ]
-
-# reorder
-desired_order <- c("ML6", "ML5", "ML4","ML3","ML2","ML1","WM2","WM1", "COG")
-corr_plot_data$Var1 <- factor(corr_plot_data$Var1, levels = desired_order)
-corr_plot_data$Var2 <- factor(corr_plot_data$Var2, levels = desired_order)
-# Remove diagonal
-corr_plot_data <- corr_plot_data[corr_plot_data$Var1 != corr_plot_data$Var2, ]
-
-# Remove lower triangle (keep only upper triangle)
-corr_plot_data <- corr_plot_data[
-  match(corr_plot_data$Var1, desired_order) <
-    match(corr_plot_data$Var2, desired_order), ]
-
-######### FIGURE 3A
-
-# Plot using ggplot2
-ggplot(corr_plot_data, aes(x = Var1, y = Var2, fill = Correlation)) +
-  geom_tile(color = "white") +
-  scale_fill_gradient2(low = "skyblue", mid = "white", high = "hotpink", midpoint = 0,
-                       limits = c(-1, 1), name = "r") +
-  geom_text(aes(label = paste0(round(Correlation, 2), Significance)), size = 4) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        panel.grid = element_blank()) +
-  labs(title = "Correlation Matrix with Significance", x = "", y = "")
-
-
-########### Network visualization
-
-# Filter: remove weak or nonsignificant correlations
-cor_filtered <- cor_mat
-cor_filtered[p_mat > 0.05] <- 0  # threshold example
-
-# Remove self-correlations (diagonal)
-diag(cor_filtered) <- 0
-
-# Optional: remove specific variable pairs
-cor_filtered["ML1", "ML2"] <- 0
-cor_filtered["ML1", "ML3"] <- 0
-cor_filtered["ML1", "ML4"] <- 0
-cor_filtered["ML1", "ML5"] <- 0
-cor_filtered["ML1", "ML6"] <- 0
-cor_filtered["ML2", "ML3"] <- 0
-cor_filtered["ML2", "ML4"] <- 0
-cor_filtered["ML2", "ML5"] <- 0
-cor_filtered["ML2", "ML6"] <- 0
-cor_filtered["ML3", "ML4"] <- 0
-cor_filtered["ML3", "ML5"] <- 0
-cor_filtered["ML3", "ML6"] <- 0
-cor_filtered["ML4", "ML5"] <- 0
-cor_filtered["ML4", "ML6"] <- 0
-cor_filtered["ML5", "ML6"] <- 0
-cor_filtered["WM2", "WM1"] <- 0
-cor_filtered["ML6", "ML5"] <- 0
-cor_filtered["ML6", "ML4"] <- 0
-cor_filtered["ML6", "ML3"] <- 0
-cor_filtered["ML6", "ML2"] <- 0
-cor_filtered["ML6", "ML1"] <- 0
-cor_filtered["ML5", "ML4"] <- 0
-cor_filtered["ML5", "ML3"] <- 0
-cor_filtered["ML5", "ML2"] <- 0
-cor_filtered["ML5", "ML1"] <- 0
-cor_filtered["ML4", "ML3"] <- 0
-cor_filtered["ML4", "ML2"] <- 0
-cor_filtered["ML4", "ML1"] <- 0
-cor_filtered["ML3", "ML2"] <- 0
-cor_filtered["ML3", "ML1"] <- 0
-cor_filtered["ML2", "ML1"] <- 0
-cor_filtered["WM1", "WM2"] <- 0
-
-col_fun = colorRamp2(range(cor_filtered), c("skyblue", "hotpink"), transparency = 0.3)
-
-######### FIGURE 3B
-
-# Create the chord diagram
-chordDiagram(
-  cor_filtered,
-  symmetric = TRUE,
-  grid.col = "darkgray", 
-  col = col_fun,
-  annotationTrack = c("name", "grid")
-)
-
-
-###################################################################### STRUCTURAL EQUATION MODEL ###############################################################
-################################################################################################################################################################
-
-#################################### PREP DATA ##########################
-#########################################################################
-
-#Prep Age
-age <- num_data$Age
-age2 <- poly(age, 2)
-age2 <- as.data.frame(age2)
-age2$agelin <- age2[, "1"]
-age2$agequad <- age2[, "2"]
-colnames(age2)
-
-#Prep Sex
-sex <- num_data %>%
-  select( sex, CCIDmodified)
-sexc <- sex[!num_data$CCIDmodified %in% c("222120", "621199"), ]
-sexc <- sexc[, !(names(sexc) %in% "CCIDmodified")]
-
-## 
-data_sem_sex <- cbind(cor_data, age2, sex)
 
 ######## SEM including Age and Sex (and only sig paths from correlation ####
 ###################### BASIS FOR TABLE 2 and FIGURE 4 ######################
@@ -451,11 +247,11 @@ df_upper  <- subset(data_sem_age_thirds, group == "Upper third") # 226
 SEM_sexfitthirds <- sem(SEM_sex, data = data_sem_age_thirds, std.lv = TRUE, group = "group")
 summary(SEM_sexfitthirds, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
 
- 
+
 #### multigroup analysis to caputre mediation effects
- ### Group 18- 45
- #Model
- SEMsub45  <- '
+### Group 18- 45
+#Model
+SEMsub45  <- '
 
   # Paths from lifestyle factors to WM
   WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad + sex
@@ -555,6 +351,3 @@ SEMsub88fit <- sem(SEMsub88, data = df_upper, std.lv = TRUE)
 summary(SEMsub88fit, fit.measures = TRUE, standardized = TRUE)
 
 #Not Sig
-
-
-
