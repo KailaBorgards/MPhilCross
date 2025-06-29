@@ -2125,4 +2125,4 @@ data_sem_sex <- cbind(cor_data, age2, sex)
 
 
 ### PRINT DATA FOR ANALYSES
-write.xlsx(data_sem_sex, "data_sem_sex.xlsx")
+write.csv(data_sem_sex, "data_sem_fig4.csv")
