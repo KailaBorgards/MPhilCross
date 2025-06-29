@@ -3,7 +3,7 @@
 
 ### Read Data
 #includes all latent factor scores and covariates
-data_sem_sex <- read_excel("data_sem_sex.xlsx") 
+data_sem_sex <- read.csv("data_sem_fig4.csv") 
 
 
 ######## SEM including Age and Sex (and only sig paths from correlation ####
