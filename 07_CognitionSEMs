@@ -1,0 +1,59 @@
+############# SUMMER ANALYSES ##############
+
+cog_data <- read_xlsx("RData/WM_Brain_LifeStyle_Table.xlsx")
+sem data: data_sem_sex
+
+### SEM with memory 
+## Extract memory
+## Whole dataset
+colnames(data_full) #includes all variables
+'
+Memory: StoryRecall_Delay, StoryRecall_Immediate, Story_Recog, 
+PS: RTmean_simple, RTsd_simple, invRTMean_simple, invRTsd_simple; RTmean_all_choice, RTsd_all_choice; invRTmean_all_choice; invRTsd_all_choice
+'
+## Compute memory latent factor
+memory_data <- subset(data_full, select = c(CCID, StoryRecall_Delay, StoryRecall_Immediate, Story_Recog))
+
+
+### SEM
+
+
+## Visualize table
+
+
+
+
+
+
+### SEM with processing speed 
+## Extract PS
+
+
+## Compute PS latent factor
+PS_data <- subset(data_full, select = c(CCID, RTmean_simple, RTsd_simple, RTmean_all_choice, RTsd_all_choice))
+'potentially invert'
+
+### SEM
+
+
+## Visualize table
+
+
+
+
+
+
+
+
+
+### SEM with IQ, Mem and PS 
+
+
+## Make new df
+
+
+
+### SEM
+
+
+## Visualize table
