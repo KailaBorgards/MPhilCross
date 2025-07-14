@@ -1,0 +1,713 @@
+############# SUMMER ANALYSES ##############
+
+cog_data <- read_xlsx("RData/WM_Brain_LifeStyle_Table.xlsx")
+sem data: data_sem_sex
+
+### SEM with memory 
+## Extract memory
+## Whole dataset
+colnames(data_full) #includes all variables
+'
+Memory: StoryRecall_Delay, StoryRecall_Immediate, Story_Recog, 
+PS: RTmean_simple, RTsd_simple, invRTMean_simple, invRTsd_simple; RTmean_all_choice, RTsd_all_choice; invRTmean_all_choice; invRTsd_all_choice
+'
+## Compute memory latent factor
+memory_data <- subset(data_full, select = c(CCID, StoryRecall_Delay, StoryRecall_Immediate, Story_Recog)
+nrow(memory_datafa)
+
+# Assuming your dataframe is called df and the variable is called 'code'
+memory_data$CCIDmodified <- gsub("^CC", "", memory_data$CCID)
+memory_datafa <- merge(data_sem_sex, memory_data, by = "CCIDmodified")
+memory_datafa2 <- subset(memory_datafa, select = c(StoryRecall_Delay, StoryRecall_Immediate, Story_Recog))
+
+
+memory_datafa2$StoryRecall_Delay <- as.numeric((memory_datafa2$StoryRecall_Delay))
+memory_datafa2$Story_Recog <- as.numeric((memory_datafa2$Story_Recog))
+memory_datafa2$StoryRecall_Immediate <- as.numeric((memory_datafa2$StoryRecall_Immediate))
+colnames(memory_datafa2)
+
+## FA
+# Run factor analysis with 1 factor for cognition (IQ) and varimax rotation
+memory_result <- fa(memory_datafa2, nfactors = 1, rotate = "varimax", fm = "ml")
+
+# Print factor loadings
+print(memory_result$loadings, cutoff = 0.3)
+mean(memory_result$communality)
+
+#Export to Table
+memory_loadings_df <- as.data.frame(memory_result$scores)
+memory_loadings_df$MEM <- memory_loadings_df$ML1
+
+## Correlation
+memory_data <- memory_loadings_df %>%
+  select(MEM)
+
+##df for r
+cor_datamem  <- cbind(wm_data, memory_data, ls_data)
+colnames(cor_datamem)
+
+### cor
+varsmem <- colnames(cor_datamem)
+n <- length(varsmem)
+
+# Empty matrices to store results
+cor_matmem <- matrix(NA, n, n, dimnames = list(varsmem, varsmem))
+p_matmem <- matrix(NA, n, n, dimnames = list(varsmem, varsmem))
+
+# Loop through variable pairs
+for (i in 1:n) {
+  for (j in i:n) {
+    test <- cor.test(cor_datamem[[i]], cor_datamem[[j]], method = "pearson")
+    cor_matmem[i, j] <- test$estimate
+    cor_matmem[j, i] <- test$estimate
+    p_matmem[i, j] <- test$p.value
+    p_matmem[j, i] <- test$p.value
+  }
+}
+## Double check symmetry
+all.equal(p_matmem, t(p_matmem))
+
+#############################
+######### Viszualize ########
+#############################
+
+#Create a matrix of significance stars
+stars_matrixmem <- ifelse(p_matmem < 0.001, "***",
+                       ifelse(p_matmem < 0.01, "**",
+                              ifelse(p_matmem < 0.05, "*", "")))
+
+# Melt matrices to long format
+corr_meltmem <- melt(cor_matmem)
+stars_meltmem <- melt(stars_matrixmem)
+
+# Combine into one dataframe
+corr_plot_datamem <- merge(corr_meltmem, stars_meltmem, by = c("Var1", "Var2"))
+colnames(corr_plot_datamem) <- c("Var1", "Var2", "Correlation", "Significance")
+corr_plot_datamem <- corr_plot_datamem[corr_plot_datamem$Var1 != corr_plot_datamem$Var2, ]
+
+# Remove selected pairs
+excluded_pairsmem <- list(
+  c("ML1", "ML2"),
+  c("ML1", "ML3"),
+  c("ML1", "ML4"),
+  c("ML1", "ML5"),
+  c("ML1", "ML6"),
+  c("ML2", "ML3"),
+  c("ML2", "ML4"),
+  c("ML2", "ML5"),
+  c("ML2", "ML6"),
+  c("ML3", "ML4"),
+  c("ML3", "ML5"),
+  c("ML3", "ML6"),
+  c("ML4", "ML5"),
+  c("ML4", "ML6"),
+  c("ML5", "ML6"),
+  c("WM2", "WM1"),
+  c("ML6", "ML5"),
+  c("ML6", "ML4"),
+  c("ML6", "ML3"),
+  c("ML6", "ML2"),
+  c("ML6", "ML1"),
+  c("ML5", "ML4"),
+  c("ML5", "ML3"),
+  c("ML5", "ML2"),
+  c("ML5", "ML1"),
+  c("ML4", "ML3"),
+  c("ML4", "ML2"),
+  c("ML4", "ML1"),
+  c("ML3", "ML2"),
+  c("ML3", "ML1"),
+  c("ML2", "ML1"),
+  c("WM1", "WM2")
+)
+corr_plot_datamem <- corr_plot_datamem[!mapply(function(v1, v2) {
+  any(mapply(function(pair) all(c(v1, v2) == pair), excluded_pairsmem))
+}, corr_plot_datamem$Var1, corr_plot_datamem$Var2), ]
+
+# reorder
+desired_ordermem <- c("ML6", "ML5", "ML4","ML3","ML2","ML1","WM2","WM1", "MEM")
+corr_plot_datamem$Var1 <- factor(corr_plot_datamem$Var1, levels = desired_ordermem)
+corr_plot_datamem$Var2 <- factor(corr_plot_datamem$Var2, levels = desired_ordermem)
+# Remove diagonal
+corr_plot_datamem <- corr_plot_datamem[corr_plot_datamem$Var1 != corr_plot_datamem$Var2, ]
+
+# Remove lower triangle (keep only upper triangle)
+corr_plot_datamem <- corr_plot_datamem[
+  match(corr_plot_datamem$Var1, desired_ordermem) <
+    match(corr_plot_datamem$Var2, desired_ordermem), ]
+
+# Plot using ggplot2
+ggplot(corr_plot_datamem, aes(x = Var1, y = Var2, fill = Correlation)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "skyblue", mid = "white", high = "hotpink", midpoint = 0,
+                       limits = c(-1, 1), name = "r") +
+  geom_text(aes(label = paste0(round(Correlation, 2), Significance)), size = 4) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid = element_blank()) +
+  labs(title = "Correlation Matrix with Significance", x = "", y = "")
+
+
+#### SEM Prep
+'
+MEM - ML6 + ML5 + ML4 + ML1
+WM1 - ML6 + ML4 + ML1
+WM2 - ML6 + ML4 + ML3 + ML2
+'
+
+
+### SEM
+
+
+## 
+data_sem_mem <- cbind(cor_datamem, age2, sex)
+
+#Model
+SEM_mem <- '
+
+  # Paths from lifestyle factors to WM
+  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad + sex
+  WM2 ~ a4*ML2 + a5*ML3 + a6*ML4 + a7*ML6+ agelin + agequad + sex
+
+  # Paths to cognition
+  MEM ~ b1*WM1 + b2*WM2 +
+         c1*ML1 + c2*ML2 + c3*ML3+ c4*ML4 + c5*ML5 + c6 *ML6 + 
+         agelin + agequad + sex
+
+  # Indirect effects for each ML through WM1
+  ind_ML1_WM1 := a1 * b1
+  ind_ML4_WM1 := a2 * b1
+  ind_ML6_WM1 := a3 * b1
+  
+  #Total effect for each ML through WM1
+  Total_ML1_WM1 := a1 * b1 + c1
+  Total_ML4_WM1 := a2 * b1 + c4
+  Total_ML6_WM1 := a3 * b1 + c6
+  
+
+  # Indirect effects for each ML through WM2
+  ind_ML2_WM2 := a4 * b2
+  ind_ML3_WM2 := a5 * b2
+  ind_ML4_WM2 := a6 * b2
+  ind_ML6_WM2 := a7 * b2
+
+  #Total effect for each ML through WM2
+  Total_ML2_WM2 := a4 * b2 + c2
+  Total_ML3_WM2 := a5 * b2 + c3
+  Total_ML4_WM2 := a6 * b2 + c4
+  Total_ML6_WM2 := a7 * b2 + c6
+
+  # Total indirect effects (WM1 + WM2)
+  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
+  total_ind_ML6 := ind_ML6_WM1 + ind_ML6_WM2
+ 
+  # Total effects for each ML through both WMs
+  TotalWM_ML4 := total_ind_ML4 + c4
+  TotalWM_ML6 := total_ind_ML6 + c6
+  
+  # Proportion mediation
+  proportion_mediatedML1WM1 := ind_ML1_WM1 / Total_ML1_WM1
+  proportion_mediatedML4WM1 := ind_ML4_WM1 / Total_ML4_WM1
+  proportion_mediatedML6WM1 := ind_ML6_WM1 / Total_ML6_WM1
+  proportion_mediatedML2WM2 := ind_ML2_WM2 / Total_ML2_WM2
+  proportion_mediatedML3WM2 := ind_ML3_WM2 / Total_ML3_WM2
+  proportion_mediatedML4WM2 := ind_ML4_WM2 / Total_ML4_WM2
+  proportion_mediatedML6WM2 := ind_ML6_WM2 / Total_ML6_WM2
+  proportion_mediatedML4WM12 := total_ind_ML4 / TotalWM_ML4
+  proportion_mediatedML6WM12 := total_ind_ML6 / TotalWM_ML6
+  
+ 
+'
+SEM_memfit <- sem(SEM_mem, data = data_sem_mem, std.lv = TRUE)
+summary(SEM_memfit, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
+
+
+
+
+
+
+### SEM with processing speed 
+## Extract PS
+
+
+## Compute PS latent factor
+PS_data <- subset(data_full, select = c(CCID, RTmean_simple, RTsd_simple, RTmean_all_choice, RTsd_all_choice))
+# invert as per Petar's advice
+PS_data$invRTmean_simple <-  as.numeric(PS_data$RTmean_simple)*-1
+PS_data$invRTsd_simple <-  as.numeric(PS_data$RTsd_simple)*-1
+PS_data$invRTmean_all_choice <-  as.numeric(PS_data$RTmean_all_choice)*-1
+PS_data$invRTsd_all_choice <-  as.numeric(PS_data$RTsd_all_choice)*-1
+
+#new df with inverted things
+PS_datainv <- subset(data_full, select = c(CCID, invRTmean_simple, invRTsd_simple, invRTmean_all_choice, invRTsd_all_choice))
+
+
+
+
+# Assuming your dataframe is called df and the variable is called 'code'
+PS_datainv$CCIDmodified <- gsub("^CC", "", PS_datainv$CCID)
+PS_datainvfa <- merge(data_sem_sex, PS_datainv, by = "CCIDmodified")
+PS_datainvfa2 <- subset(PS_datainvfa, select = c(invRTmean_simple, invRTsd_simple, invRTmean_all_choice, invRTsd_all_choice))
+
+
+PS_datainvfa2$invRTmean_simple <- as.numeric((PS_datainvfa2$invRTmean_simple))
+PS_datainvfa2$invRTsd_simple <- as.numeric((PS_datainvfa2$invRTsd_simple))
+PS_datainvfa2$invRTmean_all_choice <- as.numeric((PS_datainvfa2$invRTmean_all_choice))
+PS_datainvfa2$invRTsd_all_choice <- as.numeric((PS_datainvfa2$invRTsd_all_choice))
+colnames(memory_datafa2)
+
+## FA
+# Run factor analysis with 1 factor for cognition (IQ) and varimax rotation
+ps_result <- fa(PS_datainvfa2, nfactors = 1, rotate = "varimax", fm = "ml")
+
+# Print factor loadings
+print(ps_result$loadings, cutoff = 0.3)
+mean(ps_result$communality)
+
+#Export to Table
+ps_loadings_df <- as.data.frame(ps_result$scores)
+ps_loadings_df$PS <- ps_loadings_df$ML1
+
+## Correlation
+ps_data <- ps_loadings_df %>%
+  select(PS)
+
+##df for r
+cor_dataps  <- cbind(wm_data, ps_data, ls_data)
+colnames(cor_dataps)
+
+### cor
+varsps <- colnames(cor_dataps)
+n <- length(varsps)
+
+# Empty matrices to store results
+cor_matps <- matrix(NA, n, n, dimnames = list(varsps, varsps))
+p_matps <- matrix(NA, n, n, dimnames = list(varsps, varsps))
+
+# Loop through variable pairs
+for (i in 1:n) {
+  for (j in i:n) {
+    test <- cor.test(cor_dataps[[i]], cor_dataps[[j]], method = "pearson")
+    cor_matps[i, j] <- test$estimate
+    cor_matps[j, i] <- test$estimate
+    p_matps[i, j] <- test$p.value
+    p_matps[j, i] <- test$p.value
+  }
+}
+## Double check symmetry
+all.equal(p_matps, t(p_matps))
+
+#############################
+######### Viszualize ########
+#############################
+
+#Create a matrix of significance stars
+stars_matrixps <- ifelse(p_matps < 0.001, "***",
+                          ifelse(p_matps < 0.01, "**",
+                                 ifelse(p_matps < 0.05, "*", "")))
+
+# Melt matrices to long format
+corr_meltps <- melt(cor_matps)
+stars_meltps <- melt(stars_matrixps)
+
+# Combine into one dataframe
+corr_plot_dataps <- merge(corr_meltps, stars_meltps, by = c("Var1", "Var2"))
+colnames(corr_plot_dataps) <- c("Var1", "Var2", "Correlation", "Significance")
+corr_plot_dataps <- corr_plot_dataps[corr_plot_dataps$Var1 != corr_plot_dataps$Var2, ]
+
+# Remove selected pairs
+excluded_pairsps <- list(
+  c("ML1", "ML2"),
+  c("ML1", "ML3"),
+  c("ML1", "ML4"),
+  c("ML1", "ML5"),
+  c("ML1", "ML6"),
+  c("ML2", "ML3"),
+  c("ML2", "ML4"),
+  c("ML2", "ML5"),
+  c("ML2", "ML6"),
+  c("ML3", "ML4"),
+  c("ML3", "ML5"),
+  c("ML3", "ML6"),
+  c("ML4", "ML5"),
+  c("ML4", "ML6"),
+  c("ML5", "ML6"),
+  c("WM2", "WM1"),
+  c("ML6", "ML5"),
+  c("ML6", "ML4"),
+  c("ML6", "ML3"),
+  c("ML6", "ML2"),
+  c("ML6", "ML1"),
+  c("ML5", "ML4"),
+  c("ML5", "ML3"),
+  c("ML5", "ML2"),
+  c("ML5", "ML1"),
+  c("ML4", "ML3"),
+  c("ML4", "ML2"),
+  c("ML4", "ML1"),
+  c("ML3", "ML2"),
+  c("ML3", "ML1"),
+  c("ML2", "ML1"),
+  c("WM1", "WM2")
+)
+corr_plot_dataps <- corr_plot_dataps[!mapply(function(v1, v2) {
+  any(mapply(function(pair) all(c(v1, v2) == pair), excluded_pairsps))
+}, corr_plot_dataps$Var1, corr_plot_dataps$Var2), ]
+
+# reorder
+desired_orderps <- c("ML6", "ML5", "ML4","ML3","ML2","ML1","WM2","WM1", "PS")
+corr_plot_dataps$Var1 <- factor(corr_plot_dataps$Var1, levels = desired_orderps)
+corr_plot_dataps$Var2 <- factor(corr_plot_dataps$Var2, levels = desired_orderps)
+# Remove diagonal
+corr_plot_dataps <- corr_plot_dataps[corr_plot_dataps$Var1 != corr_plot_dataps$Var2, ]
+
+# Remove lower triangle (keep only upper triangle)
+corr_plot_dataps <- corr_plot_dataps[
+  match(corr_plot_dataps$Var1, desired_orderps) <
+    match(corr_plot_dataps$Var2, desired_orderps), ]
+
+# Plot using ggplot2
+ggplot(corr_plot_dataps, aes(x = Var1, y = Var2, fill = Correlation)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "skyblue", mid = "white", high = "hotpink", midpoint = 0,
+                       limits = c(-1, 1), name = "r") +
+  geom_text(aes(label = paste0(round(Correlation, 2), Significance)), size = 4) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid = element_blank()) +
+  labs(title = "Correlation Matrix with Significance", x = "", y = "")
+
+
+#### SEM Prep
+'
+PS - ML6 + ML5 + ML4 + ML1
+WM1 - ML6 + ML4 + ML1
+WM2 - ML6 + ML4 + ML3 + ML2
+'
+
+
+### SEM
+
+
+## 
+data_sem_ps <- cbind(cor_dataps, age2, sex)
+
+#Model
+SEM_ps <- '
+
+  # Paths from lifestyle factors to WM
+  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad + sex
+  WM2 ~ a4*ML2 + a5*ML3 + a6*ML4 + a7*ML6+ agelin + agequad + sex
+
+  # Paths to cognition
+  PS ~ b1*WM1 + b2*WM2 +
+         c1*ML1 + c2*ML2 + c3*ML3+ c4*ML4 + c5*ML5 + c6 *ML6 + 
+         agelin + agequad + sex
+
+  # Indirect effects for each ML through WM1
+  ind_ML1_WM1 := a1 * b1
+  ind_ML4_WM1 := a2 * b1
+  ind_ML6_WM1 := a3 * b1
+  
+  #Total effect for each ML through WM1
+  Total_ML1_WM1 := a1 * b1 + c1
+  Total_ML4_WM1 := a2 * b1 + c4
+  Total_ML6_WM1 := a3 * b1 + c6
+  
+
+  # Indirect effects for each ML through WM2
+  ind_ML2_WM2 := a4 * b2
+  ind_ML3_WM2 := a5 * b2
+  ind_ML4_WM2 := a6 * b2
+  ind_ML6_WM2 := a7 * b2
+
+  #Total effect for each ML through WM2
+  Total_ML2_WM2 := a4 * b2 + c2
+  Total_ML3_WM2 := a5 * b2 + c3
+  Total_ML4_WM2 := a6 * b2 + c4
+  Total_ML6_WM2 := a7 * b2 + c6
+
+  # Total indirect effects (WM1 + WM2)
+  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
+  total_ind_ML6 := ind_ML6_WM1 + ind_ML6_WM2
+ 
+  # Total effects for each ML through both WMs
+  TotalWM_ML4 := total_ind_ML4 + c4
+  TotalWM_ML6 := total_ind_ML6 + c6
+  
+  # Proportion mediation
+  proportion_mediatedML1WM1 := ind_ML1_WM1 / Total_ML1_WM1
+  proportion_mediatedML4WM1 := ind_ML4_WM1 / Total_ML4_WM1
+  proportion_mediatedML6WM1 := ind_ML6_WM1 / Total_ML6_WM1
+  proportion_mediatedML2WM2 := ind_ML2_WM2 / Total_ML2_WM2
+  proportion_mediatedML3WM2 := ind_ML3_WM2 / Total_ML3_WM2
+  proportion_mediatedML4WM2 := ind_ML4_WM2 / Total_ML4_WM2
+  proportion_mediatedML6WM2 := ind_ML6_WM2 / Total_ML6_WM2
+  proportion_mediatedML4WM12 := total_ind_ML4 / TotalWM_ML4
+  proportion_mediatedML6WM12 := total_ind_ML6 / TotalWM_ML6
+  
+ 
+'
+SEM_psfit <- sem(SEM_ps, data = data_sem_ps, std.lv = TRUE)
+summary(SEM_psfit, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
+
+
+
+## Visualize table
+
+parameterEstimates(SEM_psfit, standardized = TRUE) %>% 
+  filter( op %in% c("~", ":=", "~~")) %>%
+  mutate(Significance = case_when(
+    pvalue < 0.001 ~ "***",
+    pvalue < 0.01 ~ "**",
+    pvalue < 0.05 ~ "*",
+    TRUE ~ ""
+  )) %>%
+  select(Predictor = lhs,
+         Relationship = op,
+         Outcome = rhs, 
+         Estimate = est,
+         'Std. Est.' = std.all,
+         SE = se,
+         z = z,
+         'p-value' = pvalue,
+         Significance) %>%
+  kable(format= "html", digits = 3, captio = "SEM Parameter Estimates") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE,
+                position = "center")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### SEM with IQ, Mem and PS 
+##df for r
+cor_datacog  <- cbind(wm_data, ps_data, ls_data, memory_data, cog_data)
+colnames(cor_datacog)
+
+### cor
+varscog <- colnames(cor_datacog)
+n <- length(varscog)
+
+# Empty matrices to store results
+cor_matcog <- matrix(NA, n, n, dimnames = list(varscog, varscog))
+p_matcog <- matrix(NA, n, n, dimnames = list(varscog, varscog))
+
+# Loop through variable pairs
+for (i in 1:n) {
+  for (j in i:n) {
+    test <- cor.test(cor_datacog[[i]], cor_datacog[[j]], method = "pearson")
+    cor_matcog[i, j] <- test$estimate
+    cor_matcog[j, i] <- test$estimate
+    p_matcog[i, j] <- test$p.value
+    p_matcog[j, i] <- test$p.value
+  }
+}
+## Double check symmetry
+all.equal(p_matcog, t(p_matcog))
+
+#############################
+######### Viszualize ########
+#############################
+
+#Create a matrix of significance stars
+stars_matrixcog <- ifelse(p_matcog < 0.001, "***",
+                         ifelse(p_matcog < 0.01, "**",
+                                ifelse(p_matcog < 0.05, "*", "")))
+
+# Melt matrices to long format
+corr_meltcog <- melt(cor_matcog)
+stars_meltcog <- melt(stars_matrixcog)
+
+# Combine into one dataframe
+corr_plot_datacog <- merge(corr_meltcog, stars_meltcog, by = c("Var1", "Var2"))
+colnames(corr_plot_datacog) <- c("Var1", "Var2", "Correlation", "Significance")
+corr_plot_datacog <- corr_plot_datacog[corr_plot_datacog$Var1 != corr_plot_datacog$Var2, ]
+
+# Remove selected pairs
+excluded_pairscog <- list(
+  c("ML1", "ML2"),
+  c("ML1", "ML3"),
+  c("ML1", "ML4"),
+  c("ML1", "ML5"),
+  c("ML1", "ML6"),
+  c("ML2", "ML3"),
+  c("ML2", "ML4"),
+  c("ML2", "ML5"),
+  c("ML2", "ML6"),
+  c("ML3", "ML4"),
+  c("ML3", "ML5"),
+  c("ML3", "ML6"),
+  c("ML4", "ML5"),
+  c("ML4", "ML6"),
+  c("ML5", "ML6"),
+  c("WM2", "WM1"),
+  c("ML6", "ML5"),
+  c("ML6", "ML4"),
+  c("ML6", "ML3"),
+  c("ML6", "ML2"),
+  c("ML6", "ML1"),
+  c("ML5", "ML4"),
+  c("ML5", "ML3"),
+  c("ML5", "ML2"),
+  c("ML5", "ML1"),
+  c("ML4", "ML3"),
+  c("ML4", "ML2"),
+  c("ML4", "ML1"),
+  c("ML3", "ML2"),
+  c("ML3", "ML1"),
+  c("ML2", "ML1"),
+  c("WM1", "WM2")
+)
+corr_plot_datacog <- corr_plot_datacog[!mapply(function(v1, v2) {
+  any(mapply(function(pair) all(c(v1, v2) == pair), excluded_pairscog))
+}, corr_plot_datacog$Var1, corr_plot_datacog$Var2), ]
+
+# reorder
+desired_ordercog <- c("ML6", "ML5", "ML4","ML3","ML2","ML1","WM2","WM1","COG", "MEM","PS")
+corr_plot_datacog$Var1 <- factor(corr_plot_datacog$Var1, levels = desired_ordercog)
+corr_plot_datacog$Var2 <- factor(corr_plot_datacog$Var2, levels = desired_ordercog)
+# Remove diagonal
+corr_plot_datacog <- corr_plot_datacog[corr_plot_datacog$Var1 != corr_plot_datacog$Var2, ]
+
+# Remove lower triangle (keep only upper triangle)
+corr_plot_datacog <- corr_plot_datacog[
+  match(corr_plot_datacog$Var1, desired_ordercog) <
+    match(corr_plot_datacog$Var2, desired_ordercog), ]
+
+# Plot using ggplot2
+ggplot(corr_plot_datacog, aes(x = Var1, y = Var2, fill = Correlation)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "skyblue", mid = "white", high = "hotpink", midpoint = 0,
+                       limits = c(-1, 1), name = "r") +
+  geom_text(aes(label = paste0(round(Correlation, 2), Significance)), size = 4) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid = element_blank()) +
+  labs(title = "Correlation Matrix with Significance", x = "", y = "")
+
+
+#### SEM Prep
+'
+PS - ML6 + ML5 + ML4 + ML1
+WM1 - ML6 + ML4 + ML1
+WM2 - ML6 + ML4 + ML3 + ML2
+'
+
+
+### SEM
+
+
+## 
+data_sem_cog <- cbind(cor_datacog, age2, sex)
+
+#Model
+SEM_cog <- '
+
+  # Paths from lifestyle factors to WM
+  WM1 ~ a1*ML1 + a2*ML4 + a3*ML6 + agelin + agequad + sex
+  WM2 ~ a4*ML2 + a5*ML3 + a6*ML4 + a7*ML6+ agelin + agequad + sex
+
+  # Paths to cognition
+  COG ~ b1*WM1 + b2*WM2 +
+         c1*ML1 + c2*ML2 + c3*ML3+ c4*ML4 + c5*ML5 + c6 *ML6 + 
+         agelin + agequad + sex
+  MEM ~ f1*WM1 + f2*WM2 +
+         d1*ML1 + d2*ML2 + d3*ML3+ d4*ML4 + d5*ML5 + d6 *ML6 + 
+         agelin + agequad + sex
+  PS ~ g1*WM1 + g2*WM2 +
+         e1*ML1 + e2*ML2 + e3*ML3+ e4*ML4 + e5*ML5 + e6 *ML6 + 
+         agelin + agequad + sex
+
+  # Indirect effects for each ML through WM1
+  iqind_ML1_WM1 := a1 * b1
+  iqind_ML4_WM1 := a2 * b1
+  iqind_ML6_WM1 := a3 * b1
+  
+  # Indirect effects for each ML through WM2
+  iqind_ML2_WM2 := a4 * b2
+  iqind_ML3_WM2 := a5 * b2
+  iqind_ML4_WM2 := a6 * b2
+  iqind_ML6_WM2 := a7 * b2
+
+  # Total indirect effects (WM1 + WM2)
+  iqtotal_ind_ML4 := iqind_ML4_WM1 + iqind_ML4_WM2
+  iqtotal_ind_ML6 := iqind_ML6_WM1 + iqind_ML6_WM2
+  
+   # Indirect effects for each ML through WM1
+  memind_ML1_WM1 := a1 * f1
+  memind_ML4_WM1 := a2 * f1
+  memind_ML6_WM1 := a3 * f1
+  
+  # Indirect effects for each ML through WM2
+  memind_ML2_WM2 := a4 * f2
+  memind_ML3_WM2 := a5 * f2
+  memind_ML4_WM2 := a6 * f2
+  memind_ML6_WM2 := a7 * f2
+
+  # Total indirect effects (WM1 + WM2)
+  memtotal_ind_ML4 := memind_ML4_WM1 + memind_ML4_WM2
+  memtotal_ind_ML6 := memind_ML6_WM1 + memind_ML6_WM2
+  
+   # Indirect effects for each ML through WM1
+  psind_ML1_WM1 := a1 * g1
+  psind_ML4_WM1 := a2 * g1
+  psind_ML6_WM1 := a3 * g1
+  
+  # Indirect effects for each ML through WM2
+  psind_ML2_WM2 := a4 * g2
+  psind_ML3_WM2 := a5 * g2
+  psind_ML4_WM2 := a6 * g2
+  psind_ML6_WM2 := a7 * g2
+
+  # Total indirect effects (WM1 + WM2)
+  pstotal_ind_ML4 := psind_ML4_WM1 + psind_ML4_WM2
+  pstotal_ind_ML6 := psind_ML6_WM1 + psind_ML6_WM2
+ 
+'
+SEM_cogfit <- sem(SEM_cog, data = data_sem_cog, std.lv = TRUE)
+summary(SEM_cogfit, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
+
+
+
+## Visualize table
+
+parameterEstimates(SEM_cogfit, standardized = TRUE) %>% 
+  filter( op %in% c("~", ":=", "~~")) %>%
+  mutate(Significance = case_when(
+    pvalue < 0.001 ~ "***",
+    pvalue < 0.01 ~ "**",
+    pvalue < 0.05 ~ "*",
+    TRUE ~ ""
+  )) %>%
+  select(Predictor = lhs,
+         Relationship = op,
+         Outcome = rhs, 
+         Estimate = est,
+         'Std. Est.' = std.all,
+         SE = se,
+         z = z,
+         'p-value' = pvalue,
+         Significance) %>%
+  kable(format= "html", digits = 3, captio = "SEM Parameter Estimates") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE,
+                position = "center")
+
+## Make new df
+
+
+
+
+## Visualize table
