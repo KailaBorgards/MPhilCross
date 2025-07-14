@@ -1,0 +1,159 @@
+## Regressio of inidvidual LS on Cognition and WM
+
+
+ggplot(data = data_sem_sex, aes(x = ML1, y = COG)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Education", y = "Fluid IQ", title = "Linear Regression Plot")
+
+ggplot(data_sem_sex, aes(x = ML1, y = COG)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE) +
+  labs(title = "Quadratic Fit", x = "Education", y = "Fluid IQ")
+
+
+# Linear model
+model_linear <- lm(COG ~ ML1, data = data_sem_sex)
+
+# Quadratic model
+model_quadratic <- lm(COG ~ poly(ML1, 2), data = data_sem_sex)
+
+# Compare models using ANOVA (checks if quadratic significantly improves fit)
+anova(model_linear, model_quadratic)
+
+summary(model_linear)$adj.r.squared
+summary(model_quadratic)$adj.r.squared
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ggplot(data = data_sem_sex, aes(x = ML2, y = COG)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Alcohol", y = "Fluid IQ", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML3, y = COG)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "BMI", y = "Fluid IQ", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML4, y = COG)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "BP, vision, Hearing, PA", y = "Fluid IQ", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML5, y = COG)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Depression, Smoking", y = "Fluid IQ", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML6, y = COG)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Cholesterol, Diabetes", y = "Fluid IQ", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = WM1, y = COG)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Microstructural change", y = "Fluid IQ", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = WM2, y = COG)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Free water content", y = "Fluid IQ", title = "Linear Regression Plot")
+
+
+
+###### WM 1
+
+
+ggplot(data = data_sem_sex, aes(x = ML1, y = WM1)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Education", y = "Microstructural change", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML2, y = WM1)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Alcohol", y = "Microstructural change", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML3, y = WM1)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "BMI", y = "Microstructural change", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML4, y = WM1)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "BP,Vision,Hearing,PA", y = "Microstructural change", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML5, y = WM1)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Depression, Smoking", y = "Microstructural change", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML6, y = WM1)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Cholesterol, Diabetes", y = "Microstructural change", title = "Linear Regression Plot")
+
+
+ggplot(data = data_sem_sex, aes(x = COG, y = WM1)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Flid IQ", y = "Microstructural change", title = "Linear Regression Plot")
+
+
+###### WM 2
+
+
+ggplot(data = data_sem_sex, aes(x = ML1, y = WM2)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Education", y = "free water content", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML2, y = WM2)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Alcohol", y = "free water content", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML3, y = WM2)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "BMI", y = "free water content", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML4, y = WM2)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "BP,Vision,Hearing,PA", y = "free water content", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML5, y = WM2)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Depression, Smoking", y = "free water content", title = "Linear Regression Plot")
+
+ggplot(data = data_sem_sex, aes(x = ML6, y = WM2)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Cholesterol, Diabetes", y = "free water content", title = "Linear Regression Plot")
+
+
+ggplot(data = data_sem_sex, aes(x = COG, y = WM2)) +
+  geom_point() +  # scatter plot
+  geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
+  labs(x = "Fluid IQ", y = "free water content", title = "Linear Regression Plot")
+
+
+
