@@ -1,6 +1,7 @@
-## Regressio of inidvidual LS on Cognition and WM
+## Regression of inidvidual LS on Cognition and WM
 
 
+##### Education
 ggplot(data = data_sem_sex, aes(x = ML1, y = COG)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
@@ -11,104 +12,256 @@ ggplot(data_sem_sex, aes(x = ML1, y = COG)) +
   geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE) +
   labs(title = "Quadratic Fit", x = "Education", y = "Fluid IQ")
 
-
 # Linear model
-model_linear <- lm(COG ~ ML1, data = data_sem_sex)
-
+model_linear1 <- lm(COG ~ ML1, data = data_sem_sex)
 # Quadratic model
-model_quadratic <- lm(COG ~ poly(ML1, 2), data = data_sem_sex)
-
+model_quadratic1 <- lm(COG ~ poly(ML1, 2), data = data_sem_sex)
 # Compare models using ANOVA (checks if quadratic significantly improves fit)
-anova(model_linear, model_quadratic)
+anova(model_linear1, model_quadratic1)
 
-summary(model_linear)$adj.r.squared
-summary(model_quadratic)$adj.r.squared
-
-
+summary(model_linear1)$adj.r.squared
+summary(model_quadratic1)$adj.r.squared
 
 
-
-
-
-
-
-
-
-
-
-
-
+#####Alcohol
 
 ggplot(data = data_sem_sex, aes(x = ML2, y = COG)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "Alcohol", y = "Fluid IQ", title = "Linear Regression Plot")
 
+ggplot(data_sem_sex, aes(x = ML2, y = COG)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE) +
+  labs(title = "Quadratic Fit", x = "Alcohol", y = "Fluid IQ")
+
+# Linear model
+model_linear2 <- lm(COG ~ ML2, data = data_sem_sex)
+# Quadratic model
+model_quadratic2 <- lm(COG ~ poly(ML2, 2), data = data_sem_sex)
+# Compare models using ANOVA (checks if quadratic significantly improves fit)
+anova(model_linear2, model_quadratic2)
+
+summary(model_linear2)$adj.r.squared
+summary(model_quadratic2)$adj.r.squared
+
+#### BMI
+
 ggplot(data = data_sem_sex, aes(x = ML3, y = COG)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "BMI", y = "Fluid IQ", title = "Linear Regression Plot")
+
+ggplot(data_sem_sex, aes(x = ML3, y = COG)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE) +
+  labs(title = "Quadratic Fit", x = "BMI", y = "Fluid IQ")
+
+# Linear model
+model_linear3 <- lm(COG ~ ML3, data = data_sem_sex)
+# Quadratic model
+model_quadratic3 <- lm(COG ~ poly(ML3, 2), data = data_sem_sex)
+# Compare models using ANOVA (checks if quadratic significantly improves fit)
+anova(model_linear3, model_quadratic3)
+
+summary(model_linear3)$adj.r.squared
+summary(model_quadratic3)$adj.r.squared
+
+#### Somatic Health
 
 ggplot(data = data_sem_sex, aes(x = ML4, y = COG)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "BP, vision, Hearing, PA", y = "Fluid IQ", title = "Linear Regression Plot")
 
+ggplot(data_sem_sex, aes(x = ML4, y = COG)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE) +
+  labs(title = "Quadratic Fit", x = "BP, vision, Hearing, PA", y = "Fluid IQ")
+
+# Linear model
+model_linear4 <- lm(COG ~ ML4, data = data_sem_sex)
+# Quadratic model
+model_quadratic4 <- lm(COG ~ poly(ML4, 2), data = data_sem_sex)
+# Compare models using ANOVA (checks if quadratic significantly improves fit)
+anova(model_linear4, model_quadratic4)
+
+summary(model_linear4)$adj.r.squared
+summary(model_quadratic4)$adj.r.squared
+
+### Depression / Smoking
+
 ggplot(data = data_sem_sex, aes(x = ML5, y = COG)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "Depression, Smoking", y = "Fluid IQ", title = "Linear Regression Plot")
+
+ggplot(data_sem_sex, aes(x = ML5, y = COG)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE) +
+  labs(title = "Quadratic Fit", x = "Depression, Smoking", y = "Fluid IQ")
+
+# Linear model
+model_linear5 <- lm(COG ~ ML5, data = data_sem_sex)
+# Quadratic model
+model_quadratic5 <- lm(COG ~ poly(ML5, 2), data = data_sem_sex)
+# Compare models using ANOVA (checks if quadratic significantly improves fit)
+anova(model_linear5, model_quadratic5)
+
+summary(model_linear5)$adj.r.squared
+summary(model_quadratic5)$adj.r.squared
+
+#### Cholesterol /Diabetes
 
 ggplot(data = data_sem_sex, aes(x = ML6, y = COG)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "Cholesterol, Diabetes", y = "Fluid IQ", title = "Linear Regression Plot")
 
+ggplot(data_sem_sex, aes(x = ML6, y = COG)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE) +
+  labs(title = "Quadratic Fit", x = "Cholesterol, Diabetes", y = "Fluid IQ")
+
+# Linear model
+model_linear6 <- lm(COG ~ ML6, data = data_sem_sex)
+# Quadratic model
+model_quadratic6 <- lm(COG ~ poly(ML6, 2), data = data_sem_sex)
+# Compare models using ANOVA (checks if quadratic significantly improves fit)
+anova(model_linear6, model_quadratic6)
+
+summary(model_linear6)$adj.r.squared
+summary(model_quadratic6)$adj.r.squared
+
+
+### WM1
+
 ggplot(data = data_sem_sex, aes(x = WM1, y = COG)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "Microstructural change", y = "Fluid IQ", title = "Linear Regression Plot")
+
+ggplot(data_sem_sex, aes(x = WM1, y = COG)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE) +
+  labs(title = "Quadratic Fit", x = "Microstructural change", y = "Fluid IQ")
+
+data_sem_sex_clean <- na.omit(data_sem_sex[, c("WM1", "WM2", "COG")])
+
+# Linear model
+model_linear7 <- lm(COG ~ WM1, data = data_sem_sex_clean)
+# Quadratic model
+model_quadratic7 <- lm(COG ~ poly(WM1, 2), data = data_sem_sex_clean)
+# Compare models using ANOVA (checks if quadratic significantly improves fit)
+anova(model_linear7, model_quadratic7)
+
+summary(model_linear7)$adj.r.squared
+summary(model_quadratic7)$adj.r.squared
+
+
+## WM2
 
 ggplot(data = data_sem_sex, aes(x = WM2, y = COG)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "Free water content", y = "Fluid IQ", title = "Linear Regression Plot")
 
+ggplot(data_sem_sex, aes(x = WM2, y = COG)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE) +
+  labs(title = "Quadratic Fit", x = "Free water content", y = "Fluid IQ")
 
 
-###### WM 1
+# Linear model
+model_linear8 <- lm(COG ~ WM2, data = data_sem_sex_clean)
+# Quadratic model
+model_quadratic8 <- lm(COG ~ poly(WM2, 2), data = data_sem_sex_clean)
+# Compare models using ANOVA (checks if quadratic significantly improves fit)
+anova(model_linear8, model_quadratic8)
+
+summary(model_linear8)$adj.r.squared
+summary(model_quadratic8)$adj.r.squared
 
 
+
+
+
+
+###### Relationship between Lifestyle and WM 1
+
+## Education
 ggplot(data = data_sem_sex, aes(x = ML1, y = WM1)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "Education", y = "Microstructural change", title = "Linear Regression Plot")
 
+ggplot(data_sem_sex, aes(x = ML1, y = WM1)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE) +
+  labs(title = "Quadratic Fit", x = "Education", y = "Microstructural change")
+
+# Linear model
+model_linear9 <- lm(WM1 ~ ML1, data = data_sem_sex)
+# Quadratic model
+model_quadratic9 <- lm(WM1 ~ poly(ML1, 2), data = data_sem_sex)
+# Compare models using ANOVA (checks if quadratic significantly improves fit)
+anova(model_linear9, model_quadratic9)
+
+summary(model_linear9)$adj.r.squared
+summary(model_quadratic9)$adj.r.squared
+
+
+### Alcohol
 ggplot(data = data_sem_sex, aes(x = ML2, y = WM1)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "Alcohol", y = "Microstructural change", title = "Linear Regression Plot")
+
+ggplot(data_sem_sex, aes(x = ML2, y = WM1)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), se = TRUE) +
+  labs(title = "Quadratic Fit", x = "Alcohol", y = "Microstructural change")
+
+# Linear model
+model_linear10 <- lm(WM1 ~ ML2, data = data_sem_sex)
+# Quadratic model
+model_quadratic10 <- lm(WM1 ~ poly(ML2, 2), data = data_sem_sex)
+# Compare models using ANOVA (checks if quadratic significantly improves fit)
+anova(model_linear10, model_quadratic10)
+
+summary(model_linear10)$adj.r.squared
+summary(model_quadratic10)$adj.r.squared
+
+
+### BMI
 
 ggplot(data = data_sem_sex, aes(x = ML3, y = WM1)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "BMI", y = "Microstructural change", title = "Linear Regression Plot")
 
+### Somatic Health
+
 ggplot(data = data_sem_sex, aes(x = ML4, y = WM1)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "BP,Vision,Hearing,PA", y = "Microstructural change", title = "Linear Regression Plot")
+
+### Depression, Smoking
 
 ggplot(data = data_sem_sex, aes(x = ML5, y = WM1)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "Depression, Smoking", y = "Microstructural change", title = "Linear Regression Plot")
 
+### Cholesterol, Diabetes 
+
 ggplot(data = data_sem_sex, aes(x = ML6, y = WM1)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "Cholesterol, Diabetes", y = "Microstructural change", title = "Linear Regression Plot")
 
+### Cognition
 
 ggplot(data = data_sem_sex, aes(x = COG, y = WM1)) +
   geom_point() +  # scatter plot
@@ -116,7 +269,13 @@ ggplot(data = data_sem_sex, aes(x = COG, y = WM1)) +
   labs(x = "Flid IQ", y = "Microstructural change", title = "Linear Regression Plot")
 
 
-###### WM 2
+
+
+
+
+
+
+###### Relationship between Lifestyle and WM 2
 
 
 ggplot(data = data_sem_sex, aes(x = ML1, y = WM2)) +
@@ -154,6 +313,3 @@ ggplot(data = data_sem_sex, aes(x = COG, y = WM2)) +
   geom_point() +  # scatter plot
   geom_smooth(method = "lm", se = TRUE) +  # linear regression line with confidence interval
   labs(x = "Fluid IQ", y = "free water content", title = "Linear Regression Plot")
-
-
-
