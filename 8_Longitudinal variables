@@ -1,7 +1,7 @@
 
 ## Longitudinal WM variabales
 
-#### Second Wave
+#### First Wave
 ################################################################################
 ################################################################################
 ### White Matter FA
@@ -15,14 +15,14 @@ MEAN_FA = rowMeans(FA_IDP[,-1], na.rm = TRUE)
 # Calculate mean of all numeric columns
 FA_IDP$CCID<- paste0("CC", FA_IDP$V1)
 
-fa_df = data.frame(CCID = FA_IDP$CCID,FA_mean = MEAN_FA )
+fa1_df = data.frame(CCID = FA_IDP$CCID,FA_mean = MEAN_FA )
 
 
 
 ################################################################################
 ################################################################################
 ## White Matter MD
-MD_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P2_mean_JHU_dti_FA_thr09.csv', header = FALSE)
+MD_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P2_mean_JHU_dti_MD_thr09.csv', header = FALSE)
 
 
 head(MD_IDP)
@@ -32,13 +32,13 @@ MEAN_MD = rowMeans(MD_IDP[,-1], na.rm = TRUE)
 # Calculate mean of all numeric columns
 MD_IDP$CCID<- paste0("CC", MD_IDP$V1)
 
-md_df = data.frame(CCID = MD_IDP$CCID,MD_mean = MEAN_MD)
+md1_df = data.frame(CCID = MD_IDP$CCID,MD_mean = MEAN_MD)
 
 
 ################################################################################
 ################################################################################
 ## White Matter MK
-MK_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P2_mean_JHU_dti_FA_thr09.csv', header = FALSE)
+MK_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses_P2_mean_JHU_dkifit_MK_thr09.csv', header = FALSE)
 
 
 head(MK_IDP)
@@ -48,12 +48,12 @@ MEAN_MK = rowMeans(MK_IDP[,-1], na.rm = TRUE)
 # Calculate mean of all numeric columns
 MK_IDP$CCID<- paste0("CC", MK_IDP$V1)
 
-mk_df = data.frame(CCID = MK_IDP$CCID,MK_mean = MEAN_MK )
+mk1_df = data.frame(CCID = MK_IDP$CCID,MK_mean = MEAN_MK )
 
 ################################################################################
 ################################################################################
 ## White Matter NDI
-NDI_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P2_mean_JHU_dti_FA_thr09.csv', header = FALSE)
+NDI_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses_P2_mean_JHU_NODDI_NDI_thr09.csv', header = FALSE)
 
 
 head(NDI_IDP)
@@ -63,12 +63,12 @@ MEAN_NDI = rowMeans(NDI_IDP[,-1], na.rm = TRUE)
 # Calculate mean of all numeric columns
 NDI_IDP$CCID<- paste0("CC", NDI_IDP$V1)
 
-ndi_df = data.frame(CCID = NDI_IDP$CCID,NDI_mean = MEAN_NDI )
+ndi1_df = data.frame(CCID = NDI_IDP$CCID,NDI_mean = MEAN_NDI )
 
 ################################################################################
 ################################################################################
 ## White Matter ODI
-ODI_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P2_mean_JHU_dti_FA_thr09.csv', header = FALSE)
+ODI_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses_P2_mean_JHU_NODDI_ODI_thr09.csv', header = FALSE)
 
 
 head(ODI_IDP)
@@ -78,12 +78,12 @@ MEAN_ODI = rowMeans(ODI_IDP[,-1], na.rm = TRUE)
 # Calculate mean of all numeric columns
 ODI_IDP$CCID<- paste0("CC", ODI_IDP$V1)
 
-odi_df = data.frame(CCID = ODI_IDP$CCID,ODI_mean = MEAN_ODI )
+odi1_df = data.frame(CCID = ODI_IDP$CCID,ODI_mean = MEAN_ODI )
 
 ################################################################################
 ################################################################################
 ## White Matter Fiso
-Fiso_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P2_mean_JHU_dti_FA_thr09.csv', header = FALSE)
+Fiso_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses_P2_mean_JHU_NODDI_FW_thr09.csv', header = FALSE)
 
 
 head(Fiso_IDP)
@@ -93,5 +93,111 @@ MEAN_Fiso = rowMeans(Fiso_IDP[,-1], na.rm = TRUE)
 # Calculate mean of all numeric columns
 Fiso_IDP$CCID<- paste0("CC", Fiso_IDP$V1)
 
-fiso_df = data.frame(CCID = Fiso_IDP$CCID,Fiso_mean = MEAN_Fsio )
+fiso1_df = data.frame(CCID = Fiso_IDP$CCID,Fiso_mean = MEAN_Fiso )
 
+
+
+################################################################################
+################################################################################
+#### Second Wave
+################################################################################
+################################################################################
+### White Matter FA
+FA2_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P5_mean_JHU_dti_FA_thr09.csv', header = FALSE)
+
+
+head(FA2_IDP)
+
+MEAN_FA2 = rowMeans(FA2_IDP[,-1], na.rm = TRUE)
+
+# Calculate mean of all numeric columns
+FA2_IDP$CCID<- paste0("CC", FA2_IDP$V1)
+
+fa2_df = data.frame(CCID = FA2_IDP$CCID,FA2_mean = MEAN_FA2 )
+
+
+
+################################################################################
+################################################################################
+## White Matter MD
+MD2_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P5_mean_JHU_dti_MD_thr09.csv', header = FALSE)
+
+
+head(MD2_IDP)
+
+MEAN_MD2 = rowMeans(MD2_IDP[,-1], na.rm = TRUE)
+
+# Calculate mean of all numeric columns
+MD2_IDP$CCID<- paste0("CC", MD2_IDP$V1)
+
+md2_df = data.frame(CCID = MD2_IDP$CCID,MD2_mean = MEAN_MD2)
+
+
+################################################################################
+################################################################################
+## White Matter MK
+MK2_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses_P5_mean_JHU_dkifit_MK_thr09.csv', header = FALSE)
+
+
+head(MK2_IDP)
+
+MEAN_MK2 = rowMeans(MK2_IDP[,-1], na.rm = TRUE)
+
+# Calculate mean of all numeric columns
+MK2_IDP$CCID<- paste0("CC", MK2_IDP$V1)
+
+mk2_df = data.frame(CCID = MK2_IDP$CCID,MK2_mean = MEAN_MK2 )
+
+################################################################################
+################################################################################
+## White Matter NDI
+NDI2_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses_P5_mean_JHU_NODDI_NDI_thr09.csv', header = FALSE)
+
+
+head(NDI2_IDP)
+
+MEAN_NDI2 = rowMeans(NDI2_IDP[,-1], na.rm = TRUE)
+
+# Calculate mean of all numeric columns
+NDI2_IDP$CCID<- paste0("CC", NDI2_IDP$V1)
+
+ndi2_df = data.frame(CCID = NDI2_IDP$CCID,NDI2_mean = MEAN_NDI2 )
+
+################################################################################
+################################################################################
+## White Matter ODI
+ODI2_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses_P5_mean_JHU_NODDI_ODI_thr09.csv', header = FALSE)
+
+
+head(ODI2_IDP)
+
+MEAN_ODI2 = rowMeans(ODI2_IDP[,-1], na.rm = TRUE)
+
+# Calculate mean of all numeric columns
+ODI2_IDP$CCID<- paste0("CC", ODI2_IDP$V1)
+
+odi2_df = data.frame(CCID = ODI2_IDP$CCID,ODI2_mean = MEAN_ODI2 )
+
+################################################################################
+################################################################################
+## White Matter Fiso
+Fiso2_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses_P2_mean_JHU_NODDI_FW_thr09.csv', header = FALSE)
+
+
+head(Fiso2_IDP)
+
+MEAN_Fiso2 = rowMeans(Fiso2_IDP[,-1], na.rm = TRUE)
+
+# Calculate mean of all numeric columns
+Fiso2_IDP$CCID<- paste0("CC", Fiso2_IDP$V1)
+
+fiso2_df = data.frame(CCID = Fiso2_IDP$CCID,Fiso2_mean = MEAN_Fiso2 )
+
+
+
+################################################################################
+################################################################################
+#### Deltas
+################################################################################
+################################################################################
+### Merge into One
