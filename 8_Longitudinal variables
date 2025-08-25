@@ -1,0 +1,97 @@
+
+## Longitudinal WM variabales
+
+#### Second Wave
+################################################################################
+################################################################################
+### White Matter FA
+FA_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P2_mean_JHU_dti_FA_thr09.csv', header = FALSE)
+
+
+head(FA_IDP)
+
+MEAN_FA = rowMeans(FA_IDP[,-1], na.rm = TRUE)
+
+# Calculate mean of all numeric columns
+FA_IDP$CCID<- paste0("CC", FA_IDP$V1)
+
+fa_df = data.frame(CCID = FA_IDP$CCID,FA_mean = MEAN_FA )
+
+
+
+################################################################################
+################################################################################
+## White Matter MD
+MD_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P2_mean_JHU_dti_FA_thr09.csv', header = FALSE)
+
+
+head(MD_IDP)
+
+MEAN_MD = rowMeans(MD_IDP[,-1], na.rm = TRUE)
+
+# Calculate mean of all numeric columns
+MD_IDP$CCID<- paste0("CC", MD_IDP$V1)
+
+md_df = data.frame(CCID = MD_IDP$CCID,MD_mean = MEAN_MD)
+
+
+################################################################################
+################################################################################
+## White Matter MK
+MK_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P2_mean_JHU_dti_FA_thr09.csv', header = FALSE)
+
+
+head(MK_IDP)
+
+MEAN_MK = rowMeans(MK_IDP[,-1], na.rm = TRUE)
+
+# Calculate mean of all numeric columns
+MK_IDP$CCID<- paste0("CC", MK_IDP$V1)
+
+mk_df = data.frame(CCID = MK_IDP$CCID,MK_mean = MEAN_MK )
+
+################################################################################
+################################################################################
+## White Matter NDI
+NDI_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P2_mean_JHU_dti_FA_thr09.csv', header = FALSE)
+
+
+head(NDI_IDP)
+
+MEAN_NDI = rowMeans(NDI_IDP[,-1], na.rm = TRUE)
+
+# Calculate mean of all numeric columns
+NDI_IDP$CCID<- paste0("CC", NDI_IDP$V1)
+
+ndi_df = data.frame(CCID = NDI_IDP$CCID,NDI_mean = MEAN_NDI )
+
+################################################################################
+################################################################################
+## White Matter ODI
+ODI_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P2_mean_JHU_dti_FA_thr09.csv', header = FALSE)
+
+
+head(ODI_IDP)
+
+MEAN_ODI = rowMeans(ODI_IDP[,-1], na.rm = TRUE)
+
+# Calculate mean of all numeric columns
+ODI_IDP$CCID<- paste0("CC", ODI_IDP$V1)
+
+odi_df = data.frame(CCID = ODI_IDP$CCID,ODI_mean = MEAN_ODI )
+
+################################################################################
+################################################################################
+## White Matter Fiso
+Fiso_IDP = read.csv('//cbsu/data/Group/Camcan/ccrescan/BIDS/data/derivatives/diffusion/IDPs/ses-P2_mean_JHU_dti_FA_thr09.csv', header = FALSE)
+
+
+head(Fiso_IDP)
+
+MEAN_Fiso = rowMeans(Fiso_IDP[,-1], na.rm = TRUE)
+
+# Calculate mean of all numeric columns
+Fiso_IDP$CCID<- paste0("CC", Fiso_IDP$V1)
+
+fiso_df = data.frame(CCID = Fiso_IDP$CCID,Fiso_mean = MEAN_Fsio )
+
