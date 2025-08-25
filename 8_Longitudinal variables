@@ -198,6 +198,27 @@ fiso2_df = data.frame(CCID = Fiso2_IDP$CCID,Fiso2_mean = MEAN_Fiso2 )
 ################################################################################
 ################################################################################
 #### Deltas
+
+fa2_df$FA_delta <- fa2_df$FA2_mean - fa1_df$FA_mean
+md2_df$MD_delta <- md2_df$MD2_mean - md1_df$MD_mean
+mk2_df$MK_delta <- mk2_df$MK2_mean - mk1_df$MK_mean
+ndi2_df$NDI_delta <- ndi2_df$NDI2_mean - ndi1_df$NDI_mean
+odi2_df$ODI_delta <- odi2_df$ODI2_mean - odi1_df$ODI_mean
+fiso2_df$Fiso_delta <- fiso2_df$Fiso2_mean - fiso1_df$Fiso_mean
+
+## New dfs
+fa_delta <- data.frame(CCID = fa2_df$CCID, FA_delta  = fa2_df$FA_delta  )
+md_delta <- data.frame(CCID = md2_df$CCID, MD_delta  = md2_df$MD_delta  )
+mk_delta <- data.frame(CCID = mk2_df$CCID, MK_delta  = mk2_df$MK_delta  )
+ndi_delta <- data.frame(CCID =ndi2_df$CCID,NDI_delta = ndi2_df$NDI_delta )
+odi_delta <- data.frame(CCID =odi2_df$CCID,ODI_delta = odi2_df$ODI_delta )
+fiso_delta <- data.frame(CCID =fiso2_df$CCID, Fiso_delta = fiso2_df$Fiso_delta )
+
+
 ################################################################################
 ################################################################################
 ### Merge into One
+
+dfs <- list(fa_delta, md_delta, mk_delta, ndi_delta, odi_delta, fiso_delta)
+WM_delta <- Reduce(function(x, y) merge(x, y, by = "CCID", all = TRUE), dfs)
+
