@@ -3,6 +3,8 @@
 ############ SEM including Age and Sex (and only sig paths from correlation ############
 ################################################################################
 
+nrow(data_sem_sex)
+nrow(WM2sq)
 ## squared Lifestyle
 ML1sq <- poly(data_sem_sex$ML1, 2)
 ML1sq <- as.data.frame(ML1sq)
@@ -31,6 +33,47 @@ WM2sq$WM2quad <- WM2sq[, "2"]
 
 ## 
 data_sem_poly <- cbind(data_sem_sex, ML1sq, ML2sq, ML3sq, WM1sq, WM2sq)
+data_sem_poly <- cbind(data_sem_sex, ML1sq, ML2sq, ML3sq)
+
+## Model Short
+
+#Model
+SEM_poly <- '
+
+  # Paths from lifestyle factors to WM
+  WM1 ~ a1*ML1lin + a2*ML4 + a3*ML6 + agelin + agequad + sex + a8*ML1quad
+  WM2 ~ a4*ML2lin + a5*ML3lin + a6*ML4 + a7*ML6+ agelin + agequad + sex + 
+  a9*ML2quad + a10*ML3quad
+
+  # Paths to cognition
+  COG ~ b1*WM1 + b2*WM2 +
+         c1*ML1lin + c2*ML2lin + c3*ML3lin + c4*ML4 + c5*ML5 + c6 *ML6 +  
+         c7 *ML1quad + c8 *ML2quad + c9 *ML3quad+
+         agelin + agequad + sex
+
+  # Indirect effects for each ML through WM1
+  ind_ML1lin_WM1 := a1 * b1
+  ind_ML1quad_WM1 := a8 * b1
+  ind_ML4_WM1 := a2 * b1
+  ind_ML6_WM1 := a3 * b1
+
+  # Indirect effects for each ML through WM2
+  ind_ML2lin_WM2 := a4 * b2
+  ind_ML2quad_WM2 := a9 * b2
+  ind_ML3lin_WM2 := a10 * b2
+  ind_ML3quad_WM2 := a5 * b2
+  ind_ML4_WM2 := a6 * b2
+  ind_ML6_WM2 := a7 * b2
+
+  # Total indirect effects (WM1 + WM2)
+  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
+  total_ind_ML6 := ind_ML6_WM1 + ind_ML6_WM2
+ 
+ 
+'
+SEM_polyfit <- sem(SEM_poly, data = data_sem_poly, std.lv = TRUE)
+summary(SEM_polyfit, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
+
 
 #Model
 SEM_poly <- '
@@ -109,7 +152,7 @@ Potion of total= 224 / 8472 = 0.0264 = 2.6%
 
 #################### Paths #####################
 ################################################
-semPaths(SEM_sexfit, 
+semPaths(SEM_polyfit, 
          what = "std",        # standardized estimates
          layout = "tree2",     # nice clean tree layout
          edge.label.cex = 1.1, # size of path labels
@@ -122,13 +165,13 @@ semPaths(SEM_sexfit,
 
 # Saving it
 png("sem_plot.png", width = 1000, height = 800)
-semPaths(SEM_sexfit, what = "std", layout = "tree", edge.label.cex = 1.1)
+semPaths(SEM_polyfit, what = "std", layout = "tree", edge.label.cex = 1.1)
 dev.off()
 
 #################### Table ####################
 ################################################
 
-parameterEstimates(SEM_sexfit, standardized = TRUE) %>% 
+parameterEstimates(SEM_polyfit, standardized = TRUE) %>% 
   filter( op %in% c("~", ":=", "~~")) %>%
   mutate(Significance = case_when(
     pvalue < 0.001 ~ "***",
@@ -153,23 +196,22 @@ parameterEstimates(SEM_sexfit, standardized = TRUE) %>%
 ############## Presentations ##############
 ############################################
 
-fit_table_sem <- data.frame(
+fit_table_poly <- data.frame(
   Measure = c("Chi-square", "Degrees of Freedom", "p-value", "CFI", "TLI", "SRMR", "RMSEA",  "BIC"),
   Value = round(c(
-    fitMeasures(SEM_sexfit, "chisq"),
-    fitMeasures(SEM_sexfit, "df"),
-    fitMeasures(SEM_sexfit, "pvalue"),
-    fitMeasures(SEM_sexfit, "CFI"),
-    fitMeasures(SEM_sexfit, "TLI"),
-    fitMeasures(SEM_sexfit, "SRMR"),
-    fitMeasures(SEM_sexfit, "rmsea"),
-    fitMeasures(SEM_sexfit, "bic")
+    fitMeasures(SEM_polyfit, "chisq"),
+    fitMeasures(SEM_polyfit, "df"),
+    fitMeasures(SEM_polyfit, "pvalue"),
+    fitMeasures(SEM_polyfit, "CFI"),
+    fitMeasures(SEM_polyfit, "TLI"),
+    fitMeasures(SEM_polyfit, "SRMR"),
+    fitMeasures(SEM_polyfit, "rmsea"),
+    fitMeasures(SEM_polyfit, "bic")
   ), 3)
 )
 
-kable(fit_table_sem, caption = "SEM Model Fit Indices") %>%
+kable(fit_table_poly, caption = "SEM Model Fit Indices") %>%
   kable_styling(full_width = FALSE, position = "center")
 
-standardizedSolution(SEM_sexfit)  # or
-parameterEstimates(SEM_sexfit, standardized = TRUE)
-
+standardizedSolution(SEM_polyfit)  # or
+parameterEstimates(SEM_polyfit, standardized = TRUE)
