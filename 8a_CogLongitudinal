@@ -1,0 +1,23 @@
+coglong <- read.csv("Longitudinal relevant data/CattellLifebrain.csv")
+getwd()
+
+View(coglong)
+
+library(dplyr)
+
+coglong$C1 <- coglong$Subscore.on.block.1
+coglong$C2 <- coglong$Subscore.on.block.2
+coglong$C3 <- coglong$Subscore.on.block.3
+coglong$C4 <- coglong$Subscore.on.block.4
+coglong$age <- coglong$Age.when.Cattell.was.measured.in.this.phase..Decimal.age.given.to.2.decimal.places..
+
+
+cogp5 <- coglong %>%
+  filter(Event.Name == "Phase 5 (Arm 1: Main_CC_Cohort)") %>%
+  select(-Participant.provide.any.Cattell.data.in.this.phase., -Date.that.the.Cattell.was.completed..DD.MM.YY., -Time.that.the.Cattell.was.completed..HH.MM.SS., -Total.Cattell.score..sum.of.the.4.blocks.,
+         -Subscore.on.block.1, -Subscore.on.block.2, -Subscore.on.block.3, -Subscore.on.block.4, -Age.when.Cattell.was.measured.in.this.phase..Decimal.age.given.to.2.decimal.places..)
+
+cogp5 <- cogp5 %>%
+  select( -Event.Name)
+
+head(cogp5)
