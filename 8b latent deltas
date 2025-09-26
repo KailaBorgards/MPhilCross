@@ -1,0 +1,131 @@
+## Data
+# LS latent factors
+head(data_sem_sex)
+
+data_LS_long <- data_sem_sex
+head(data_LS_long)
+data_LS_long$CCID <- paste0("CC", data_LS_long$CCIDmodified)
+data_LS_long <- select(data_LS_long, -CCIDmodified)
+
+# WM delta
+head(WM_long)
+# Cognition delta
+head(merged_cog)
+
+merged_long <- Reduce(function(x, y) merge(x, y, by = "CCID"),
+                      list(data_LS_long, WM_long, merged_cog))
+head(merged_long)
+nrow(merged_long)
+
+############# Compute Latent factors ###########
+################################################
+
+### White Matter P5
+cogp5_latent <- select(merged_long, C1, C2, C3, C4, )
+head(cogp5_latent)
+
+
+### Cognition P5
+## FA
+# Run factor analysis with 1 factor for cognition (IQ) and varimax rotation
+cog_p5_results <- fa(cogp5_latent, nfactors = 1, rotate = "varimax", fm = "ml")
+
+# Print factor loadings
+print(cog_p5_results$loadings, cutoff = 0.3)
+mean(cog_p5_results$communality)
+
+#Export to Table
+cog_loadings_p5 <- as.data.frame(cog_p5_results$scores)
+cog_loadings_p5$COG5 <- cog_loadings_p5$ML1
+nrow(cog_loadings_p5)
+
+merged_long <- merge(cog_loadings_p5, merged_long)
+
+
+merged_long$COGdelta <- merged_long$COG5 - merged_long$COG
+
+
+### White Matter
+
+
+
+
+
+
+
+
+
+
+### correlatio LS to change in COG
+# Outcome (Y) predicted by one variable (X)
+reg_LSC1 <- lm(C1d ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6, data = merged_long)
+summary(reg_LSC1)
+install.packages("ggfortify")
+library(ggfortify)
+
+merged_long$pred <- predict(reg_LSC1)
+
+ggplot(merged_long, aes(x = pred, y = C1d)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(x = "Predicted C1d", y = "Observed C1d",
+       title = "Predicted vs Observed Cognition Delta (C1d)") +
+  theme_minimal()
+
+
+# Outcome (Y) predicted by one variable (X)
+reg_LSC2 <- lm(C2d ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6, data = merged_long)
+summary(reg_LSC2)
+
+
+merged_long$pred2 <- predict(reg_LSC2)
+
+ggplot(merged_long, aes(x = pred2, y = C2d)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(x = "Predicted C1d", y = "Observed C1d",
+       title = "Predicted vs Observed Cognition Delta (C1d)") +
+  theme_minimal()
+
+# Outcome (Y) predicted by one variable (X)
+reg_LSC3 <- lm(C3d ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6, data = merged_long)
+summary(reg_LSC3)
+
+
+merged_long$pred3 <- predict(reg_LSC3)
+
+ggplot(merged_long, aes(x = pred3, y = C3d)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(x = "Predicted C1d", y = "Observed C1d",
+       title = "Predicted vs Observed Cognition Delta (C1d)") +
+  theme_minimal()
+
+# Outcome (Y) predicted by one variable (X)
+reg_LSC4 <- lm(C4d ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6, data = merged_long)
+summary(reg_LSC4)
+
+
+merged_long$pred4 <- predict(reg_LSC4)
+
+ggplot(merged_long, aes(x = pred4, y = C4d)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(x = "Predicted C1d", y = "Observed C1d",
+       title = "Predicted vs Observed Cognition Delta (C1d)") +
+  theme_minimal()
+
+
+
+
+
+
+
+
+
+
+
+### correlation LS to change in WM
+
+
+### Correlation in change WM and CS
