@@ -21,3 +21,38 @@ cogp5 <- cogp5 %>%
   select( -Event.Name)
 
 head(cogp5)
+################################################################################
+################################################################################
+#### Deltas
+
+cognition <- data_dwi %>%
+  select( CCID, C1.y,C2.y,C3.y,C4.y
+  )
+head(cognition)
+
+cogp5$CC.ID <- paste0("CC", cogp5$CC.ID)
+cogp5$CCID <-cogp5$CC.ID
+cogp5 <- cogp5 %>%
+  select( -CC.ID)
+
+merged_cog <- merge(cognition, cogp5, by = "CCID")
+head(merged_cog)
+
+merged_cog$C1d <- merged_cog$C1 - merged_cog$C1.y
+merged_cog$C2d <- merged_cog$C2 - merged_cog$C2.y
+merged_cog$C3d <- merged_cog$C3 - merged_cog$C3.y
+merged_cog$C4d <- merged_cog$C4 - merged_cog$C4.y
+
+
+##############################
+# Same SEM structure but on difference scores between baseline and follow-up
+df4lg <- data.frame(dA = dfl$A[dfl$wav==2]-dfl$A[dfl$wav==1], 
+                    dB = dfl$B[dfl$wav==2]-dfl$B[dfl$wav==1],
+                    dC = dfl$C[dfl$wav==2]-dfl$C[dfl$wav==1])
+SEM4lg <- '
+    dC ~ c1 * dA
+    dC ~ b1 * dB; dB ~ a1 * dA 
+    Mediation := a1*b1'
+SEM4lg_df4lg <- sem(SEM4lg, data=df4lg)
+p <- parameterEstimates(SEM4lg_df4lg); p[7,] # not significant
+
