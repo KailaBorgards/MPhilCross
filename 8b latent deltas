@@ -39,17 +39,127 @@ cog_loadings_p5 <- as.data.frame(cog_p5_results$scores)
 cog_loadings_p5$COG5 <- cog_loadings_p5$ML1
 nrow(cog_loadings_p5)
 
-merged_long <- merge(cog_loadings_p5, merged_long)
-
-
+merged_long$COG5 <- cog_loadings_p5$COG5
 merged_long$COGdelta <- merged_long$COG5 - merged_long$COG
 
 
 ### White Matter
 
+wmp5_latent <- select(merged_long, Fiso2_mean, ODI2_mean, NDI2_mean, MK2_mean, MD2_mean, FA2_mean, )
+
+wm_p5_results <- fa(wmp5_latent, nfactors = 3, rotate = "varimax", fm = "ml")
+
+# Print factor loadings
+print(wm_p5_results$loadings, cutoff = 0.3)
+mean(wm_p5_results$communality)
+
+#Export to Table
+wm_loadings_p5 <- as.data.frame(wm_p5_results$scores)
+wm_loadings_p5$WM51 <- wm_loadings_p5$ML1
+wm_loadings_p5$WM52 <- wm_loadings_p5$ML2
+nrow(wm_loadings_p5)
+
+merged_long$WM51 <-  wm_loadings_p5$ML1
+merged_long$WM52 <- wm_loadings_p5$ML2
+merged_long$WM1delta <- merged_long$WM51 - merged_long$WM1
+merged_long$WM2delta <- merged_long$WM52 - merged_long$WM2
 
 
 
+
+
+reg_LSC1 <- lm(WM2delta ~ ML1 + ML2 + ML3 + ML4 + ML5 + ML6, data = merged_long)
+summary(reg_LSC1)
+
+merged_long$pred <- predict(reg_LSC1)
+
+ggplot(merged_long, aes(x = pred, y = WM2delta)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(x = "Predicted C1d", y = "Observed C1d",
+       title = "Predicted vs Observed Cognition Delta (C1d)") +
+  theme_minimal()
+
+
+
+####### Correlations
+
+Cor_p5_data <- select(merged_long, ML1, ML2, ML3, ML4, ML5, ML6, WM1delta, WM2delta, COGdelta, )
+############### Correlations ###############
+############################################
+
+vars <- colnames(Cor_p5_data)
+n <- length(vars)
+
+# Empty matrices to store results
+cor_mat <- matrix(NA, n, n, dimnames = list(vars, vars))
+p_mat <- matrix(NA, n, n, dimnames = list(vars, vars))
+
+# Loop through variable pairs
+for (i in 1:n) {
+  for (j in i:n) {
+    test <- cor.test(cor_data[[i]], cor_data[[j]], method = "pearson")
+    cor_mat[i, j] <- test$estimate
+    cor_mat[j, i] <- test$estimate
+    p_mat[i, j] <- test$p.value
+    p_mat[j, i] <- test$p.value
+  }
+}
+## Double check symmetry
+all.equal(p_mat, t(p_mat))
+
+
+#############################
+######### Viszualize ########
+#############################
+
+#Create a matrix of significance stars
+stars_matrix <- ifelse(p_mat < 0.001, "***",
+                       ifelse(p_mat < 0.01, "**",
+                              ifelse(p_mat < 0.05, "*", "")))
+
+# Melt matrices to long format
+corr_melt <- melt(cor_mat)
+stars_melt <- melt(stars_matrix)
+
+# Combine into one dataframe
+corr_plot_data <- merge(corr_melt, stars_melt, by = c("Var1", "Var2"))
+colnames(corr_plot_data) <- c("Var1", "Var2", "Correlation", "Significance")
+corr_plot_data <- corr_plot_data[corr_plot_data$Var1 != corr_plot_data$Var2, ]
+
+
+######## SEM
+#Model
+SEM_long <- '
+
+  # Paths from lifestyle factors to WM
+  WM1delta ~ a1*ML1 + a2*ML2 + a3*ML3  + sex
+  WM2delta ~ a9*ML3 + a10*ML4 +  sex
+
+  # Paths to cognition
+  COGdelta ~ b1*WM1delta + b2*WM2delta +
+         c1*ML1 + c2*ML2 + c3*ML3+ c4*ML4 +
+        sex
+
+  # Indirect effects for each ML through WM1
+  ind_ML1_WM1 := a1 * b1
+  ind_ML2_WM1 := a2 * b1
+  ind_ML3_WM1 := a3 * b1
+  
+
+  # Indirect effects for each ML through WM2
+ 
+  ind_ML3_WM2 := a9 * b2
+  ind_ML4_WM2 := a10 * b2
+  
+
+  # Total indirect effects (WM1 + WM2)
+  total_ind_ML3 := ind_ML3_WM1 + ind_ML3_WM2
+
+ 
+'
+SEM_long <- sem(SEM_long, data = merged_long, std.lv = TRUE)
+summary(SEM_long, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
 
 
 
