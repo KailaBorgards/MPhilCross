@@ -1,0 +1,58 @@
+LS_long <- read.csv("Longitudinal relevant data/Demographic Information Questionnaire Data March 2024_11.49.csv")
+CCID <- read.csv("Longitudinal relevant data/Date_time_RSID_of_completed_questionnare_31_May_2024.csv")
+CCID_conversion<- read_xlsx("Longitudinal relevant data/CCID_RSID_for_AA.xlsx") 
+LS_longpt2<- read.csv("Longitudinal relevant data/CambridgeCentreForAg-HeightWeightP5_DATA_LABELS_2025-09-25_0133.csv")
+
+
+colnames(LS_long)
+colnames(CCID)
+colnames(CCID_conversion)
+colnames(LS_longpt2)
+View(LS_long)
+View(CCID)
+head(CCID_conversion)
+
+
+# inner join (only rows where BOTH keys match)
+
+
+library(dplyr)
+install.packages("lubridate")
+library(lubridate)
+
+# LS_long: e.g., "2023-01-30 11:29:03"
+LS_long_norm <- LS_long %>%
+  mutate(
+    StartKey    = floor_date(ymd_hms(trimws(StartDate),    tz = "UTC"), unit = "minute"),
+    RecordedKey = floor_date(ymd_hms(trimws(RecordedDate), tz = "UTC"), unit = "minute")
+  )
+
+# CCID: e.g., "09/05/2023 22:49"  (day/month/year)
+# If your slashed dates are month/day/year, swap dmy_hm() for mdy_hm()
+CCID_norm <- CCID %>%
+  mutate(
+    StartKey    = dmy_hm(trimws(Start.Date),    tz = "UTC"),
+    RecordedKey = dmy_hm(trimws(Recorded.Date), tz = "UTC")
+  )
+
+## 3) Join on BOTH keys
+merged_both <- inner_join(LS_long_unique, CCID_unique,
+                          by = c("StartKey", "RecordedKey"))
+
+nrow(merged_both)
+colnames(merged_ls)
+#################
+
+merged_ls <- merge(merged_both, CCID_conversion, by = "RSID")
+LS_longpt2$CCID <- LS_longpt2$CC.ID
+LS_longpt2$CCID <- paste0("CC", LS_longpt2$CCID)
+merged_ls <- merge(merged_ls, LS_longpt2, by = "CCID")
+
+### Data:
+data_p5 <- merged_ls
+data <- subset(data_full, select = c(CCID, Age, age_iv, sex, v1,v5,v13,v14,v16,v18,v73,v74,v75,v86,v87,v89,v90,v91,v92,v93,v94,v95,v96,v97,v98,v106,v108,v241,v242,v244,v245,v246,v247,v249,v251,v252,v253,v255,v256,v257,v259,v260,v261,v290,v291,v292,v293,v294,v295,v296,v297,v298,v326,v327,v328,v329,v330,v331,v332,v333,v334,v335,v336,v337,v338,v339,v340,v341,v342,v343,v344,v345,v346,v347,v349,v350,v352,v352,v353,v354,v355,v356,v377,v378,v422,v457,v458,v459,v460,v542,v543,v544,v545,v620,v621,v624,v626,v627,v629,v630,v632,v633,v634,v639,v640,v668,v669,place,age_iv,smoker,alcohol,HADS_depression,HADS_dep_category,qual,
+                                     GETABOUT_bikedist,GETABOUT_walkdist,DURGETABOUT_BIKE, DURGETABOUT_WALK,GETABOUTBIKEadj,GETABOUTWALKadj, DURGETABOUT,DURTV, TVadj, WALKMILES, CYCLEMILES, CARMILES, PUBLICMILES, CARadj, PUBLICadj, CYCLEadj, WALKadj,HOMEtime, WORKtime, DURJOB, COMMUTEtime, LEIStime, UNACCOUNTED_TIME, TOTMETHRS, TOTMETHRS_w_UNACCtime, TOTALtime, ACTMETS, SED_INTENSITY, LIGHT_INTENSITY, MODERATE_INTENSITY,VIGOROUS_INTENSITY, SLEEPtime, SEDtime, LIGHTtime, MODERATEtime, VIGOROUStime, HOME_METS, WORK_METS, LEIS_METS, COMMUTE_METS, leisure_missing_all_data, leisure_missing_freq, leisure_missing_duration, activities_done,PAEE, HOME_PAEE, WORK_PAEE,LEIS_PAEE,COMMUTE_PAEE, 
+                                     question_num_years_edu,
+                                     height, weight, bp_sys2, bp_sys3,
+                                     C1.y,C2.y,C3.y,C4.y,
+                                     WMHI_NORM_TIV, FA_mean, MSD_mean,MSK_mean, NDI_mean,ODI_mean, Fiso_mean))
