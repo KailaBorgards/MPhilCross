@@ -48,9 +48,122 @@ LS_longpt2$CCID <- LS_longpt2$CC.ID
 LS_longpt2$CCID <- paste0("CC", LS_longpt2$CCID)
 merged_ls <- merge(merged_ls, LS_longpt2, by = "CCID")
 
+
+##  PAEE 
+PAEE <- read.csv("Longitudinal relevant data/imputed_longitudinal_PA_P5returners.csv") 
+PAEE$CCID <- paste0("CC", PAEE$CCID)
+merged_ls <- merge(merged_ls, PAEE, by = "CCID")
+colnames(PAEE)
+
 ### Data:
 data_p5 <- merged_ls
 data_p5 <- subset(merged_ls, select = c(CCID, Q48e, Q48f, Height.of.the.participant.in.this.phase, Weight.of.the.participant.in.this.phase,
-                                     QB15_TABLE.1_19, QB15_TABLE.2_19_1, QB6,QB7, QB6a, QB16, QB15_TABLE.1_1,QB47b, QB47, QB11, QB8d, QB8b))
-               
-##  PAEE 
+                                     QB15_TABLE.1_19, QB15_TABLE.2_19_1, QB6,QB7, QB6a, QB16, QB15_TABLE.1_1, QB15_TABLE.2_8_1,QB15_TABLE.1_8, QB47b, QB47, QB11, QB8d, QB8b, Sex, est_PAEE_P5))
+
+data_p5$BMI <- data_p5$Weight.of.the.participant.in.this.phase / ((data_p5$Height.of.the.participant.in.this.phase/100)*(data_p5$Height.of.the.participant.in.this.phase/100))
+
+
+#### Transform lifestyle
+ncol(data_p5)
+
+#summary(data_p5$BMI)
+#summary(data_p5$est_PAEE_P5)
+
+## Alcohol
+table(data_p5$Q48e)
+# What I did: Worse Drinking habit is lowest score
+Q48e_mapping <- c("4 or more times a week" = 0,
+                  "2-3 times a week" = 1,
+                  "2-4 times a month" = 2,
+                  "Monthly or less" = 3,
+                  "Never" = 4)
+
+data_p5$alc1 <- Q48e_mapping[data_p5$Q48e]
+data_p5$alc1 <- as.numeric(data_p5$alc1)
+table(data_p5$alc1)
+
+table(data_p5$Q48f)
+# What I did: Worse Drinking habit is lowest score
+Q48f_mapping <- c("more than 9" = 0,
+                  "7 to 9" = 1,
+                  "5 or 6" = 2,
+                  "3 or 4" = 3,
+                  "1 or 2" = 4)
+
+data_p5$alc2 <- Q48f_mapping[data_p5$Q48f]
+data_p5$alc2 <- as.numeric(data_p5$alc2)
+table(data_p5$alc2)
+
+
+
+##Depression
+table(data_p5$QB15_TABLE.1_19)
+table(data_p5$QB15_TABLE.2_19_1)
+table(data_p5$QB15_TABLE.1_8)
+table(data_p5$QB15_TABLE.2_8_1)
+table(data_p5$QB6)
+table(data_p5$QB7)
+table(data_p5$QB6a)
+table(data_p5$QB16)
+table(data_p5$QB15_TABLE.1_1)
+#table(data_p5$QB47b)
+table(data_p5$QB47)
+table(data_p5$QB11)
+table(data_p5$QB8b)
+table(data_p5$QB8d)
+
+
+### Converting variables
+data_p5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Compute latent factors through CFA
+
+CFA_Model3 <- 
+  'Alcohol =~ alcoholmodified + v290m
+  BMIf =~ BMIm
+  Depression =~ HADS_depressionm+ HADSmodified+ v422m
+  Diabetes =~ v377m
+  Education =~ qualmodified + yearsedum
+  Hearing =~ v336m+ v338m+ v339m+ v344m+ v345m+ v346m+ v347m+ v620m
+  BP =~ v349m + bp_sys
+  Cholesterol =~ v355m 
+  PhysicalActivity =~ PAEE 
+  Smoking =~ smokermodified+ v241m+  v251m
+  TBI =~ v457m
+  SocialIsolation =~ v86+ v89+ v90m+ v91m+ v93m
+  Vision =~ v328m+ v333modified+ v334modified+ v335modified'
+
+
+fit3 <- cfa(CFA_Model3, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE,  optim.method = "BFGS") 
+summary(fit3, fit.measures = T, standardized = T)
+
+Alcoholp5 <- 
+  'Alcoholp5 =~ 
+'
+
+BMIp5
+
+Healthp5
+
+CardioVasp5
+
+Dopaminergicp5
