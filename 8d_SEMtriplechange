@@ -1,0 +1,59 @@
+colnames(merged_long)
+merged_long$CCIDmodified <- sub("^CC", "", as.character(merged_long$CCID))
+colnames(data_ls_delta)
+
+data_long_sem <- merge(data_ls_delta, merged_long, by = "CCIDmodified")
+#Model
+SEM_lsp5 <- '
+
+  # Paths from lifestyle factors to WM
+  WM1delta ~  a2*ML4delta + a3*ML6delta + sex.x
+  WM2delta ~ a4*ML2delta + a5*ML3delta + a6*ML4delta + a7*ML6delta + sex.x
+
+  # Paths to cognition
+  COGdelta ~ b1*WM1delta + b2*WM2delta +
+          c2*ML2delta + c3*ML3delta+ c4*ML4delta + c5*ML5delta + c6 *ML6delta + 
+          sex.x
+
+  # Indirect effects for each ML through WM1
+  ind_ML4_WM1 := a2 * b1
+  ind_ML6_WM1 := a3 * b1
+  
+
+  # Indirect effects for each ML through WM2
+  ind_ML2_WM2 := a4 * b2
+  ind_ML3_WM2 := a5 * b2
+  ind_ML4_WM2 := a6 * b2
+  ind_ML6_WM2 := a7 * b2
+
+  # Total indirect effects (WM1 + WM2)
+  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
+  total_ind_ML6 := ind_ML6_WM1 + ind_ML6_WM2
+
+ 
+'
+SEM_lsp5fit <- sem(SEM_lsp5, data = data_long_sem, std.lv = TRUE)
+summary(SEM_lsp5fit, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
+
+colnames(data_long_sem)
+
+
+# use the data frame that holds these columns
+df <- data_long_sem   # change to data_p5 if that's where your variables live
+
+vars <- c("WM1delta","WM2delta","COGdelta",
+          "ML2delta","ML3delta","ML4delta","ML5delta","ML6delta")
+stopifnot(all(vars %in% names(df)))
+
+library(Hmisc)
+X  <- as.matrix(df[vars])
+rc <- rcorr(X, type = "pearson")   # pairwise complete obs by default
+
+# Results:
+rc$r   # correlation matrix
+rc$P   # p-value matrix
+rc$n   # N used for each pair
+
+# (optional) Spearman instead of Pearson:
+# rc <- rcorr(X, type = "spearman")
+
