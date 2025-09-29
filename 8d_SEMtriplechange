@@ -57,3 +57,74 @@ rc$n   # N used for each pair
 # (optional) Spearman instead of Pearson:
 # rc <- rcorr(X, type = "spearman")
 
+
+
+
+
+#################### Paths #####################
+################################################
+semPaths(SEM_lsp5fit, 
+         what = "std",        # standardized estimates
+         layout = "tree2",     # nice clean tree layout
+         edge.label.cex = 1.1, # size of path labels
+         sizeMan = 6,          # observed variable size
+         sizeLat = 8,          # latent variable size
+         nCharNodes = 0,       # show full variable names
+         style = "lisrel",     # classic SEM look
+         residuals = FALSE,    # hide residual arrows
+         intercepts = FALSE)   # hide intercepts
+
+# Saving it
+semPaths(SEM_lsp5fit, what = "std", layout = "tree", edge.label.cex = 1.1)
+dev.off()
+
+#################### Table ####################
+################################################
+
+parameterEstimates(SEM_lsp5fit, standardized = TRUE) %>% 
+  filter( op %in% c("~", ":=", "~~")) %>%
+  mutate(Significance = case_when(
+    pvalue < 0.001 ~ "***",
+    pvalue < 0.01 ~ "**",
+    pvalue < 0.05 ~ "*",
+    TRUE ~ ""
+  )) %>%
+  select(Predictor = lhs,
+         Relationship = op,
+         Outcome = rhs, 
+         Estimate = est,
+         'Std. Est.' = std.all,
+         SE = se,
+         z = z,
+         'p-value' = pvalue,
+         Significance) %>%
+  kable(format= "html", digits = 3, captio = "SEM Parameter Estimates") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE,
+                position = "center")
+
+############## Presentations ##############
+############################################
+
+SEM_lsp5fit_table <- data.frame(
+  Measure = c("Chi-square", "Degrees of Freedom", "p-value", "CFI", "TLI", "SRMR", "RMSEA",  "BIC"),
+  Value = round(c(
+    fitMeasures(SEM_lsp5fit, "chisq"),
+    fitMeasures(SEM_lsp5fit, "df"),
+    fitMeasures(SEM_lsp5fit, "pvalue"),
+    fitMeasures(SEM_lsp5fit, "CFI"),
+    fitMeasures(SEM_lsp5fit, "TLI"),
+    fitMeasures(SEM_lsp5fit, "SRMR"),
+    fitMeasures(SEM_lsp5fit, "rmsea"),
+    fitMeasures(SEM_lsp5fit, "bic")
+  ), 3)
+)
+
+kable(SEM_lsp5fit, caption = "SEM Model Fit Indices") %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+standardizedSolution(SEM_long)  # or
+parameterEstimates(SEM_long, standardized = TRUE)
+
+
+
