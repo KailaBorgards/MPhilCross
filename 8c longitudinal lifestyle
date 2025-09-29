@@ -95,6 +95,341 @@ data_p5$alc2 <- as.numeric(data_p5$alc2)
 table(data_p5$alc2)
 
 
+### universal mapping: Yes = 1 and No = 2 (so that higehr score is healthier)
+yn_mapping <- c("Yes" = 1,
+                  "No" = 2)
+
+##Depression
+table(data_p5$QB15_TABLE.1_19)
+data_p5$dep1 <- yn_mapping[data_p5$QB15_TABLE.1_19]
+data_p5$dep1 <- as.numeric(data_p5$dep1)
+table(data_p5$dep1)
+
+#table(data_p5$QB15_TABLE.2_19_1) "Age of depression diagnosis" exclude because later age means higher score indicating healthy
+# but people who don't have depression are penalized for having NA even though they are the healthiest
+
+### Diabetes
+table(data_p5$QB15_TABLE.1_8)
+data_p5$diab <- yn_mapping[data_p5$QB15_TABLE.1_8]
+data_p5$diab <- as.numeric(data_p5$diab)
+table(data_p5$diab)
+
+#table(data_p5$QB15_TABLE.2_8_1) "Age of diabetes diagnosis" exclude because later age means higher score indicating healthy
+# but people who don't have diabetes are penalized for having NA even though they are the healthiest
+
+
+## Hearing
+table(data_p5$QB6)
+data_p5$hear1 <- yn_mapping[data_p5$QB6]
+data_p5$hear1 <- as.numeric(data_p5$hear1)
+table(data_p5$hear1)
+
+table(data_p5$QB7)
+data_p5$hear2 <- yn_mapping[data_p5$QB7]
+data_p5$hear2 <- as.numeric(data_p5$hear2)
+table(data_p5$hear2)
+
+# exclude, too many NAs
+table(data_p5$QB6a)
+data_p5$hear3 <- yn_mapping[data_p5$QB6a]
+data_p5$hear3 <- as.numeric(data_p5$hear3)
+table(data_p5$hear3)
+
+
+## BP
+table(data_p5$QB16)
+data_p5$bp <- yn_mapping[data_p5$QB16]
+data_p5$bp <- as.numeric(data_p5$bp)
+table(data_p5$bp)
+
+## cholesterol
+table(data_p5$QB15_TABLE.1_1)
+data_p5$chol <- yn_mapping[data_p5$QB15_TABLE.1_1]
+data_p5$chol <- as.numeric(data_p5$chol)
+table(data_p5$chol)
+
+#table(data_p5$QB47b)
+
+## Smoking
+table(data_p5$QB47)
+smok_map <- c("No" = 2, "Yes, on most or all days"=1)
+data_p5$smok <- smok_map[data_p5$QB47]
+data_p5$smok <- as.numeric(data_p5$smok)
+table(data_p5$smok)
+
+##Vision
+table(data_p5$QB11)
+vision_map <- c(
+  "Cataract" = 1, 
+  "Cataract,Macular degeneration"= 1,
+  "Diabetes related eye disease,Cataract,Macular degeneration"= 1,
+  "Glaucoma"= 1,
+  "Glaucoma,Cataract"= 1,
+  "Glaucoma,Cataract,Other serious eye condition"= 1,
+  "Glaucoma,Other serious eye condition"= 1,
+  "Injury OR trauma resulting in loss of vision,Cataract"= 1,
+  "Injury OR trauma resulting in loss of vision,Cataract,Macular degeneration"= 1,
+  "Macular degeneration"= 1,
+  "None of the above"= 2,
+  "Other serious eye condition"= 1
+)
+data_p5$vis1 <- vision_map[data_p5$QB11]
+data_p5$vis1 <- as.numeric(data_p5$vis1)
+table(data_p5$vis1)
+
+table(data_p5$QB8b)
+data_p5$vis2 <- yn_mapping[data_p5$QB8b]
+data_p5$vis2 <- as.numeric(data_p5$vis2)
+table(data_p5$vis2)
+
+table(data_p5$QB8d)
+data_p5$vis3 <- yn_mapping[data_p5$QB8d]
+data_p5$vis3 <- as.numeric(data_p5$vis3)
+table(data_p5$vis3)
+
+# check if all numeric, total 14 variables
+for (nm in names(data_p5)) {
+  cat(nm, ":", paste(class(data_p5[[nm]]), collapse = " / "), "\n")
+}
+
+
+
+
+#### Compute latent factors through CFA
+## DOES NOT WORK
+
+CFA_longLS <- 
+  'lML2 =~ alc1 + alc2
+  lML3 =~ 1*BMI
+  lML4 =~ bp + est_PAEE_P5 + hear1 + hear2 + vis1
+  lML5 =~ diab + chol
+  lML6 =~ dep1 + smok
+  '
+
+data_p5_cfa <- subset(data_p5, select = c(est_PAEE_P5,
+                                          BMI,
+                                          alc1,
+                                          alc2,
+                                          dep1,
+                                          diab,
+                                          hear1, 
+                                          hear2, 
+                                          bp,
+                                          chol, 
+                                          smok, 
+                                          vis1))
+data_p5_scale <-scale(data_p5_cfa)
+
+fit_p5 <- cfa(CFA_longLS, data = data_p5_scale, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE,  optim.method = "BFGS") 
+summary(fit_p5, fit.measures = T, standardized = T)
+lavInspect(fit_p5, "cov.lv")
+
+### Try defining categorical ones
+
+# categorical (binary/ordinal) indicators only
+cat_vars <- c("dep1", "diab", "hear1", "hear2", "bp", "chol", "smok" ,"vis1")  # ← your 0/1 or Likert vars
+
+fit_p5_cat <- cfa(
+  model = CFA_longLS,
+  data = data_p5,
+  ordered = cat_vars,        # only the categorical ones listed here
+  estimator = "WLSMV",       # recommended for (any) categorical indicators
+  parameterization = "theta",
+  std.lv = TRUE
+)
+
+summary(fit_p5_cat, fit.measures = TRUE, standardized = TRUE)
+table(data_p5$hear1)
+
+
+
+### Alternate solution
+lML2 <- data_p5[c("alc1", "alc2")]
+# Run factor analysis with 1 factor and varimax rotation
+lML2_res <- fa(lML2, nfactors = 1, rotate = "varimax", fm = "ml")
+# Print factor loadings
+print(lML2_res$loadings, cutoff = 0.3)
+mean(lML2_res$communality)
+#Export to Table
+lML2_loadings_df <- as.data.frame(lML2_res$scores)
+lML2_loadings_df$lML2 <- lML2_loadings_df$ML1
+
+### BMI
+# (optional) keep only the column you need
+lML3 <- data_p5["BMI"]
+
+model_lML3_noerr <- '
+  lML3 =~ 1*BMI
+  BMI ~~ 0*BMI      # assumes BMI is error-free
+'
+
+fit_lML3_noerr <- lavaan::cfa(
+  model_lML3_noerr,
+  data = lML3,                 # or data = data_p5 (either is fine)
+  estimator = "MLR",
+  missing   = "fiml"
+)
+
+summary(fit_lML3_noerr, standardized = TRUE, fit.measures = TRUE)
+
+# Person-level factor scores (not "loadings")
+scores <- lavaan::lavPredict(fit_lML3_noerr, method = "regression")
+data_p5$lML3_score <- as.numeric(scores[, "lML3"])
+
+
+lML4 <- data_p5[c("bp", "est_PAEE_P5", "hear1", "hear2", "vis1")]
+# Run factor analysis with 1 factor and varimax rotation
+lML4_res <- fa(lML4, nfactors = 1, rotate = "varimax", fm = "ml")
+# Print factor loadings
+print(lML4_res$loadings, cutoff = 0.3)
+mean(lML4_res$communality)
+#Export to Table
+lML4_loadings_df <- as.data.frame(lML4_res$scores)
+lML4_loadings_df$lML4 <- lML4_loadings_df$ML1
+
+
+lML5 <- data_p5[c("diab", "chol")]
+# Run factor analysis with 1 factor and varimax rotation
+lML5_res <- fa(lML5, nfactors = 1, rotate = "varimax", fm = "ml")
+# Print factor loadings
+print(lML5_res$loadings, cutoff = 0.3)
+mean(lML5_res$communality)
+#Export to Table
+lML5_loadings_df <- as.data.frame(lML5_res$scores)
+lML5_loadings_df$lML5 <- lML5_loadings_df$ML1
+
+
+lML6 <- data_p5[c("dep1", "smok")]
+nrow(lML6_loadings_df)
+# Run factor analysis with 1 factor and varimax rotation
+lML6_res <- fa(lML6, nfactors = 1, rotate = "varimax", fm = "ml")
+# Print factor loadings
+print(lML6_res$loadings, cutoff = 0.3)
+mean(lML6_res$communality)
+#Export to Table
+lML6_loadings_df <- as.data.frame(lML6_res$scores)
+lML6_loadings_df$lML6 <- lML6_loadings_df$ML1
+
+#### new df for deltas
+
+data_p5$lML2 <- lML2_loadings_df$lML2
+data_p5$lML3 <- data_p5$lML3_score   # rename/copy score into lML3
+data_p5$lML4 <- lML4_loadings_df$lML4
+data_p5$lML5 <- lML5_loadings_df$lML5
+data_p5$lML6 <- lML6_loadings_df$lML6
+
+ # or overwrite CCID in place
+data_p5$CCID <- sub("^CC", "", as.character(data_p5$CCID))
+data_p5$CCIDmodified <- data_p5$CCID
+data_ls_delta <- merge(data_p5, data_sem_sex, by = "CCIDmodified")
+nrow(data_ls_delta)
+
+data_ls_delta <- subset(data_ls_delta, select = c(ML1, ML2, ML3, ML4, ML5, ML6, lML2, lML3, lML4, lML5, lML6, sex
+  
+))
+data_ls_delta$delaML2 <- data_ls_delta$lML2 - data_ls_delta$ML2
+data_ls_delta$delaML3 <- data_ls_delta$lML3 - data_ls_delta$ML3
+data_ls_delta$delaML4 <- data_ls_delta$lML4 - data_ls_delta$ML4
+data_ls_delta$delaML5 <- data_ls_delta$lML5 - data_ls_delta$ML5
+data_ls_delta$delaML6 <- data_ls_delta$lML6 - data_ls_delta$ML6
+
+LS_long <- read.csv("Longitudinal relevant data/Demographic Information Questionnaire Data March 2024_11.49.csv")
+CCID <- read.csv("Longitudinal relevant data/Date_time_RSID_of_completed_questionnare_31_May_2024.csv")
+CCID_conversion<- read_xlsx("Longitudinal relevant data/CCID_RSID_for_AA.xlsx") 
+LS_longpt2<- read.csv("Longitudinal relevant data/CambridgeCentreForAg-HeightWeightP5_DATA_LABELS_2025-09-25_0133.csv")
+
+
+colnames(LS_long)
+colnames(CCID)
+colnames(CCID_conversion)
+colnames(LS_longpt2)
+View(LS_long)
+View(CCID)
+head(CCID_conversion)
+
+
+# inner join (only rows where BOTH keys match)
+
+
+library(dplyr)
+install.packages("lubridate")
+library(lubridate)
+
+# LS_long: e.g., "2023-01-30 11:29:03"
+LS_long_norm <- LS_long %>%
+  mutate(
+    StartKey    = floor_date(ymd_hms(trimws(StartDate),    tz = "UTC"), unit = "minute"),
+    RecordedKey = floor_date(ymd_hms(trimws(RecordedDate), tz = "UTC"), unit = "minute")
+  )
+
+# CCID: e.g., "09/05/2023 22:49"  (day/month/year)
+# If your slashed dates are month/day/year, swap dmy_hm() for mdy_hm()
+CCID_norm <- CCID %>%
+  mutate(
+    StartKey    = dmy_hm(trimws(Start.Date),    tz = "UTC"),
+    RecordedKey = dmy_hm(trimws(Recorded.Date), tz = "UTC")
+  )
+
+## 3) Join on BOTH keys
+merged_both <- inner_join(LS_long_unique, CCID_unique,
+                          by = c("StartKey", "RecordedKey"))
+
+nrow(merged_both)
+colnames(merged_ls)
+#################
+
+merged_ls <- merge(merged_both, CCID_conversion, by = "RSID")
+LS_longpt2$CCID <- LS_longpt2$CC.ID
+LS_longpt2$CCID <- paste0("CC", LS_longpt2$CCID)
+merged_ls <- merge(merged_ls, LS_longpt2, by = "CCID")
+
+
+##  PAEE 
+PAEE <- read.csv("Longitudinal relevant data/imputed_longitudinal_PA_P5returners.csv") 
+PAEE$CCID <- paste0("CC", PAEE$CCID)
+merged_ls <- merge(merged_ls, PAEE, by = "CCID")
+colnames(PAEE)
+
+### Data:
+data_p5 <- merged_ls
+data_p5 <- subset(merged_ls, select = c(CCID, Q48e, Q48f, Height.of.the.participant.in.this.phase, Weight.of.the.participant.in.this.phase,
+                                     QB15_TABLE.1_19, QB15_TABLE.2_19_1, QB6,QB7, QB6a, QB16, QB15_TABLE.1_1, QB15_TABLE.2_8_1,QB15_TABLE.1_8, QB47b, QB47, QB11, QB8d, QB8b, Sex, est_PAEE_P5))
+
+data_p5$BMI <- data_p5$Weight.of.the.participant.in.this.phase / ((data_p5$Height.of.the.participant.in.this.phase/100)*(data_p5$Height.of.the.participant.in.this.phase/100))
+
+
+#### Transform lifestyle
+ncol(data_p5)
+
+#summary(data_p5$BMI)
+#summary(data_p5$est_PAEE_P5)
+
+## Alcohol
+table(data_p5$Q48e)
+# What I did: Worse Drinking habit is lowest score
+Q48e_mapping <- c("4 or more times a week" = 0,
+                  "2-3 times a week" = 1,
+                  "2-4 times a month" = 2,
+                  "Monthly or less" = 3,
+                  "Never" = 4)
+
+data_p5$alc1 <- Q48e_mapping[data_p5$Q48e]
+data_p5$alc1 <- as.numeric(data_p5$alc1)
+table(data_p5$alc1)
+
+table(data_p5$Q48f)
+# What I did: Worse Drinking habit is lowest score
+Q48f_mapping <- c("more than 9" = 0,
+                  "7 to 9" = 1,
+                  "5 or 6" = 2,
+                  "3 or 4" = 3,
+                  "1 or 2" = 4)
+
+data_p5$alc2 <- Q48f_mapping[data_p5$Q48f]
+data_p5$alc2 <- as.numeric(data_p5$alc2)
+table(data_p5$alc2)
+
+
 
 ##Depression
 table(data_p5$QB15_TABLE.1_19)
