@@ -1,0 +1,467 @@
+### Better WM factors
+############# Compute Latent factors ###########
+################################################
+
+wmp5_latent <- select(merged_long, Fiso2_mean, ODI2_mean, NDI2_mean, MK2_mean, MD2_mean, FA2_mean, )
+
+wm_p5_results <- fa(wmp5_latent, nfactors = 3, rotate = "varimax", fm = "ml")
+
+# Print factor loadings
+print(wm_p5_results$loadings, cutoff = 0.3)
+mean(wm_p5_results$communality)
+
+
+### Exact replica does not converge
+WM_long_model <- '
+  # Factor 1 (like ML1)
+  WM1lf =~ start(0.886)*FA2_mean + start(-0.757)*MD2_mean +
+         start(0.643)*MK2_mean + start(0.927)*NDI2_mean
+
+  # Factor 2 (like ML2)
+  WM2lf =~ start(-0.400)*FA2_mean + start(0.596)*MD2_mean +
+         start(0.983)*Fiso2_mean
+
+  # Factor 3 (like ML3)
+  WM3lf =~ start(0.369)*NDI2_mean + start(0.941)*ODI2_mean
+'
+fit_wm <- cfa(WM_long_model, data = merged_long_z, std.lv = TRUE,
+              estimator = "MLR", missing = "fiml")
+summary(fit_wm, standardized = TRUE, fit.measures = TRUE)
+
+colnames(merged_long)
+
+
+### Gives similar factor though not the same
+WM_esem <- '
+  efa("block1")*WM1lf + efa("block1")*WM2lf + efa("block1")*WM3lf =~
+    FA2_mean + MD2_mean + MK2_mean + NDI2_mean + ODI2_mean + Fiso2_mean
+'
+fit_esem <- cfa(WM_esem, data = merged_long_z, std.lv = TRUE,
+                estimator = "MLR", missing = "fiml", start = "simple")
+summary(fit_esem, standardized = TRUE, fit.measures = TRUE)
+
+# --- 1) Matrix of loadings ---
+# unstandardized (Lambda)
+Lambda <- lavaan::inspect(fit_esem, "est")$lambda
+
+# fully standardized (Std.all) – usually what you want to compare to published loadings
+Lambda.std <- lavaan::inspect(fit_esem, "std")$lambda
+
+# add names
+colnames(Lambda.std) <- lavaan::lavNames(fit_esem, "lv")
+rownames(Lambda.std) <- lavaan::lavNames(fit_esem, "ov")
+
+# view
+Lambda.std
+
+L <- Lambda.std
+class(L) <- "loadings"          # give it a loadings class for pretty printing
+print(L, cutoff = 0.30, digits = 3)
+
+# 1) Factor scores from  ESEM 
+scores <- lavPredict(fit_esem, method = "EBM")   # or method = "regression"
+scores_df <- as.data.frame(scores)
+names(scores_df) <- paste0(names(scores_df), "_score")  # e.g., WM1lf_score, ...
+nrow(scores_df)
+
+
+merged_long$WM1p5 = scores_df$WM1lf_score 
+merged_long$WM2p5 = scores_df$WM2lf_score 
+merged_long$WM1delta = scores_df$WM1lf_score - merged_long$WM1
+merged_long$WM2delta = scores_df$WM2lf_score - merged_long$WM2
+head(merged_long)
+merged_long$CCIDmodified <- merged_long$CCID
+
+
+###Lifestyle
+CFA_longLS <- 
+  'lML2 =~ alc1 + alc2
+  lML3 =~ 1*BMI
+  lML4 =~ bp + est_PAEE_P5 + hear1 + hear2 + vis1
+  lML5 =~ diab + chol
+  lML6 =~ dep1 + smok
+  '
+
+data_p5_cfa <- subset(data_p5, select = c(est_PAEE_P5,
+                                          BMI,
+                                          alc1,
+                                          alc2,
+                                          dep1,
+                                          diab,
+                                          hear1, 
+                                          hear2, 
+                                          bp,
+                                          chol, 
+                                          smok, 
+                                          vis1))
+data_p5_scale <-scale(data_p5_cfa)
+
+fit_p5 <- cfa(CFA_longLS, data = data_p5_scale, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE,  optim.method = "BFGS") 
+summary(fit_p5, fit.measures = T, standardized = T)
+lavInspect(fit_p5, "cov.lv")
+
+
+
+# --- 1) Matrix of loadings ---
+# unstandardized (Lambda)
+Lambdals <- lavaan::inspect(fit_p5, "est")$lambda
+
+# fully standardized (Std.all) – usually what you want to compare to published loadings
+Lambdals.std <- lavaan::inspect(fit_p5, "std")$lambda
+
+# add names
+colnames(Lambdals.std) <- lavaan::lavNames(fit_p5, "lv")
+rownames(Lambdals.std) <- lavaan::lavNames(fit_p5, "ov")
+
+# view
+Lambdals.std
+
+Lls <- Lambdals.std
+class(Lls) <- "loadings"          # give it a loadings class for pretty printing
+print(Lls, cutoff = 0.30, digits = 3)
+
+# 1) Factor scores from  ESEM 
+scoresls <- lavPredict(fit_p5, method = "EBM")   # or method = "regression"
+scoresls_df <- as.data.frame(scoresls)
+names(scoresls_df) <- paste0(names(scoresls_df), "_score")  # e.g., WM1lf_score, ...
+colnames(data_long_sem)
+nrow(data_p5)
+
+
+data_p5$CCID <- sub("^CC", "", as.character(data_p5$CCID))
+data_p5$CCIDmodified <- data_p5$CCID
+data_ls_delta <- merge(data_p5, data_sem_sex, by = "CCIDmodified")
+nrow(data_ls_delta)
+
+data_ls_delta <- subset(data_ls_delta, select = c(CCIDmodified, ML1, ML2, ML3, ML4, ML5, ML6, lML2, lML3, lML4, lML5, lML6, sex
+                                                  
+))
+data_ls_delta$ML2delta <- data_ls_delta$lML2 - data_ls_delta$ML2
+data_ls_delta$ML3delta <- data_ls_delta$lML3 - data_ls_delta$ML3
+data_ls_delta$ML4delta <- data_ls_delta$lML4 - data_ls_delta$ML4
+data_ls_delta$ML5delta <- data_ls_delta$lML5 - data_ls_delta$ML5
+data_ls_delta$ML6delta <- data_ls_delta$lML6 - data_ls_delta$ML6
+
+
+
+data_long_sem <- merge(merged_long,scores_df )
+data_p5$lML1 = scoresls_df$lML1_score
+data_p5$lML2 = scoresls_df$lML2_score
+data_p5$lML3 = scoresls_df$lML3_score
+data_p5$lML4 = scoresls_df$lML4_score
+data_p5$lML5 = scoresls_df$lML5_score
+data_p5$lML6 = scoresls_df$lML6_score
+
+nrow(data_long_sem)
+
+#### Consider changing the P1 factors to have better change in LS scores>
+CFA_longP1 <- 
+  'lML2p1 =~ alcoholmodified + v290m
+  lML3p1 =~ 1*BMIm
+  lML4p1 =~ v349m + PAEE + v336m + v338m + v328m
+  lML5p1 =~ v377m + v355m
+  lML6p1 =~ v422m + v241m
+  '
+
+CFA_longP1fit <- cfa(CFA_longP1, data = my_data_scaled, missing = "fiml", em.h1.iter.max = 10000, verbose = TRUE,  optim.method = "BFGS") 
+summary(CFA_longP1fit, fit.measures = T, standardized = T)
+lavInspect(CFA_longP1fit, "cov.lv")
+
+
+
+# --- 1) Matrix of loadings ---
+# unstandardized (Lambda)
+Lambdalsp1 <- lavaan::inspect(CFA_longP1fit, "est")$lambda
+
+# fully standardized (Std.all) – usually what you want to compare to published loadings
+Lambdalsp1.std <- lavaan::inspect(CFA_longP1fit, "std")$lambda
+
+# add names
+colnames(Lambdalsp1.std) <- lavaan::lavNames(CFA_longP1fit, "lv")
+rownames(Lambdalsp1.std) <- lavaan::lavNames(CFA_longP1fit, "ov")
+
+# view
+Lambdalsp1.std
+
+Llsp1 <- Lambdals.std
+class(Llsp1) <- "loadings"          # give it a loadings class for pretty printing
+print(Llsp1, cutoff = 0.30, digits = 3)
+
+# 1) Factor scores from  ESEM 
+scoreslsp1 <- lavPredict(CFA_longP1fit, method = "EBM")   # or method = "regression"
+scoresls_dfp1 <- as.data.frame(scoreslsp1)
+names(scoresls_dfp1) <- paste0(names(scoresls_dfp1), "_score")
+nrow(scoresls_dfp1)
+
+scoresls_dfp1$CCIDmodified <- data_sem_sex$CCIDmodified
+scoresls_dfp1$CCIDmodified <- sub("^CC", "", as.character(scoresls_dfp1$CCIDmodified))
+data_ls_delta <- merge(scoresls_dfp1, data_ls_delta, by = "CCIDmodified")
+nrow(data_ls_delta)
+colnames(data_ls_delta)
+
+## compute delta with adjusted P1 latent factors
+data_ls_delta$ML2deltap1 <- data_ls_delta$lML2 - data_ls_delta$ML2p1_score
+data_ls_delta$ML3deltap1 <- data_ls_delta$lML3 - data_ls_delta$lML3p1_score.x
+data_ls_delta$ML4deltap1 <- data_ls_delta$lML4 - data_ls_delta$lML4p1_score.x
+data_ls_delta$ML5deltap1 <- data_ls_delta$lML5 - data_ls_delta$lML5p1_score.x
+data_ls_delta$ML6deltap1 <- data_ls_delta$lML6 - data_ls_delta$lML6p1_score.x
+
+
+# plots
+library(tidyverse)
+install.packages("tidyverse")
+
+# example: df with columns id, t1, t2
+# df <- tibble(id = 1:100, t1 = rnorm(100, 50, 10), t2 = t1 + rnorm(100, 2, 5))
+colnames(data_ls_delta)
+colnames(merged_long)
+nrow(merged_long)
+df_long <- merged_long %>%
+  mutate(change = COG5 - COG) %>%                      # change score per person
+  pivot_longer(c(COG, COG5), names_to = "time", values_to = "value") %>%
+  mutate(
+    time = factor(time, levels = c("COG","COG5"), labels = c("COGP1","COGP5")),
+    direction = case_when(
+      change > 0 ~ "increase",
+      change < 0 ~ "decrease",
+      TRUE       ~ "no change"
+    )
+  )
+
+ggplot(df_long, aes(time, value, group = CCID, color = direction)) +
+  geom_line(alpha = 0.35) +
+  geom_point(size = 1.8, alpha = 0.7) +
+  stat_summary(aes(group = time),
+               fun = mean, geom = "point", size = 3, shape = 18, color = "black") +
+  stat_summary(aes(group = time),
+               fun.data = mean_cl_normal, geom = "errorbar", width = 0.08, color = "black") +
+  labs(x = NULL, y = "Value", color = "Change",
+       caption = "Triangles show group means ± approx. 95% CI") +
+  theme_classic()
+################ plot 2
+# keep only the ID and Age columns from num_data
+num_age <- unique(num_data[, c("CCIDmodified", "Age")])
+
+# ensure the join key has the same type
+merged_long$CCIDmodified <- as.character(merged_long$CCIDmodified)
+num_age$CCIDmodified     <- as.character(num_age$CCIDmodified)
+
+# left join: keep all rows from merged_long
+merged_long <- merge(merged_long, num_age, by = "CCIDmodified", all.x = TRUE)
+
+
+lag_years <- 12
+
+df_w <- merged_long %>%
+  mutate(
+    age_t2   = Age + lag_years,
+    change   = COG5 - COG,
+    direction = case_when(
+      change > 0 ~ "increase",
+      change < 0 ~ "decrease",
+      TRUE       ~ "no change"
+    )
+  )
+
+ggplot(df_w) +
+  geom_segment(aes(x = Age, xend = age_t2,
+                   y = COG,     yend = COG5,
+                   color = direction),
+               alpha = 0.35) +
+  geom_point(aes(x = Age, y = COG, color = direction), size = 1.8, alpha = 0.8) +
+  geom_point(aes(x = age_t2, y = COG5, color = direction), size = 1.8, alpha = 0.8) +
+  labs(x = "Age (years)", y = "COGdelta", color = "Change") +
+  theme_classic()
+
+
+############## WM plots #########
+##################################
+# example: df with columns id, t1, t2
+# df <- tibble(id = 1:100, t1 = rnorm(100, 50, 10), t2 = t1 + rnorm(100, 2, 5))
+colnames(data_ls_delta)
+colnames(merged_long)
+nrow(merged_long)
+df_longwm1 <- merged_long %>%
+  mutate(change = WM2p5 - WM2) %>%                      # change score per person
+  pivot_longer(c(WM2, WM2p5), names_to = "time", values_to = "value") %>%
+  mutate(
+    time = factor(time, levels = c("WM2","WM2p5"), labels = c("WM2p1","WM2p5")),
+    direction = case_when(
+      change > 0 ~ "increase",
+      change < 0 ~ "decrease",
+      TRUE       ~ "no change"
+    )
+  )
+
+ggplot(df_longwm1, aes(time, value, group = CCID, color = direction)) +
+  geom_line(alpha = 0.35) +
+  geom_point(size = 1.8, alpha = 0.7) +
+  stat_summary(aes(group = time),
+               fun = mean, geom = "point", size = 3, shape = 18, color = "black") +
+  stat_summary(aes(group = time),
+               fun.data = mean_cl_normal, geom = "errorbar", width = 0.08, color = "black") +
+  labs(x = NULL, y = "WM2change", color = "Change",
+       caption = "Triangles show group means ± approx. 95% CI") +
+  theme_classic()
+
+################ plot 2
+# keep only the ID and Age columns from num_data
+num_age <- unique(num_data[, c("CCIDmodified", "Age")])
+
+# ensure the join key has the same type
+merged_long$CCIDmodified <- as.character(merged_long$CCIDmodified)
+num_age$CCIDmodified     <- as.character(num_age$CCIDmodified)
+
+# left join: keep all rows from merged_long
+merged_long <- merge(merged_long, num_age, by = "CCIDmodified", all.x = TRUE)
+
+
+lag_years <- 12
+
+df_wm1 <- merged_long %>%
+  mutate(
+    age_t2   = Age + lag_years,
+    change   = WM2p5 - WM2,
+    direction = case_when(
+      change > 0 ~ "increase",
+      change < 0 ~ "decrease",
+      TRUE       ~ "no change"
+    )
+  )
+
+ggplot(df_wm1) +
+  geom_segment(aes(x = Age, xend = age_t2,
+                   y = WM2,     yend = WM2p5,
+                   color = direction),
+               alpha = 0.35) +
+  geom_point(aes(x = Age, y = WM2, color = direction), size = 1.8, alpha = 0.8) +
+  geom_point(aes(x = age_t2, y = WM2p5, color = direction), size = 1.8, alpha = 0.8) +
+  labs(x = "Age (years)", y = "WM2delta", color = "Change") +
+  theme_classic()
+
+ 
+
+####################### LS Plots ##############
+###############################################
+
+
+# example: df with columns id, t1, t2
+# df <- tibble(id = 1:100, t1 = rnorm(100, 50, 10), t2 = t1 + rnorm(100, 2, 5))
+colnames(data_ls_delta)
+colnames(merged_long)
+
+
+
+
+
+
+
+
+
+
+
+
+### New SEM with adjusted P1 lifestyle factors
+#Model
+SEM_lsp5adj <- '
+
+  # Paths from lifestyle factors to WM
+  WM1delta ~  a2*ML4deltap1 + a3*ML6deltap1 + sex.x
+  WM2delta ~ a4*ML2deltap1 + a5*ML3deltap1 + a6*ML4deltap1 + a7*ML6deltap1 + sex.x
+
+  # Paths to cognition
+  COGdelta ~ b1*WM1delta + b2*WM2delta +
+          c2*ML2deltap1 + c3*ML3deltap1+ c4*ML4deltap1 + c5*ML5deltap1 + c6 *ML6deltap1 + 
+          sex.x
+
+  # Indirect effects for each ML through WM1
+  ind_ML4_WM1 := a2 * b1
+  ind_ML6_WM1 := a3 * b1
+  
+
+  # Indirect effects for each ML through WM2
+  ind_ML2_WM2 := a4 * b2
+  ind_ML3_WM2 := a5 * b2
+  ind_ML4_WM2 := a6 * b2
+  ind_ML6_WM2 := a7 * b2
+
+  # Total indirect effects (WM1 + WM2)
+  total_ind_ML4 := ind_ML4_WM1 + ind_ML4_WM2
+  total_ind_ML6 := ind_ML6_WM1 + ind_ML6_WM2
+
+ 
+'
+SEM_lsp5adjfit <- sem(SEM_lsp5adj, data = data_long_sem, std.lv = TRUE)
+summary(SEM_lsp5adjfit, fit.measures = TRUE, standardized = TRUE, rsquare= TRUE)
+
+colnames(data_long_sem)
+
+
+
+#################### Paths #####################
+################################################
+semPaths(SEM_lsp5adjfit, 
+         what = "std",        # standardized estimates
+         layout = "tree2",     # nice clean tree layout
+         edge.label.cex = 1.1, # size of path labels
+         sizeMan = 6,          # observed variable size
+         sizeLat = 8,          # latent variable size
+         nCharNodes = 0,       # show full variable names
+         style = "lisrel",     # classic SEM look
+         residuals = FALSE,    # hide residual arrows
+         intercepts = FALSE)   # hide intercepts
+
+# Saving it
+semPaths(SEM_lsp5adjfit, what = "std", layout = "tree", edge.label.cex = 1.1)
+dev.off()
+
+#################### Table ####################
+################################################
+
+parameterEstimates(SEM_lsp5adjfit, standardized = TRUE) %>% 
+  filter( op %in% c("~", ":=", "~~")) %>%
+  mutate(Significance = case_when(
+    pvalue < 0.001 ~ "***",
+    pvalue < 0.01 ~ "**",
+    pvalue < 0.05 ~ "*",
+    TRUE ~ ""
+  )) %>%
+  select(Predictor = lhs,
+         Relationship = op,
+         Outcome = rhs, 
+         Estimate = est,
+         'Std. Est.' = std.all,
+         SE = se,
+         z = z,
+         'p-value' = pvalue,
+         Significance) %>%
+  kable(format= "html", digits = 3, captio = "SEM Parameter Estimates") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), 
+                full_width = FALSE,
+                position = "center")
+
+############## Presentations ##############
+############################################
+
+SEM_lsp5adjfit_table <- data.frame(
+  Measure = c("Chi-square", "Degrees of Freedom", "p-value", "CFI", "TLI", "SRMR", "RMSEA",  "BIC"),
+  Value = round(c(
+    fitMeasures(SEM_lsp5adjfit, "chisq"),
+    fitMeasures(SEM_lsp5adjfit, "df"),
+    fitMeasures(SEM_lsp5adjfit, "pvalue"),
+    fitMeasures(SEM_lsp5adjfit, "CFI"),
+    fitMeasures(SEM_lsp5adjfit, "TLI"),
+    fitMeasures(SEM_lsp5adjfit, "SRMR"),
+    fitMeasures(SEM_lsp5adjfit, "rmsea"),
+    fitMeasures(SEM_lsp5adjfit, "bic")
+  ), 3)
+)
+
+kable(SEM_lsp5adjfit_table, caption = "SEM Model Fit Indices") %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+
+
+
+
+
